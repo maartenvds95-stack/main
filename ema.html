@@ -1388,63 +1388,73 @@
   }
 
   function renderUnits() {
-      const container = document.getElementById('rightPanelUnits');
-      container.innerHTML = ''; 
+    const container = document.getElementById('rightPanelUnits');
+    if (!container) return;
+    container.innerHTML = '';
 
-      const operationalUnits = units.filter(u => u.status !== 'uitgemeld');
-      if (operationalUnits.length === 0) {
-          container.innerHTML = '<div class="empty-table-msg" style="padding:16px;">Geen operationele eenheden beschikbaar</div>';
-          return;
-      }
+    const operationalUnits = units.filter(u => u.status !== 'uitgemeld');
+    if (operationalUnits.length === 0) {
+        container.innerHTML = '<div class="empty-table-msg" style="padding:16px;">Geen operationele eenheden beschikbaar</div>';
+        return;
+    }
 
-      operationalUnits.forEach((u, index) => {
-          const style = getStatusStyle(u.status);
-          const isDraggable = (u.status !== 'uitgemeld' && u.status !== 'uitgerukt');
-          
-          const rowHTML = `
-            <div class="unit-row" ${isDraggable ? `draggable="true" data-drag-unit="${u.id}" style="cursor: grab;"` : ''}>
-              <div class="unit-left">
+    operationalUnits.forEach((u) => {
+        const style = getStatusStyle(u.status);
+        const isDraggable = (u.status !== 'uitgemeld' && u.status !== 'uitgerukt');
+
+        const row = document.createElement('div');
+        row.className = 'unit-row';
+        if (isDraggable) {
+            row.draggable = true;
+            row.setAttribute('data-drag-unit', u.id);
+            row.style.cursor = 'grab';
+        }
+
+        row.innerHTML = `
+            <div class="unit-left">
                 <span class="unit-dot ${style.dot}"></span>
                 <div>
-                  <div><span class="unit-name">${u.id}</span><span class="unit-type">${u.type}</span></div>
-                  <div class="unit-loc">Locatie: ${u.location}</div>
+                    <div>
+                        <span class="unit-name">${u.id}</span>
+                        <span class="unit-type">${u.type}</span>
+                    </div>
+                    <div class="unit-loc">Locatie: ${u.location}</div>
                 </div>
-              </div>
-              <select class="status-dropdown-base unit-status-select ${style.bg}" data-index="${index}">
-                <option value="uitgerukt" ${u.status === 'uitgerukt' ? 'selected' : ''}>uitgerukt</option>
-                <option value="inzetbaar" ${u.status === 'inzetbaar' ? 'selected' : ''}>inzetbaar</option>
-                <option value="retour post" ${u.status === 'retour post' ? 'selected' : ''}>retour post</option>
-                <option value="op post" ${u.status === 'op post' ? 'selected' : ''}>op post</option>
-                <option value="pauze" ${u.status === 'pauze' ? 'selected' : ''}>pauze</option>
-                <option value="uitgemeld" ${u.status === 'uitgemeld' ? 'selected' : ''}>uitgemeld</option>
-              </select>
             </div>
-          `;
-          container.innerHTML += rowHTML;
-      });
+            <select class="status-dropdown-base unit-status-select ${style.bg}">
+                <option value="uitgerukt"   ${u.status === 'uitgerukt'    ? 'selected' : ''}>uitgerukt</option>
+                <option value="inzetbaar"   ${u.status === 'inzetbaar'    ? 'selected' : ''}>inzetbaar</option>
+                <option value="retour post" ${u.status === 'retour post'  ? 'selected' : ''}>retour post</option>
+                <option value="op post"     ${u.status === 'op post'      ? 'selected' : ''}>op post</option>
+                <option value="pauze"       ${u.status === 'pauze'        ? 'selected' : ''}>pauze</option>
+                <option value="uitgemeld"   ${u.status === 'uitgemeld'    ? 'selected' : ''}>uitgemeld</option>
+            </select>
+        `;
 
-      container.querySelectorAll('.unit-row[draggable="true"]').forEach(row => {
-          row.addEventListener('dragstart', (e) => {
-              e.dataTransfer.setData('text/plain', e.target.getAttribute('data-drag-unit'));
-              e.dataTransfer.effectAllowed = 'copyMove';
-          });
-      });
+        // ✅ FIX 2: Zoek op ID, niet op index
+        row.querySelector('.unit-status-select').addEventListener('change', (e) => {
+            const unitIndex = units.findIndex(x => x.id === u.id);
+            if (unitIndex !== -1) {
+                units[unitIndex].status = e.target.value;
+                setDoc(doc(db, "units", u.id), units[unitIndex]);
+            }
+            // ✅ FIX 1: renderUnits wordt maar 1x aangeroepen
+            renderUnits();
+            if (typeof renderUnitsTable === 'function') renderUnitsTable();
+            renderTables();
+            if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+        });
 
-      document.querySelectorAll('.unit-status-select').forEach(dropdown => {
-          dropdown.addEventListener('change', (e) => {
-              const visibleIndex = parseInt(e.target.getAttribute('data-index'));
-              const operationalIndex = units.findIndex(u => u.status !== 'uitgemeld' && units.filter((_, i) => units[i].status !== 'uitgemeld').indexOf(u) === visibleIndex);
-              const unitIndex = units.findIndex((u, i) => u.status !== 'uitgemeld' && operationalUnits.indexOf(u) === visibleIndex);
-              if (unitIndex !== -1) {
-                  units[unitIndex].status = e.target.value;
-                  setDoc(doc(db, "units", units[unitIndex].id), units[unitIndex]);
-              }
-              renderUnits();
-              renderUnitsTable();
-              renderTables();
-              renderDetailedUnitsTable();
-          });
-      });
+        // Drag events direct op de row, niet via querySelectorAll achteraf
+        if (isDraggable) {
+            row.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', u.id);
+                e.dataTransfer.effectAllowed = 'copyMove';
+            });
+        }
+
+        container.appendChild(row);
+    });
   }
 
   function renderPosts() {
@@ -1922,22 +1932,15 @@
           addLog('Afloop', `Afloop: ${reason}`, '', incident.id, incident.location);
 
           const upUnits = incident.units || [];
-          if (reason === 'Retour ALS' || reason === 'Retour BLS') {
-            upUnits.forEach(uidStr => {
+          upUnits.forEach(uidStr => {
               const u = units.find(x => uidStr === x.id || uidStr.endsWith(': ' + x.id));
-              if (u) u.status = 'retour post';
-              if (u) addLog('Status', `Eenheid ${reason.includes('ALS') ? 'retour post' : 'op post'}`, u.id, incident.id, incident.location);
-            });
-          } else {
-            upUnits.forEach(uidStr => {
-              const u = units.find(x => uidStr === x.id || uidStr.endsWith(': ' + x.id));
-              if (u) u.status = 'op post';
-              if (u) addLog('Status', `Eenheid ${reason.includes('ALS') ? 'retour post' : 'op post'}`, u.id, incident.id, incident.location);
-            });
-          }
+              if (u) {
+                  u.status = (reason === 'Retour ALS' || reason === 'Retour BLS') ? 'retour post' : 'op post';
+                  setDoc(doc(db, "units", u.id), u);
+                  addLog('Status', `Eenheid ${u.status}`, u.id, incident.id, incident.location);
+              }
+          });
 
-          saveUnitsToStorage();
-          saveIncidentsToStorage();
           renderTables();
           renderUnits();
           renderDetailedUnitsTable();
@@ -2004,49 +2007,55 @@
 
   form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const formData = new FormData(form);
-      const melder = formData.get('reporter').toLowerCase().trim();
-      
-      let assignedUnit = "-";
-      let alertMsg = "Melding succesvol aangemaakt.";
-
-      // Systeem intelligentie: herken u1, u2, u3, etc.
-      if (melder.startsWith('u') && !isNaN(melder.substring(1))) {
-          const uNum = melder.substring(1).padStart(2, '0');
-          assignedUnit = `Uitruk ${uNum}`;
+      try {
+          const formData = new FormData(form);
+          const melder = formData.get('reporter').toLowerCase().trim();
           
-          const unitToUpdate = units.find(u => u.id === assignedUnit);
-          if(unitToUpdate) {
-              unitToUpdate.status = "uitgerukt";
-              unitToUpdate.location = formData.get('location'); 
-              setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
-              alertMsg = `MELDING AANGEMAAKT!\nEenheid '${assignedUnit}' is herkend en de status is automatisch gezet op 'uitgerukt'.`;
+          let assignedUnit = "-";
+          let alertMsg = "Snelle medische melding succesvol aangemaakt.";
+    
+          // Systeem intelligentie: herken u1, u2, u3, etc.
+          if (melder.startsWith('u') && !isNaN(melder.substring(1))) {
+              const uNum = melder.substring(1).padStart(2, '0');
+              assignedUnit = `Uitruk ${uNum}`;
+              
+              const unitToUpdate = units.find(u => u.id === assignedUnit);
+              if(unitToUpdate) {
+                  unitToUpdate.status = "uitgerukt";
+                  unitToUpdate.location = formData.get('location'); 
+                  setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
+                  alertMsg = `Melding aangemaakt. Eenheid '${assignedUnit}' is herkend en de status is automatisch gezet op 'uitgerukt'.`;
+              }
           }
+    
+          const nu = new Date();
+          const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
+    
+          incidents.push({
+              id: "M-" + Math.floor(Math.random() * 10000), 
+              status: assignedUnit && assignedUnit !== '-' ? 'In behandeling' : 'Nieuw',
+              time: tijdString,
+              location: formData.get('location'),
+              event: formData.get('description'),
+              reporter: formData.get('reporter'),
+              urgency: formData.get('urgency'),
+              units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
+          });
+    
+          setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
+          addLog('Toegevoegd', `Medische melding aangemaakt`, '', incidents[incidents.length-1].id, formData.get('location'));
+          renderTables();
+          renderUnits();
+          renderDetailedUnitsTable();
+          
+          showToast(alertMsg);
+      } catch (err) {
+          console.error("Fout bij opslaan van de melding:", err);
+          showToast('Er ging iets mis bij het aanmaken van de melding.', true);
+      } finally {
+          modal.classList.remove('show');
+          form.reset();
       }
-
-      const nu = new Date();
-      const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
-
-      incidents.push({
-          id: "M-" + Math.floor(Math.random() * 10000), 
-          status: assignedUnit && assignedUnit !== '-' ? 'In behandeling' : 'Nieuw',
-          time: tijdString,
-          location: formData.get('location'),
-          event: formData.get('description'),
-          reporter: formData.get('reporter'),
-          urgency: formData.get('urgency'),
-          units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
-      });
-
-      setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
-      addLog('Toegevoegd', `Medische melding aangemaakt`, '', incidents[incidents.length-1].id, formData.get('location'));
-      renderTables();
-      renderUnits();
-      renderDetailedUnitsTable();
-      
-      modal.classList.remove('show');
-      form.reset();
-      // confirmation alert removed per request
   });
 
   // ==========================================
