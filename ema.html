@@ -125,10 +125,14 @@
   .stat-icon.r { background: var(--red-bg); color: var(--red); }
   .stat-icon.a { background: var(--amber-bg); color: var(--amber); }
   .stat-icon.g { background: var(--green-bg); color: var(--green); }
+  .stat-icon.b { background: var(--blue-bg); color: var(--blue); }
+  .stat-icon.p { background: var(--purple-bg); color: var(--purple); }
   .stat-val { font-size: 22px; font-weight: 600; line-height: 1; }
   .stat-val.r { color: var(--red); }
   .stat-val.a { color: var(--amber); }
   .stat-val.g { color: var(--green); }
+  .stat-val.b { color: var(--blue); }
+  .stat-val.p { color: var(--purple); }
   .stat-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-top: 2px; }
 
   /* ── TABELLEN ── */
@@ -307,6 +311,9 @@
   .login-box .form-group { margin-bottom: 16px; }
   .login-box label { font-size: 12px; color: var(--text2); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 6px; }
   .login-box input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); font-size: 14px; }
+  html:not(.light-mode) .login-logo { filter: brightness(0) invert(1); }
+  
+  html:not(.light-mode) .login-logo, html:not(.light-mode) .logo-img { filter: brightness(0) invert(1); }
 </style>
 <!-- Link to user's legacy stylesheet to preserve layout; can be refined or trimmed as needed -->
 <link rel="stylesheet" href="legacy-custom.css">
@@ -315,7 +322,10 @@
 
 <div class="login-overlay" id="loginScreen">
   <div class="login-box">
-    <h2>Log in bij EMA</h2>
+    <div style="text-align: center; margin-bottom: 24px;">
+      <img src="ems-blauw.png" alt="EMS Logo" class="login-logo" style="height: 52px; object-fit: contain; margin-bottom: 16px;">
+      <h2 style="margin-bottom: 0;">Log in bij EMA</h2>
+    </div>
     <form id="loginForm">
       <div class="form-group">
         <label>E-mailadres</label>
@@ -372,8 +382,8 @@
   <button class="nav-btn" data-target="view-eenheden"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h6m-3-3v6M1 20l4-4m0 0h10a2 2 0 002-2V8"/></svg> Eenheden</button>
   <button class="nav-btn" data-target="view-posten"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h16"/></svg> Posten</button>
   <button class="nav-btn" data-target="view-logging"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h10"/><path d="M18 18V6"/></svg> Logging</button>
-  <button class="nav-btn" data-action="rapportage"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg> Rapportage</button>
-  <button class="nav-btn" data-action="account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5.5 20a6.5 6.5 0 0113 0"/></svg> Accountinstellingen</button>
+  <button class="nav-btn" data-target="view-rapportage"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg> Rapportage</button>
+  <button class="nav-btn" data-target="view-account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5.5 20a6.5 6.5 0 0113 0"/></svg> Accountinstellingen</button>
   <button class="nav-btn" data-action="uitloggen"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg> Uitloggen</button>
 </nav>
 
@@ -480,6 +490,66 @@
           <tbody id="loggingIncidentsTable">
             </tbody>
         </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-rapportage">
+      <div class="section-hdr"><span class="section-title">Rapportage & Statistieken</span></div>
+      <div class="stats" style="margin-bottom: 20px;">
+        <div class="stat-card">
+          <div class="stat-icon b"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg></div>
+          <div><div class="stat-val b" id="rapTotalClosed">0</div><div class="stat-lbl">Afgesloten Meldingen</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon p"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div><div class="stat-val p" id="rapAvgTime">-</div><div class="stat-lbl">Gem. Afhandeltijd</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon g"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div><div class="stat-val g" id="rapTopUnit">-</div><div class="stat-lbl">Meest Ingezette Eenheid</div></div>
+        </div>
+      </div>
+      
+      <div style="background: var(--bg2); padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
+         <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 10px;">Toelichting Dashboard</h3>
+         <p style="color: var(--text2); font-size: 13px; line-height: 1.6;">Dit overzicht toont real-time statistieken op basis van de afgesloten incidenten uit deze meldkamer post. De gemiddelde afhandeltijd wordt automatisch berekend door het verschil in minuten te nemen tussen het tijdstip van binnenkomst en het moment van definitief afsluiten van de afloop.</p>
+      </div>
+    </div>
+
+    <div class="view" id="view-account">
+      <div class="section-hdr"><span class="section-title">Accountinstellingen</span></div>
+      
+      <div style="background: var(--bg2); padding: 24px; border-radius: 12px; border: 1px solid var(--border); max-width: 600px; display: flex; flex-direction: column; gap: 24px;">
+        
+        <div>
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 6px;">Profiel</h3>
+          <p style="font-size: 13px; color: var(--text2); margin-bottom: 12px;">Je bent ingelogd als: <strong id="accountEmail" style="color: var(--text1);">...</strong></p>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 24px;">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 12px;">Wachtwoord wijzigen</h3>
+          <form id="changePasswordForm" style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label style="font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; display: block; margin-bottom: 6px;">Nieuw wachtwoord (min. 6 tekens)</label>
+              <input type="password" id="newPassword" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg3); color: var(--text1); font-family: var(--font); font-size: 13px;">
+            </div>
+            <div>
+              <label style="font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; display: block; margin-bottom: 6px;">Herhaal nieuw wachtwoord</label>
+              <input type="password" id="newPasswordConfirm" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg3); color: var(--text1); font-family: var(--font); font-size: 13px;">
+            </div>
+            <button type="submit" class="btn btn-submit" style="align-self: flex-start; margin-top: 4px;">Wachtwoord opslaan</button>
+          </form>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 24px;">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 12px;">Weergave</h3>
+          <p style="font-size: 13px; color: var(--text2); margin-bottom: 12px;">Kies het thema van de applicatie. Dit wordt opgeslagen op dit apparaat.</p>
+          <div style="display: flex; gap: 12px;">
+            <button class="btn btn-outline" id="themeDarkBtn">Donker thema</button>
+            <button class="btn btn-outline" id="themeLightBtn">Licht thema</button>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -988,7 +1058,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
   import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1020,6 +1090,8 @@
   onAuthStateChanged(auth, (user) => {
       if (user) {
           loginScreen.style.display = 'none';
+          const accountEmailEl = document.getElementById('accountEmail');
+          if (accountEmailEl) accountEmailEl.textContent = user.email;
           
           unsubIncidents = onSnapshot(collection(db, "incidents"), (snapshot) => {
               incidents = [];
@@ -1075,12 +1147,48 @@
       htmlElement.classList.add('light-mode');
   }
 
+  function updateThemeButtons() {
+      const themeDarkBtn = document.getElementById('themeDarkBtn');
+      const themeLightBtn = document.getElementById('themeLightBtn');
+      if (!themeDarkBtn || !themeLightBtn) return;
+      if (htmlElement.classList.contains('light-mode')) {
+          themeLightBtn.classList.add('btn-submit');
+          themeLightBtn.classList.remove('btn-outline');
+          themeDarkBtn.classList.add('btn-outline');
+          themeDarkBtn.classList.remove('btn-submit');
+      } else {
+          themeDarkBtn.classList.add('btn-submit');
+          themeDarkBtn.classList.remove('btn-outline');
+          themeLightBtn.classList.add('btn-outline');
+          themeLightBtn.classList.remove('btn-submit');
+      }
+  }
+  updateThemeButtons();
+
   // Toggle functie
   if (themeToggle) {
       themeToggle.addEventListener('click', () => {
           htmlElement.classList.toggle('light-mode');
           const currentTheme = htmlElement.classList.contains('light-mode') ? 'light' : 'dark';
           localStorage.setItem('theme', currentTheme);
+          updateThemeButtons();
+      });
+  }
+  
+  const themeDarkBtn = document.getElementById('themeDarkBtn');
+  const themeLightBtn = document.getElementById('themeLightBtn');
+  if (themeDarkBtn) {
+      themeDarkBtn.addEventListener('click', () => {
+          htmlElement.classList.remove('light-mode');
+          localStorage.setItem('theme', 'dark');
+          updateThemeButtons();
+      });
+  }
+  if (themeLightBtn) {
+      themeLightBtn.addEventListener('click', () => {
+          htmlElement.classList.add('light-mode');
+          localStorage.setItem('theme', 'light');
+          updateThemeButtons();
       });
   }
   
@@ -1491,8 +1599,58 @@
 
       // Toon of verberg header buttons op basis van of er meldingen zijn
       updateHeaderButtonsVisibility();
+      
+      // Update rapportage statistieken
+      renderRapportage();
 
       attachRowActionHandlers();
+  }
+
+  // Helperfunctie om het verschil in minuten te berekenen tussen twee 'HH:MM' tijden (zelfs over middernacht)
+  function getDiffInMinutes(startStr, endStr) {
+      if (!startStr || !endStr) return null;
+      const [h1, m1] = startStr.split(':').map(Number);
+      const [h2, m2] = endStr.split(':').map(Number);
+      if (isNaN(h1) || isNaN(m1) || isNaN(h2) || isNaN(m2)) return null;
+      let startMins = h1 * 60 + m1;
+      let endMins = h2 * 60 + m2;
+      if (endMins < startMins) endMins += 24 * 60; // Voor meldingen die over middernacht heengaan
+      return endMins - startMins;
+  }
+
+  function renderRapportage() {
+      const closedIncidents = incidents.filter(inc => inc.status.startsWith('Afgesloten'));
+      
+      const rapTotalClosed = document.getElementById('rapTotalClosed');
+      if (rapTotalClosed) rapTotalClosed.innerText = closedIncidents.length;
+
+      let totalMins = 0;
+      let validCount = 0;
+      const unitCounts = {};
+
+      closedIncidents.forEach(inc => {
+          const diff = getDiffInMinutes(inc.time, inc.closedAtTime);
+          if (diff !== null) {
+              totalMins += diff;
+              validCount++;
+          }
+          if (inc.units) {
+              inc.units.forEach(u => {
+                  const uName = u.includes(':') ? u.split(':')[1].trim() : u;
+                  unitCounts[uName] = (unitCounts[uName] || 0) + 1;
+              });
+          }
+      });
+
+      const rapAvgTime = document.getElementById('rapAvgTime');
+      if (rapAvgTime) rapAvgTime.innerText = validCount > 0 ? Math.round(totalMins / validCount) + ' min' : '-';
+
+      let topUnit = '-', maxCount = 0;
+      for (const [unit, count] of Object.entries(unitCounts)) {
+          if (count > maxCount) { maxCount = count; topUnit = unit; }
+      }
+      const rapTopUnit = document.getElementById('rapTopUnit');
+      if (rapTopUnit) rapTopUnit.innerText = maxCount > 0 ? topUnit + ` (${maxCount}x)` : '-';
   }
 
    let currentEscalationIncidentId = null;
@@ -1852,6 +2010,44 @@
       form.reset();
       // confirmation alert removed per request
   });
+
+  // ==========================================
+  // ACCOUNTINSTELLINGEN (Wachtwoord)
+  // ==========================================
+  const changePasswordForm = document.getElementById('changePasswordForm');
+  if (changePasswordForm) {
+      changePasswordForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const newPass = document.getElementById('newPassword').value;
+          const confirmPass = document.getElementById('newPasswordConfirm').value;
+          
+          if (newPass !== confirmPass) {
+              showToast('Wachtwoorden komen niet overeen.', true);
+              return;
+          }
+          
+          if (newPass.length < 6) {
+              showToast('Wachtwoord moet minimaal 6 tekens bevatten.', true);
+              return;
+          }
+
+          try {
+              if (auth.currentUser) {
+                  await updatePassword(auth.currentUser, newPass);
+                  showToast('Wachtwoord succesvol gewijzigd!');
+                  changePasswordForm.reset();
+              }
+          } catch (error) {
+              console.error("Fout bij wachtwoord wijzigen:", error);
+              if (error.code === 'auth/requires-recent-login') {
+                  showToast('Log opnieuw in om je wachtwoord te kunnen wijzigen.', true);
+                  signOut(auth);
+              } else {
+                  showToast('Fout bij wijzigen wachtwoord.', true);
+              }
+          }
+      });
+  }
 
   // ==========================================
   // BRANDWACHT MELDING FORMULIER
