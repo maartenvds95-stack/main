@@ -289,11 +289,46 @@
   .drag-over td { background: var(--bg3) !important; position: relative; }
   .drag-over td:first-child::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--green); }
   .unit-row[draggable="true"]:active { cursor: grabbing !important; }
+
+  /* ── LOGIN SCHERM ── */
+  .login-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg0); z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .login-box {
+    background: var(--bg1); border: 1px solid var(--border);
+    padding: 32px; border-radius: 12px; width: 100%; max-width: 360px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+  .login-box h2 {
+    margin-bottom: 24px; color: var(--text1); font-size: 20px; text-align: center;
+  }
+  .login-box .form-group { margin-bottom: 16px; }
+  .login-box label { font-size: 12px; color: var(--text2); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 6px; }
+  .login-box input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); font-size: 14px; }
 </style>
 <!-- Link to user's legacy stylesheet to preserve layout; can be refined or trimmed as needed -->
 <link rel="stylesheet" href="legacy-custom.css">
 </head>
 <body>
+
+<div class="login-overlay" id="loginScreen">
+  <div class="login-box">
+    <h2>Log in bij EMA</h2>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>E-mailadres</label>
+        <input type="email" id="loginUsername" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Wachtwoord</label>
+        <input type="password" id="loginPassword" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-submit" style="width: 100%; margin-top: 8px;">Inloggen</button>
+    </form>
+  </div>
+</div>
 
 <div class="topbar">
   <div class="logo">
@@ -440,7 +475,7 @@
       <div class="tbl-wrap">
         <table>
           <thead>
-            <tr><th>Status</th><th class="col-time">Tijdstip</th><th>Locatie</th><th>Gebeurtenis</th><th>Melder</th><th>Roep n.r / Post</th></tr>
+          <tr><th>Status</th><th class="col-time">Gemeld</th><th class="col-time">Afgesloten</th><th>Locatie</th><th>Gebeurtenis</th><th>Melder</th><th>Roep n.r / Post</th></tr>
           </thead>
           <tbody id="loggingIncidentsTable">
             </tbody>
@@ -950,7 +985,84 @@
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+  import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBJ3guHYxUIGQ0VkN_W7S8eGLtZhdpkjYk",
+    authDomain: "ema-af574.firebaseapp.com",
+    projectId: "ema-af574",
+    storageBucket: "ema-af574.firebasestorage.app",
+    messagingSenderId: "759250028637",
+    appId: "1:759250028637:web:e1bc13d1fd25f0b960e5b4",
+    measurementId: "G-GLKEE0XJZG"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // ==========================================
+  // 0A. LOGIN SCHERM LOGICA
+  // ==========================================
+  const loginScreen = document.getElementById('loginScreen');
+  const loginForm = document.getElementById('loginForm');
+  const loginUsername = document.getElementById('loginUsername');
+  const loginPassword = document.getElementById('loginPassword');
+  
+  let unsubIncidents, unsubUnits, unsubPosts;
+
+  // Check realtime of de gebruiker is ingelogd
+  onAuthStateChanged(auth, (user) => {
+      if (user) {
+          loginScreen.style.display = 'none';
+          
+          unsubIncidents = onSnapshot(collection(db, "incidents"), (snapshot) => {
+              incidents = [];
+              snapshot.forEach(doc => incidents.push(doc.data()));
+              if (typeof renderTables === 'function') renderTables();
+          });
+          
+          unsubUnits = onSnapshot(collection(db, "units"), (snapshot) => {
+              units = [];
+              snapshot.forEach(doc => units.push(doc.data()));
+              if (typeof sortUnits === 'function') sortUnits(currentSort.col, true);
+          });
+          
+          unsubPosts = onSnapshot(collection(db, "posts"), (snapshot) => {
+              posts = [];
+              snapshot.forEach(doc => posts.push(doc.data()));
+              if (typeof sortPosts === 'function') sortPosts(currentPostSort.col, true);
+          });
+      } else {
+          loginScreen.style.display = 'flex';
+          if (unsubIncidents) unsubIncidents();
+          if (unsubUnits) unsubUnits();
+          if (unsubPosts) unsubPosts();
+      }
+  });
+
+  if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const email = loginUsername.value.trim();
+          const password = loginPassword.value.trim();
+          
+          try {
+              await signInWithEmailAndPassword(auth, email, password);
+              showToast('Succesvol ingelogd');
+              loginForm.reset();
+          } catch (error) {
+              console.error("Fout bij inloggen:", error);
+              showToast('Inloggen mislukt. Controleer je gegevens.', true);
+          }
+      });
+  }
+
   // ==========================================
   // 0. DONKER/LICHT MODUS TOGGLE
   // ==========================================
@@ -1051,29 +1163,6 @@
   let units = [];
   let posts = [];
 
-  // Laad meldingen uit localStorage
-  function loadIncidentsFromStorage() {
-      const stored = localStorage.getItem('incidents');
-      if (stored) {
-          incidents = JSON.parse(stored);
-      }
-  }
-
-  // Bewaar meldingen in localStorage
-  function saveIncidentsToStorage() {
-      localStorage.setItem('incidents', JSON.stringify(incidents));
-  }
-
-  function loadPostsFromStorage() {
-      const stored = localStorage.getItem('posts');
-      if (stored) {
-          posts = JSON.parse(stored);
-      }
-  }
-  function savePostsToStorage() {
-      localStorage.setItem('posts', JSON.stringify(posts));
-  }
-
   // ==========================================
   // 2. RENDERING FUNCTIES (Tekenen op het scherm)
   // ==========================================
@@ -1124,8 +1213,8 @@
       unit.status = 'uitgerukt';
       unit.location = incident.location;
       
-      saveUnitsToStorage();
-      saveIncidentsToStorage();
+      setDoc(doc(db, "units", unit.id), unit);
+      setDoc(doc(db, "incidents", incident.id), incident);
       
       renderTables();
       renderUnits();
@@ -1207,7 +1296,7 @@
               const unitIndex = units.findIndex((u, i) => u.status !== 'uitgemeld' && operationalUnits.indexOf(u) === visibleIndex);
               if (unitIndex !== -1) {
                   units[unitIndex].status = e.target.value;
-                  saveUnitsToStorage();
+                  setDoc(doc(db, "units", units[unitIndex].id), units[unitIndex]);
               }
               renderUnits();
               renderUnitsTable();
@@ -1244,7 +1333,7 @@
               const postIndex = posts.findIndex(x => x.id === postId);
               if (postIndex !== -1) {
                   posts[postIndex].status = e.target.value;
-                  savePostsToStorage();
+                  setDoc(doc(db, "posts", posts[postIndex].id), posts[postIndex]);
                   renderPosts();
                   if (typeof renderDetailedPostsTable === 'function') renderDetailedPostsTable();
               }
@@ -1371,14 +1460,15 @@
       // Render de afgesloten meldingen in de logging tabel
       if (loggingTable) {
           if (closedIncidents.length === 0) {
-              loggingTable.innerHTML = `<tr><td colspan="6" class="empty-table-msg">Geen afgesloten meldingen.</td></tr>`;
+              loggingTable.innerHTML = `<tr><td colspan="7" class="empty-table-msg">Geen afgesloten meldingen.</td></tr>`;
           } else {
               closedIncidents.forEach(inc => {
                   const assignedUnits = (inc.units && inc.units.length) ? inc.units.join('<br>') : (inc.unit ? inc.unit : '-');
                   const trHist = document.createElement('tr');
                   trHist.innerHTML = `
                     <td><span class="pill" style="background:var(--bg3); color:var(--text3); border:1px solid var(--border);">${inc.status}</span></td>
-                    <td class="col-time">${inc.time}</td>
+                    <td class="col-time" style="color:var(--text3);font-size:11px">${inc.time}</td>
+                    <td class="col-time" style="color:var(--text3);font-size:11px">${inc.closedAtTime || '-'}</td>
                     <td>${inc.location}</td>
                     <td>${inc.event}</td>
                     <td>${inc.reporter}</td>
@@ -1482,8 +1572,8 @@
              if (incidentToAssign.status === 'Nieuw') incidentToAssign.status = 'In behandeling';
              unit.status = 'uitgerukt';
              unit.location = incidentToAssign.location;
-                 saveUnitsToStorage();
-                 saveIncidentsToStorage();
+             setDoc(doc(db, "units", unit.id), unit);
+             setDoc(doc(db, "incidents", incidentToAssign.id), incidentToAssign);
              renderTables();
              renderUnits();
                  renderDetailedUnitsTable();
@@ -1520,7 +1610,11 @@
           // Logic for action buttons (like 'uitloggen') that don't switch views
           if (action) {
               if (action === 'uitloggen') {
-                showToast('Uitloggen...');
+                signOut(auth).then(() => {
+                    showToast('Succesvol uitgelogd');
+                }).catch((error) => {
+                    showToast('Uitloggen mislukt', true);
+                });
               } else {
                 showToast(`Actie: ${action}`);
               }
@@ -1603,7 +1697,7 @@
         } else {
           incident.units = incident.units || [];
           if (!incident.units.includes(escalationType)) incident.units.push(escalationType);
-          saveIncidentsToStorage();
+          setDoc(doc(db, "incidents", incident.id), incident);
           renderTables();
         }
       });
@@ -1625,7 +1719,14 @@
           const reason = btn.getAttribute('data-afloop');
           const incident = incidents.find(i => i.id === currentAfloopIncidentId);
           if (!incident) return;
+          
+          const nu = new Date();
+          const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
+          incident.closedAtTime = tijdString;
+          incident.closedAtTimestamp = nu.toISOString();
+          
           incident.status = `Afgesloten: ${reason}`;
+          setDoc(doc(db, "incidents", incident.id), incident);
 
           const upUnits = incident.units || [];
           if (reason === 'Retour ALS' || reason === 'Retour BLS') {
@@ -1669,7 +1770,7 @@
               if (unitToUpdate) {
                 unitToUpdate.status = 'uitgerukt';
                 unitToUpdate.location = fd.get('location');
-                  saveUnitsToStorage();
+                setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
               }
             }
 
@@ -1698,7 +1799,7 @@
               }
             });
 
-          saveIncidentsToStorage();
+            setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
             renderTables();
             renderUnits();
             renderDetailedUnitsTable();
@@ -1723,7 +1824,7 @@
           if(unitToUpdate) {
               unitToUpdate.status = "uitgerukt";
               unitToUpdate.location = formData.get('location'); 
-                  saveUnitsToStorage();
+              setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
               alertMsg = `MELDING AANGEMAAKT!\nEenheid '${assignedUnit}' is herkend en de status is automatisch gezet op 'uitgerukt'.`;
           }
       }
@@ -1742,7 +1843,7 @@
           units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
       });
 
-      saveIncidentsToStorage();
+      setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
       renderTables();
       renderUnits();
       renderDetailedUnitsTable();
@@ -1779,7 +1880,7 @@
               if(unitToUpdate) {
                   unitToUpdate.status = "uitgerukt";
                   unitToUpdate.location = formData.get('location'); 
-                  saveUnitsToStorage();
+                  setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
               }
           }
 
@@ -1797,7 +1898,7 @@
               units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
           });
 
-          saveIncidentsToStorage();
+          setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
           renderTables();
           renderUnits();
           if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
@@ -1835,7 +1936,7 @@
               if(unitToUpdate) {
                   unitToUpdate.status = "uitgerukt";
                   unitToUpdate.location = formData.get('location'); 
-                  saveUnitsToStorage();
+                  setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
               }
           }
 
@@ -1853,7 +1954,7 @@
               units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
           });
 
-          saveIncidentsToStorage();
+          setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
           renderTables();
           renderUnits();
           if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
@@ -1971,19 +2072,6 @@
       });
   }
 
-  // Laad eenheden uit localStorage
-  function loadUnitsFromStorage() {
-      const stored = localStorage.getItem('units');
-      if (stored) {
-          units = JSON.parse(stored);
-      }
-  }
-
-  // Bewaar eenheden in localStorage
-  function saveUnitsToStorage() {
-      localStorage.setItem('units', JSON.stringify(units));
-  }
-
   // Render tabel met geregistreerde eenheden
   function renderUnitsTable() {
       const tbody = document.getElementById('unitsTableBody');
@@ -2010,7 +2098,7 @@
               <td>${u.tasnummer || ''}</td>
               <td>${u.radioId || ''}</td>
               <td>
-                  <button type="button" class="btn btn-outline" data-delete-unit="${index}" style="padding:6px 12px;font-size:12px;">Verwijderen</button>
+                  <button type="button" class="btn btn-outline" data-delete-unit="${u.id}" style="padding:6px 12px;font-size:12px;">Verwijderen</button>
               </td>
           </tr>
       `).join('');
@@ -2018,9 +2106,10 @@
       // Event listeners voor delete buttons
       tbody.querySelectorAll('[data-delete-unit]').forEach(btn => {
           btn.addEventListener('click', () => {
-              const idx = parseInt(btn.getAttribute('data-delete-unit'));
-              units.splice(idx, 1);
-              saveUnitsToStorage();
+              const unitId = btn.getAttribute('data-delete-unit');
+              const idx = units.findIndex(u => u.id === unitId);
+              if(idx !== -1) units.splice(idx, 1);
+              deleteDoc(doc(db, "units", unitId));
               renderUnitsTable();
               renderUnits();
               renderTables();
@@ -2064,7 +2153,7 @@
 
           // Voeg eenheid toe
           units.push(newUnit);
-          saveUnitsToStorage();
+          setDoc(doc(db, "units", newUnit.id), newUnit);
           
           // Update UI
           renderUnitsTable();
@@ -2143,7 +2232,7 @@
               const unitIndex = units.findIndex(u => u.id === unitId);
               if (unitIndex !== -1) {
                   units[unitIndex].status = newStatus;
-                  saveUnitsToStorage();
+                  setDoc(doc(db, "units", units[unitIndex].id), units[unitIndex]);
                   renderUnits();
                   renderUnitsTable();
                   renderDetailedUnitsTable(); // Herlaad tabel om kleuren bij te werken
@@ -2201,7 +2290,7 @@
               const unitIndex = units.findIndex(u => u.id === unitId);
               if (unitIndex !== -1) {
                   units[unitIndex][field] = newVal;
-                  saveUnitsToStorage();
+                  setDoc(doc(db, "units", units[unitIndex].id), units[unitIndex]);
                   renderUnits(); // Update right panel
                   renderDetailedUnitsTable(); // Update detailed table
                   showToast(`Eenheid ${unitId} bijgewerkt.`);
@@ -2309,7 +2398,6 @@
 
 
           if (newUnitsAdded > 0) {
-              saveUnitsToStorage();
               renderUnits();
               renderTables();
               renderDetailedUnitsTable();
@@ -2327,12 +2415,14 @@
   // ==========================================
   let currentSort = { col: 'id', asc: true };
 
-  function sortUnits(col) {
-      if (currentSort.col === col) {
+  function sortUnits(col, keepDirection = false) {
+      if (!keepDirection) {
+          if (currentSort.col === col) {
           currentSort.asc = !currentSort.asc;
-      } else {
+          } else {
           currentSort.col = col;
           currentSort.asc = true;
+          }
       }
 
       units.sort((a, b) => {
@@ -2352,7 +2442,6 @@
           return 0;
       });
 
-      saveUnitsToStorage();
       renderDetailedUnitsTable();
       renderUnitsTable();
       renderUnits();
@@ -2412,7 +2501,7 @@
               status: fd.get('status')
           };
           posts.push(newPost);
-          savePostsToStorage();
+          setDoc(doc(db, "posts", newPost.id), newPost);
           renderPosts();
           renderDetailedPostsTable();
           addPostForm.reset();
@@ -2469,7 +2558,7 @@
           var save = function() {
               var newVal = $input.val();
               const postIndex = posts.findIndex(x => x.id === postId);
-              if (postIndex !== -1) { posts[postIndex][field] = newVal; savePostsToStorage(); renderPosts(); renderDetailedPostsTable(); showToast(`Post bijgewerkt.`); }
+              if (postIndex !== -1) { posts[postIndex][field] = newVal; setDoc(doc(db, "posts", posts[postIndex].id), posts[postIndex]); renderPosts(); renderDetailedPostsTable(); showToast(`Post bijgewerkt.`); }
               restore();
           };
           $saveBtn.click(function(e) { e.stopPropagation(); save(); });
@@ -2482,21 +2571,21 @@
           select.addEventListener('change', (e) => {
               const postId = e.target.getAttribute('data-id');
               const postIndex = posts.findIndex(x => x.id === postId);
-              if (postIndex !== -1) { posts[postIndex].status = e.target.value; savePostsToStorage(); renderPosts(); renderDetailedPostsTable(); }
+              if (postIndex !== -1) { posts[postIndex].status = e.target.value; setDoc(doc(db, "posts", posts[postIndex].id), posts[postIndex]); renderPosts(); renderDetailedPostsTable(); }
           });
       });
       document.querySelectorAll('[data-delete-post]').forEach(btn => {
           btn.addEventListener('click', () => {
               const postId = btn.getAttribute('data-delete-post');
               const idx = posts.findIndex(x => x.id === postId);
-              if (idx !== -1) { posts.splice(idx, 1); savePostsToStorage(); renderPosts(); renderDetailedPostsTable(); }
+              if (idx !== -1) { posts.splice(idx, 1); deleteDoc(doc(db, "posts", postId)); renderPosts(); renderDetailedPostsTable(); }
           });
       });
   }
 
   let currentPostSort = { col: 'naam', asc: true };
-  function sortPosts(col) {
-      if (currentPostSort.col === col) { currentPostSort.asc = !currentPostSort.asc; } else { currentPostSort.col = col; currentPostSort.asc = true; }
+  function sortPosts(col, keepDirection = false) {
+      if (!keepDirection) { if (currentPostSort.col === col) { currentPostSort.asc = !currentPostSort.asc; } else { currentPostSort.col = col; currentPostSort.asc = true; } }
       posts.sort((a, b) => {
           let valA = a[col] ? a[col].toString().toLowerCase() : '';
           let valB = b[col] ? b[col].toString().toLowerCase() : '';
@@ -2504,7 +2593,6 @@
           if (valA > valB) return currentPostSort.asc ? 1 : -1;
           return 0;
       });
-      savePostsToStorage();
       renderDetailedPostsTable();
       renderPosts();
       document.querySelectorAll('.sort-header-post .sort-icon-post').forEach(icon => icon.textContent = '↕');
@@ -2516,34 +2604,11 @@
       if (header) sortPosts(header.getAttribute('data-sort'));
   });
 
-  // Laad eenheden bij startup
-  loadUnitsFromStorage();
-  loadPostsFromStorage();
-  loadIncidentsFromStorage();
-
   // Roep sorteerfunctie direct aan bij opstarten zodat alles alfabetisch is, dit activeert ook meteen renderUnits() etc.
-  sortUnits('id'); 
-  sortPosts('naam');
+  sortUnits('id', true); 
+  sortPosts('naam', true);
   renderTables(); 
   refreshRowActions();
-  
-  // Luister naar wijzigingen in localStorage vanaf het ANDERE venster (Pop-out vs Hoofdvenster)
-  window.addEventListener('storage', (e) => {
-      if (e.key === 'units') {
-          loadUnitsFromStorage();
-          renderUnits();
-          if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
-      }
-      if (e.key === 'incidents') {
-          loadIncidentsFromStorage();
-          if (typeof renderTables === 'function') renderTables();
-      }
-      if (e.key === 'posts') {
-          loadPostsFromStorage();
-          renderPosts();
-          if (typeof renderDetailedPostsTable === 'function') renderDetailedPostsTable();
-      }
-  });
   
   // ==========================================
   // DIGITALE KLOK
