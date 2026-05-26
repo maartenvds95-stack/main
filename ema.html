@@ -1042,14 +1042,47 @@
 </div>
 
 <div class="modal-overlay" id="weatherModal">
-  <div class="modal-content" style="width: 680px; max-width: 95vw;">
+  <div class="modal-content" style="width: 800px; max-width: 95vw;">
     <div class="modal-header">
-      <h3>Uitgebreid Weer & Buienradar</h3>
+      <h3>Lokaal Weer & Neerslagradar</h3>
       <button class="modal-close" id="weatherCloseBtn">&times;</button>
     </div>
-    <div style="background: var(--bg2); padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
-      <iframe id="buienradarIframe" src="https://gadgets.buienradar.nl/gadget/zoommap/?lat=52.09&lng=5.12&overname=2&zoom=8&size=3&v=0" scrolling="no" width="330" height="330" frameborder="no" style="border: 1px solid var(--border); border-radius: 8px; background: #fff; max-width: 100%;"></iframe>
-      <iframe src="https://gadgets.buienradar.nl/gadget/radarfivedays" scrolling="no" width="256" height="330" frameborder="no" style="border: 1px solid var(--border); border-radius: 8px; background: #fff; max-width: 100%;"></iframe>
+    <div style="background: var(--bg2); padding: 24px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+      
+      <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px; background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+           <h4 style="margin-bottom: 16px; color: var(--text1); font-size: 15px; font-weight: 600;">Actuele Weergegevens</h4>
+           <div id="weatherLocationInfo" style="font-size: 13px; color: var(--text2); margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
+             <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+             <span>Locatie aan het ophalen...</span>
+           </div>
+           
+           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div style="background: var(--bg2); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 24px; font-weight: 600; color: var(--blue);" id="weatherTemp">-- °C</div>
+                 <div style="font-size: 11px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Temperatuur</div>
+              </div>
+              <div style="background: var(--bg2); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 24px; font-weight: 600; color: var(--amber);" id="weatherWind">-- Bft</div>
+                 <div style="font-size: 11px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;" id="weatherWindDir">Windrichting</div>
+              </div>
+              <div style="background: var(--bg2); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 24px; font-weight: 600; color: var(--green);" id="weatherRain">-- mm</div>
+                 <div style="font-size: 11px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Neerslag</div>
+              </div>
+              <div style="background: var(--bg2); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 24px; font-weight: 600; color: var(--purple);" id="weatherGusts">-- km/u</div>
+                 <div style="font-size: 11px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Windstoten</div>
+              </div>
+           </div>
+        </div>
+
+        <div style="flex: 1; min-width: 330px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+           <iframe id="buienradarIframe" src="about:blank" scrolling="no" width="330" height="330" frameborder="no" style="border: 1px solid var(--border); border-radius: 12px; background: var(--bg2); max-width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></iframe>
+           <div style="font-size: 11px; color: var(--text3); margin-top: 12px; text-align: center;">Bron radar: Buienradar. Bron weerdata: Open-Meteo.</div>
+        </div>
+      </div>
+      
     </div>
   </div>
 </div>
@@ -2828,20 +2861,67 @@
   const weatherCloseBtn = document.getElementById('weatherCloseBtn');
   const buienradarIframe = document.getElementById('buienradarIframe');
 
+  async function fetchWeatherData(lat, lon, isFallback = false) {
+      const locInfo = document.querySelector('#weatherLocationInfo span');
+      const wTemp = document.getElementById('weatherTemp');
+      const wWind = document.getElementById('weatherWind');
+      const wWindDir = document.getElementById('weatherWindDir');
+      const wRain = document.getElementById('weatherRain');
+      const wGusts = document.getElementById('weatherGusts');
+      
+      buienradarIframe.src = `https://gadgets.buienradar.nl/gadget/zoommap/?lat=${lat}&lng=${lon}&overname=2&zoom=8&size=3&v=0`;
+      
+      locInfo.innerHTML = 'Locatiegegevens laden...';
+
+      try {
+          const nomRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+          const nomData = await nomRes.json();
+          let locationName = "Onbekende locatie";
+          if (nomData && nomData.address) {
+              locationName = nomData.address.city || nomData.address.town || nomData.address.village || nomData.address.municipality || "Gevonden locatie";
+          }
+          if (isFallback) {
+              locInfo.innerHTML = `<span style="color: var(--amber);">Locatie geweigerd, toont standaard (Utrecht)</span>`;
+          } else {
+              locInfo.innerHTML = `Huidige locatie: <strong style="color:var(--text1);">${locationName}</strong>`;
+          }
+
+          const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=Europe%2FAmsterdam`);
+          const wData = await weatherRes.json();
+          
+          if (wData && wData.current) {
+              wTemp.textContent = wData.current.temperature_2m + ' °C';
+              const speedKmh = wData.current.wind_speed_10m;
+              let bft = 0;
+              if(speedKmh>=1&&speedKmh<=5) bft=1; else if(speedKmh<=11) bft=2; else if(speedKmh<=19) bft=3; else if(speedKmh<=28) bft=4; else if(speedKmh<=38) bft=5; else if(speedKmh<=49) bft=6; else if(speedKmh<=61) bft=7; else if(speedKmh<=74) bft=8; else if(speedKmh<=88) bft=9; else if(speedKmh<=102) bft=10; else if(speedKmh<=117) bft=11; else if(speedKmh>117) bft=12;
+              wWind.textContent = bft + ' Bft';
+              const deg = wData.current.wind_direction_10m;
+              const dirs = ['N', 'NNO', 'NO', 'ONO', 'O', 'OZO', 'ZO', 'ZZO', 'Z', 'ZZW', 'ZW', 'WZW', 'W', 'WNW', 'NW', 'NNW'];
+              wWindDir.textContent = 'Windrichting: ' + dirs[Math.floor((deg / 22.5) + 0.5) % 16];
+              wRain.textContent = wData.current.precipitation + ' mm';
+              wGusts.textContent = wData.current.wind_gusts_10m + ' km/u';
+          }
+      } catch (error) {
+          console.error("Fout bij ophalen weer:", error);
+          locInfo.innerHTML = 'Fout bij ophalen weergegevens.';
+      }
+  }
+
   if (weatherBtn && weatherModal) {
       weatherBtn.addEventListener('click', () => {
           weatherModal.classList.add('show');
           if (navigator.geolocation) {
               navigator.geolocation.getCurrentPosition(
                   (position) => {
-                      const lat = position.coords.latitude;
-                      const lon = position.coords.longitude;
-                      buienradarIframe.src = `https://gadgets.buienradar.nl/gadget/zoommap/?lat=${lat}&lng=${lon}&overname=2&zoom=8&size=3&v=0`;
+                      fetchWeatherData(position.coords.latitude, position.coords.longitude, false);
                   },
                   (error) => {
                       console.warn('Locatie niet beschikbaar, standaard buienradar wordt getoond.');
+                      fetchWeatherData(52.09, 5.12, true);
                   }
               );
+          } else {
+              fetchWeatherData(52.09, 5.12, true);
           }
       });
       weatherCloseBtn.addEventListener('click', () => {
