@@ -1765,6 +1765,7 @@
              unit.location = incidentToAssign.location;
              setDoc(doc(db, "units", unit.id), unit);
              setDoc(doc(db, "incidents", incidentToAssign.id), incidentToAssign);
+             addLog('Status', 'Eenheid uitgerukt', unit.id, incidentToAssign.id, incidentToAssign.location);
              renderTables();
              renderUnits();
                  renderDetailedUnitsTable();
@@ -1918,17 +1919,20 @@
           
           incident.status = `Afgesloten: ${reason}`;
           setDoc(doc(db, "incidents", incident.id), incident);
+          addLog('Afloop', `Afloop: ${reason}`, '', incident.id, incident.location);
 
           const upUnits = incident.units || [];
           if (reason === 'Retour ALS' || reason === 'Retour BLS') {
             upUnits.forEach(uidStr => {
               const u = units.find(x => uidStr === x.id || uidStr.endsWith(': ' + x.id));
               if (u) u.status = 'retour post';
+              if (u) addLog('Status', `Eenheid ${reason.includes('ALS') ? 'retour post' : 'op post'}`, u.id, incident.id, incident.location);
             });
           } else {
             upUnits.forEach(uidStr => {
               const u = units.find(x => uidStr === x.id || uidStr.endsWith(': ' + x.id));
               if (u) u.status = 'op post';
+              if (u) addLog('Status', `Eenheid ${reason.includes('ALS') ? 'retour post' : 'op post'}`, u.id, incident.id, incident.location);
             });
           }
 
@@ -2035,6 +2039,7 @@
       });
 
       setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
+      addLog('Toegevoegd', `Medische melding aangemaakt`, '', incidents[incidents.length-1].id, formData.get('location'));
       renderTables();
       renderUnits();
       renderDetailedUnitsTable();
@@ -2462,6 +2467,7 @@
               if (unitIndex !== -1) {
                   units[unitIndex].status = newStatus;
                   setDoc(doc(db, "units", units[unitIndex].id), units[unitIndex]);
+                  addLog('Status', `Status gewijzigd naar: ${e.target.value}`, units[unitIndex].id, '', '');
                   renderUnits();
                   renderUnitsTable();
                   renderDetailedUnitsTable(); // Herlaad tabel om kleuren bij te werken

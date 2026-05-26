@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f7f5ef">
+    <meta name="theme-color" content="#f7f5ef" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
     <title>Het dagboek van Annebeth</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -577,6 +578,101 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(123, 82, 222, 0.3);
         }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1c1c1e;
+                --card-bg: #2c2c2e;
+                --text-dark: #f5f5f7;
+                --text-light: #8e8e93;
+            }
+
+            body {
+                background-color: #000000;
+            }
+
+            .app-container {
+                box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            }
+
+            .stat-circle {
+                border-color: #3a3a3c;
+            }
+
+            .profile-center .stat-circle {
+                background-color: #3a3a3c;
+            }
+
+            .action-card {
+                box-shadow: none;
+                border: 1px solid #3a3a3c;
+            }
+
+            .plus-btn {
+                box-shadow: none;
+                border: 1px solid #444;
+            }
+
+            .filter-btn {
+                border-color: #444;
+            }
+
+            .item-delete-btn:active, .item-delete-btn:hover {
+                background-color: rgba(255, 138, 128, 0.15);
+            }
+            .item-edit-btn:active, .item-edit-btn:hover {
+                background-color: rgba(77, 166, 255, 0.15);
+            }
+
+            .modal-overlay {
+                background-color: rgba(0, 0, 0, 0.7);
+            }
+
+            .modal-header {
+                border-bottom-color: #3a3a3c;
+            }
+
+            .back-btn {
+                background-color: #3a3a3c;
+                color: var(--text-dark);
+            }
+
+            .segmented-control {
+                background-color: #1c1c1e !important;
+            }
+
+            .segment-btn.active {
+                background-color: #444;
+            }
+
+            .input-field {
+                background-color: #3a3a3c;
+                border-color: #444;
+                color: var(--text-dark);
+            }
+            
+            #sleepNotes, #diaperTime, #diaperNotes, #breastTime, #bottleTime, #bottleAmount, #bottleNotes, #pumpTime, #pumpAmount, #noteTime, #noteText, #growthTime, #growthLength, #growthWeight, #loginUsername, #loginPassword {
+                background-color: #3a3a3c !important;
+                border-color: #444 !important;
+                color: var(--text-dark) !important;
+            }
+            
+            .sleep-action-btn, #breastModal .timer-section, #pumpModal .timer-section {
+                background-color: #1c1c1e !important;
+                border-color: #3a3a3c !important;
+            }
+            #leftTimerBtn, #rightTimerBtn, #pumpLeftTimerBtn, #pumpRightTimerBtn {
+                background-color: #2c2c2e !important;
+            }
+
+            .save-btn, #saveDiaperBtn, #saveBottleBtn, #savePumpBtn, #saveNoteBtn, #saveGrowthBtn {
+                box-shadow: none !important;
+            }
+            #saveDiaperBtn { color: #fff !important; }
+
+            #growthHistoryList { background-color: #1c1c1e; }
+            #growthHistoryList div { border-bottom-color: #3a3a3c !important; }
+        }
     </style>
 </head>
 <body>
@@ -710,13 +806,13 @@
         <div class="modal-content">
 
             <div class="input-group">
-                <label class="input-label">Start</label>
-                <input type="datetime-local" class="input-field" id="sleepStart" lang="nl">
+                <label class="input-label">Starttijd</label>
+                <input type="time" class="input-field" id="sleepStart">
             </div>
 
             <div class="input-group">
-                <label class="input-label">Einde</label>
-                <input type="datetime-local" class="input-field" id="sleepEnd" lang="nl">
+                <label class="input-label">Eindtijd</label>
+                <input type="time" class="input-field" id="sleepEnd">
             </div>
 
             <div class="timer-section">
@@ -760,7 +856,7 @@
 
             <div class="input-group">
                 <label class="input-label">Tijd van verschonen</label>
-                <input type="datetime-local" class="input-field" id="diaperTime" lang="nl" style="background-color: #fcefd0; border-color: #fcefd0; color: var(--text-dark);">
+                <input type="time" class="input-field" id="diaperTime" style="background-color: #fcefd0; border-color: #fcefd0; color: var(--text-dark);">
             </div>
 
             <div class="input-group">
@@ -791,7 +887,7 @@
         <div class="modal-content">
             <div class="input-group">
                 <label class="input-label">Starttijd</label>
-                <input type="datetime-local" class="input-field" id="breastTime" lang="nl" style="background-color: #d1f0d9; border-color: #d1f0d9; color: var(--text-dark);">
+                <input type="time" class="input-field" id="breastTime" style="background-color: #d1f0d9; border-color: #d1f0d9; color: var(--text-dark);">
             </div>
 
             <div style="display: flex; gap: 15px; margin: 12px 0;">
@@ -840,7 +936,7 @@
 
             <div class="input-group">
                 <label class="input-label">Tijd</label>
-                <input type="datetime-local" class="input-field" id="bottleTime" lang="nl" style="background-color: #e6f2ff; border-color: #e6f2ff; color: var(--text-dark);">
+                <input type="time" class="input-field" id="bottleTime" style="background-color: #e6f2ff; border-color: #e6f2ff; color: var(--text-dark);">
             </div>
 
             <div class="input-group">
@@ -876,7 +972,7 @@
         <div class="modal-content">
             <div class="input-group">
                 <label class="input-label">Starttijd</label>
-                <input type="datetime-local" class="input-field" id="pumpTime" lang="nl" style="background-color: #ffebe6; border-color: #ffebe6; color: var(--text-dark);">
+                <input type="time" class="input-field" id="pumpTime" style="background-color: #ffebe6; border-color: #ffebe6; color: var(--text-dark);">
             </div>
 
             <div style="display: flex; gap: 15px; margin: 12px 0;">
@@ -925,7 +1021,7 @@
         <div class="modal-content">
             <div class="input-group">
                 <label class="input-label">Tijd</label>
-                <input type="datetime-local" class="input-field" id="noteTime" lang="nl" style="background-color: #fff3e0; border-color: #fff3e0; color: var(--text-dark);">
+                <input type="time" class="input-field" id="noteTime" style="background-color: #fff3e0; border-color: #fff3e0; color: var(--text-dark);">
             </div>
 
             <div class="input-group">
@@ -955,8 +1051,8 @@
 
         <div class="modal-content">
             <div class="input-group">
-                <label class="input-label">Datum</label>
-                <input type="datetime-local" class="input-field" id="growthTime" lang="nl" style="background-color: #ffebd6; border-color: #ffebd6; color: var(--text-dark);">
+                <label class="input-label">Tijd</label>
+                <input type="time" class="input-field" id="growthTime" style="background-color: #ffebd6; border-color: #ffebd6; color: var(--text-dark);">
             </div>
 
             <div style="display: flex; gap: 15px; margin-bottom: 12px;">
@@ -1311,17 +1407,44 @@
                 const notes = parts.length > 1 ? parts.slice(1).join(' - ') : '';
                 
                 if (item.title === 'Slapen') {
+                    currentEditItem = item;
+                    
+                    // The item.timestamp is the END time.
+                    const endDateTime = new Date(item.timestamp);
+                    
+                    // Extract duration from subtitle "HH:MM, HH:MM:SS geslapen - notes"
+                    const subtitle = item.subtitle || '';
+                    const durationMatch = subtitle.match(/(\d{2}):(\d{2}):(\d{2})/);
+                    let startDateTime = endDateTime; // fallback
+                    if (durationMatch) {
+                        const hours = parseInt(durationMatch[1], 10);
+                        const minutes = parseInt(durationMatch[2], 10);
+                        const seconds = parseInt(durationMatch[3], 10);
+                        const durationMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
+                        startDateTime = new Date(endDateTime.getTime() - durationMs);
+                    }
+            
+                    startDateTime.setMinutes(startDateTime.getMinutes() - startDateTime.getTimezoneOffset());
+                    const formattedStartTime = startDateTime.toISOString();
+            
+                    endDateTime.setMinutes(endDateTime.getMinutes() - endDateTime.getTimezoneOffset());
+                    const formattedEndTime = endDateTime.toISOString();
+
+                    const notes = subtitle.split(' - ')[1] || '';
+            
                     document.getElementById('saveBtn').innerHTML = 'Bijwerken';
                     document.getElementById('deleteSleepBtn').style.display = 'block';
-                    document.getElementById('sleepStart').value = formattedTime;
-                    document.getElementById('sleepEnd').value = formattedTime;
+                    sleepModal.dataset.date = formattedStartTime.slice(0, 10);
+                    document.getElementById('sleepStart').value = formattedStartTime.slice(11, 16);
+                    document.getElementById('sleepEnd').value = formattedEndTime.slice(11, 16);
                     document.getElementById('sleepNotes').value = notes;
                     document.getElementById('sleepModal').classList.add('active');
                     document.body.style.overflow = 'hidden';
                 } else if (item.title.includes('luier') || item.title === 'Verschonen') {
                     document.getElementById('saveDiaperBtn').innerHTML = 'Bijwerken';
                     document.getElementById('deleteDiaperBtn').style.display = 'block';
-                    document.getElementById('diaperTime').value = formattedTime;
+                    diaperModal.dataset.date = formattedTime.slice(0, 10);
+                    document.getElementById('diaperTime').value = formattedTime.slice(11, 16);
                     document.getElementById('diaperNotes').value = notes;
                     
                     const segments = document.querySelectorAll('#diaperTypeControl .segment-btn');
@@ -1334,14 +1457,16 @@
                 } else if (item.title === 'Borstvoeding') {
                     document.getElementById('saveBreastBtn').innerHTML = 'Bijwerken';
                     document.getElementById('deleteBreastBtn').style.display = 'block';
-                    document.getElementById('breastTime').value = formattedTime;
+                    breastModal.dataset.date = formattedTime.slice(0, 10);
+                    document.getElementById('breastTime').value = formattedTime.slice(11, 16);
                     if (typeof resetBreastTimers === 'function') resetBreastTimers();
                     document.getElementById('breastModal').classList.add('active');
                     document.body.style.overflow = 'hidden';
                 } else if (item.title === 'Fles') {
                     document.getElementById('saveBottleBtn').innerHTML = 'Bijwerken';
                     document.getElementById('deleteBottleBtn').style.display = 'block';
-                    document.getElementById('bottleTime').value = formattedTime;
+                    bottleModal.dataset.date = formattedTime.slice(0, 10);
+                    document.getElementById('bottleTime').value = formattedTime.slice(11, 16);
                     document.getElementById('bottleNotes').value = notes;
                     const segments = document.querySelectorAll('#bottleTypeControl .segment-btn');
                     segments.forEach(b => b.classList.remove('active'));
@@ -1356,7 +1481,8 @@
                 } else if (item.title === 'Kolven') {
                     document.getElementById('savePumpBtn').innerHTML = 'Bijwerken';
                     document.getElementById('deletePumpBtn').style.display = 'block';
-                    document.getElementById('pumpTime').value = formattedTime;
+                    pumpModal.dataset.date = formattedTime.slice(0, 10);
+                    document.getElementById('pumpTime').value = formattedTime.slice(11, 16);
                     if (typeof resetPumpTimers === 'function') resetPumpTimers();
                     const match = baseInfo.match(/(\d+)\s*ml/);
                     if (match) document.getElementById('pumpAmount').value = match[1];
@@ -1366,7 +1492,8 @@
                 } else if (item.title === 'Notitie') {
                     document.getElementById('saveNoteBtn').innerHTML = 'Bijwerken';
                     document.getElementById('deleteNoteBtn').style.display = 'block';
-                    document.getElementById('noteTime').value = formattedTime;
+                    noteModal.dataset.date = formattedTime.slice(0, 10);
+                    document.getElementById('noteTime').value = formattedTime.slice(11, 16);
                     document.getElementById('noteText').value = notes === 'Geen tekst' ? '' : notes;
                     currentEditNoteId = itemId;
                     document.getElementById('noteModal').classList.add('active');
@@ -1460,7 +1587,7 @@
             const noteLastEl = document.getElementById('noteLastTime');
             if (noteLastEl) noteLastEl.textContent = formatTimeAgo(lastNote);
         }
-
+        
         // --- Timer Logica ---
         let timerInterval;
         let timerSeconds = 0;
@@ -1482,7 +1609,13 @@
                 isTimerRunning = false;
                 timerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat timer';
             } else {
-                // Start de timer
+                // Start of hervat de timer
+                if (timerSeconds === 0) { // Eerste keer starten
+                    const nowISO = getCurrentDateTime();
+                    sleepModal.dataset.date = nowISO.slice(0, 10);
+                    document.getElementById('sleepStart').value = nowISO.slice(11, 16);
+                    document.getElementById('sleepEnd').value = ''; // Maak eindtijd leeg als timer start
+                }
                 isTimerRunning = true;
                 timerBtn.innerHTML = '<i class="fa-solid fa-stop"></i> Wakker geworden';
                 timerInterval = setInterval(() => {
@@ -1499,7 +1632,7 @@
             updateTimerDisplay();
             timerBtn.innerHTML = '<i class="fa-solid fa-stopwatch"></i> In slaap gevallen';
         }
-
+        
         // --- Dashboard Knoppen (Pop-ups) ---
 
         // Open Pop-up
@@ -1512,8 +1645,10 @@
             
             // Vul de start- en eindtijd in, behalve als de timer al loopt of gelopen heeft
             if (!isTimerRunning && timerSeconds === 0) {
-                document.getElementById('sleepStart').value = getCurrentDateTime();
-                document.getElementById('sleepEnd').value = getCurrentDateTime();
+                const nowISO = getCurrentDateTime();
+                sleepModal.dataset.date = nowISO.slice(0, 10);
+                document.getElementById('sleepStart').value = nowISO.slice(11, 16);
+                document.getElementById('sleepEnd').value = nowISO.slice(11, 16);
                 document.getElementById('sleepNotes').value = '';
             }
         });
@@ -1530,47 +1665,57 @@
         
         // --- Logica voor Opslaan ---
         saveBtn.addEventListener('click', async () => {
-            // Haal de slaapduur op uit de timer
-            const durationText = timerDisplay.textContent;
-            
-            const sleepTitle = 'Slapen';
-            
-            // Haal de tijd op uit de invoervelden om in het overzicht te zetten
+            const sleepStartVal = document.getElementById('sleepStart').value;
             const sleepEndVal = document.getElementById('sleepEnd').value;
             const notesVal = document.getElementById('sleepNotes').value.trim();
-            
-            let timeObj = new Date();
-            if (sleepEndVal) {
-                const parsedDate = new Date(sleepEndVal);
-                if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
+            const storedDate = sleepModal.dataset.date;
+    
+            if (!sleepStartVal || !storedDate) {
+                return alert('Starttijd is niet ingevuld.');
             }
-            const timeString = format24Hour(timeObj);
+    
+            const startDateTime = new Date(`${storedDate}T${sleepStartVal}`);
             
-            // Bepaal de tekst voor de subtitel
-            let subtitleText = `${timeString}`;
-            
-            let oldDuration = '';
-            if (currentEditItem && currentEditItem.title === 'Slapen') {
-                const oldParts = currentEditItem.subtitle.split(' - ')[0].split(', ');
-                if (oldParts.length > 1) {
-                    oldDuration = oldParts.slice(1).join(', ');
+            // Bepaal de eindtijd. Als het veld leeg is (omdat de timer liep), gebruik de huidige tijd.
+            const endDateTime = sleepEndVal ? new Date(`${storedDate}T${sleepEndVal}`) : new Date();
+
+            if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+                return alert('Ongeldige start- of eindtijd.');
+            }
+
+            // Als de eindtijd voor de starttijd ligt, gaan we ervan uit dat het de volgende dag is.
+            if (endDateTime < startDateTime) {
+                endDateTime.setDate(endDateTime.getDate() + 1);
+                // Dubbelcheck: als het nog steeds in het verleden is, is het een fout.
+                if (endDateTime < startDateTime) {
+                    return;
                 }
             }
 
+            let durationMs;
+            // Als de timer is gebruikt, heeft die voorrang voor de duur.
             if (timerSeconds > 0) {
-                subtitleText += `, ${durationText} geslapen`;
-            } else if (oldDuration) {
-                subtitleText += `, ${oldDuration}`;
+                durationMs = timerSeconds * 1000;
             } else {
-                subtitleText += `, handmatig ingevoerd`;
+                // Anders, bereken het verschil tussen de ingevulde tijden.
+                durationMs = endDateTime - startDateTime;
             }
+
+            const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
+            const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+            const s = String(totalSeconds % 60).padStart(2, '0');
+            const durationText = `${h}:${m}:${s}`;
+            
+            const timeString = format24Hour(endDateTime);
+            
+            let subtitleText = `${timeString}, ${durationText} geslapen`;
             if (notesVal) subtitleText += ` - ${notesVal}`;
 
-            const itemTimestamp = timeObj.toISOString();
+            const itemTimestamp = endDateTime.toISOString();
 
-            // Data object maken voor LocalStorage
             const itemData = {
-                title: sleepTitle,
+                title: 'Slapen',
                 subtitle: subtitleText,
                 icon: 'fa-bed',
                 colorClass: 'c-purple',
@@ -1578,17 +1723,16 @@
                 timestamp: itemTimestamp,
                 addedBy: getUserName()
             };
-            
-            // Opslaan in Firebase
+
             try {
                 saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opslaan...';
                 saveBtn.disabled = true;
-                if (currentEditItem && currentEditItem.title === 'Slapen') {
+                if (currentEditItem) {
                     await updateDoc(doc(db, "timeline", currentEditItem.id), itemData);
                 } else {
                     await addDoc(collection(db, "timeline"), itemData);
                 }
-                resetTimer();
+                resetTimer(); // Timer resetten na opslaan
                 closeModal();
             } catch (error) {
                 console.error("Fout bij opslaan:", error);
@@ -1630,7 +1774,9 @@
             document.getElementById('deleteDiaperBtn').style.display = 'none';
             diaperModal.classList.add('active');
             document.body.style.overflow = 'hidden';
-            document.getElementById('diaperTime').value = getCurrentDateTime();
+            const nowISO = getCurrentDateTime();
+            diaperModal.dataset.date = nowISO.slice(0, 10);
+            document.getElementById('diaperTime').value = nowISO.slice(11, 16);
             document.getElementById('diaperNotes').value = '';
         });
 
@@ -1652,11 +1798,13 @@
             const activeTab = document.querySelector('#diaperTypeControl .segment-btn.active').textContent.trim();
             const timeVal = document.getElementById('diaperTime').value;
             const notesVal = document.getElementById('diaperNotes').value.trim();
+            const storedDate = diaperModal.dataset.date;
             
             // Veilige tijd fallback als het veld leeg is of ongeldig
             let timeObj = new Date();
-            if (timeVal) {
-                const parsedDate = new Date(timeVal);
+            if (timeVal && storedDate) {
+                const combinedDateTime = `${storedDate}T${timeVal}`;
+                const parsedDate = new Date(combinedDateTime);
                 if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
             }
             const timeString = format24Hour(timeObj);
@@ -1766,7 +1914,9 @@
             breastModal.classList.add('active');
             document.body.style.overflow = 'hidden';
             if (!isLeftRunning && !isRightRunning && leftSeconds === 0 && rightSeconds === 0) {
-                document.getElementById('breastTime').value = getCurrentDateTime();
+                const nowISO = getCurrentDateTime();
+                breastModal.dataset.date = nowISO.slice(0, 10);
+                document.getElementById('breastTime').value = nowISO.slice(11, 16);
             }
         });
 
@@ -1796,10 +1946,12 @@
         // Opslaan Borstvoeding
         saveBreastBtn.addEventListener('click', async () => {
             const timeVal = document.getElementById('breastTime').value;
+            const storedDate = breastModal.dataset.date;
             
             let timeObj = new Date();
-            if (timeVal) {
-                const parsedDate = new Date(timeVal);
+            if (timeVal && storedDate) {
+                const combinedDateTime = `${storedDate}T${timeVal}`;
+                const parsedDate = new Date(combinedDateTime);
                 if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
             }
             const timeString = format24Hour(timeObj);
@@ -1876,7 +2028,9 @@
             document.getElementById('deleteBottleBtn').style.display = 'none';
             bottleModal.classList.add('active');
             document.body.style.overflow = 'hidden';
-            document.getElementById('bottleTime').value = getCurrentDateTime();
+            const nowISO = getCurrentDateTime();
+            bottleModal.dataset.date = nowISO.slice(0, 10);
+            document.getElementById('bottleTime').value = nowISO.slice(11, 16);
             document.getElementById('bottleAmount').value = '';
             document.getElementById('bottleNotes').value = '';
         });
@@ -1898,10 +2052,12 @@
             const timeVal = document.getElementById('bottleTime').value;
             const amountVal = document.getElementById('bottleAmount').value;
             const notesVal = document.getElementById('bottleNotes').value.trim();
+            const storedDate = bottleModal.dataset.date;
             
             let timeObj = new Date();
-            if (timeVal) {
-                const parsedDate = new Date(timeVal);
+            if (timeVal && storedDate) {
+                const combinedDateTime = `${storedDate}T${timeVal}`;
+                const parsedDate = new Date(combinedDateTime);
                 if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
             }
             const timeString = format24Hour(timeObj);
@@ -2001,7 +2157,9 @@
             pumpModal.classList.add('active');
             document.body.style.overflow = 'hidden';
             if (!isPumpLeftRunning && !isPumpRightRunning && pumpLeftSeconds === 0 && pumpRightSeconds === 0) {
-                document.getElementById('pumpTime').value = getCurrentDateTime();
+                const nowISO = getCurrentDateTime();
+                pumpModal.dataset.date = nowISO.slice(0, 10);
+                document.getElementById('pumpTime').value = nowISO.slice(11, 16);
                 document.getElementById('pumpAmount').value = '';
             }
         });
@@ -2031,10 +2189,12 @@
         savePumpBtn.addEventListener('click', async () => {
             const timeVal = document.getElementById('pumpTime').value;
             const amountVal = document.getElementById('pumpAmount').value;
+            const storedDate = pumpModal.dataset.date;
             
             let timeObj = new Date();
-            if (timeVal) {
-                const parsedDate = new Date(timeVal);
+            if (timeVal && storedDate) {
+                const combinedDateTime = `${storedDate}T${timeVal}`;
+                const parsedDate = new Date(combinedDateTime);
                 if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
             }
             const timeString = format24Hour(timeObj);
@@ -2102,7 +2262,9 @@
             deleteNoteBtn.style.display = 'none'; // Verberg verwijder knop
             noteModal.classList.add('active');
             document.body.style.overflow = 'hidden';
-            document.getElementById('noteTime').value = getCurrentDateTime();
+            const nowISO = getCurrentDateTime();
+            noteModal.dataset.date = nowISO.slice(0, 10);
+            document.getElementById('noteTime').value = nowISO.slice(11, 16);
             document.getElementById('noteText').value = '';
         });
 
@@ -2135,10 +2297,12 @@
         saveNoteBtn.addEventListener('click', async () => {
             const timeVal = document.getElementById('noteTime').value;
             const textVal = document.getElementById('noteText').value.trim();
+            const storedDate = noteModal.dataset.date;
             
             let timeObj = new Date();
-            if (timeVal) {
-                const parsedDate = new Date(timeVal);
+            if (timeVal && storedDate) {
+                const combinedDateTime = `${storedDate}T${timeVal}`;
+                const parsedDate = new Date(combinedDateTime);
                 if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
             }
             const timeString = format24Hour(timeObj);
@@ -2245,7 +2409,9 @@
                 // Datum formatteren voor de input
                 const dateObj = new Date(entry.timestamp);
                 dateObj.setMinutes(dateObj.getMinutes() - dateObj.getTimezoneOffset());
-                document.getElementById('growthTime').value = dateObj.toISOString().slice(0, 16);
+                const isoString = dateObj.toISOString().slice(0, 16);
+                growthModal.dataset.date = isoString.slice(0, 10);
+                document.getElementById('growthTime').value = isoString.slice(11, 16);
                 
                 // Komma terugzetten naar een punt voor het nummer-invoerveld
                 document.getElementById('growthLength').value = entry.length ? entry.length.replace(',', '.') : '';
@@ -2260,7 +2426,9 @@
             document.getElementById('saveGrowthBtn').innerHTML = 'Opslaan';
             growthModal.classList.add('active');
             document.body.style.overflow = 'hidden';
-            document.getElementById('growthTime').value = getCurrentDateTime();
+            const nowISO = getCurrentDateTime();
+            growthModal.dataset.date = nowISO.slice(0, 10);
+            document.getElementById('growthTime').value = nowISO.slice(11, 16);
             document.getElementById('growthLength').value = '';
             document.getElementById('growthWeight').value = '';
         }));
@@ -2277,12 +2445,14 @@
             const timeVal = document.getElementById('growthTime').value;
             const lenVal = document.getElementById('growthLength').value;
             const wgtVal = document.getElementById('growthWeight').value;
+            const storedDate = growthModal.dataset.date;
 
             if (!lenVal && !wgtVal) return alert('Vul op z\'n minst een lengte of gewicht in.');
 
             let timeObj = new Date();
-            if (timeVal) {
-                const parsedDate = new Date(timeVal);
+            if (timeVal && storedDate) {
+                const combinedDateTime = `${storedDate}T${timeVal}`;
+                const parsedDate = new Date(combinedDateTime);
                 if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
             }
 
