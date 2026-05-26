@@ -1,0 +1,2610 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Evenementen meldkamer applicatie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg0: #0d1520; --bg1: #111d2e; --bg2: #162236; --bg3: #1c2d42; --bg4: #223450;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+    --text1: #e8edf5; --text2: #8fa8c4; --text3: #546d89;
+    --green: #3db87a; --green-bg: rgba(61,184,122,0.12);
+    --red: #e05252; --red-bg: rgba(224,82,82,0.12);
+    --amber: #e9a23b; --amber-bg: rgba(233,162,59,0.12);
+    --blue: #4a9fe8; --blue-bg: rgba(74,159,232,0.12);
+    --purple: #9b7fe8; --orange: #e8743a;
+    --font: 'Inter', system-ui, sans-serif;
+  }
+
+  :root.light-mode {
+    --bg0: #f5f7fa; --bg1: #ffffff; --bg2: #f0f3f8; --bg3: #e8ecf1; --bg4: #dfe5ed;
+    --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.12);
+    --text1: #1a2332; --text2: #4a5f7a; --text3: #7a8fa0;
+    --green: #2d9d6b; --green-bg: rgba(45,157,107,0.12);
+    --red: #d94b4b; --red-bg: rgba(217,75,75,0.12);
+    --amber: #d68f2a; --amber-bg: rgba(214,143,42,0.12);
+    --blue: #3b7fc7; --blue-bg: rgba(59,127,199,0.12);
+    --purple: #8366d4; --orange: #d45e1d;
+  }
+
+  html, body { min-height: 100%; background: var(--bg0); color: var(--text1); font-family: var(--font); font-size: 14px; line-height: 1.5; }
+
+  /* ── TOPBAR & NAVIGATIE ── */
+  .topbar { height: 60px; background: var(--bg1); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 14px; }
+  
+  .logo-img-link { display: flex; align-items: center; transition: opacity 0.2s; }
+  .logo-img-link:hover { opacity: 0.8; }
+  .logo-img { height: 38px; object-fit: contain; } 
+  
+  .logo-title { font-size: 15px; font-weight: 600; color: var(--text1); }
+  .logo-sub { font-size: 11px; color: var(--text3); }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 20px; font-size: 12px; color: var(--text3); }
+  
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+  }
+
+  .theme-toggle:hover {
+    background: var(--bg3);
+    color: var(--text1);
+    border-color: var(--text2);
+  }
+
+  .theme-toggle svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  .theme-icon-light {
+    display: none;
+  }
+
+  .light-mode .theme-icon-dark {
+    display: none;
+  }
+
+  .light-mode .theme-icon-light {
+    display: block;
+  }
+  
+  .nav { height: 44px; background: var(--bg1); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 2px; position: sticky; top: 60px; z-index: 99; overflow-x: auto; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn { height: 36px; padding: 0 14px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text3); background: none; border: none; cursor: pointer; font-family: var(--font); display: flex; align-items: center; gap: 7px; transition: 0.15s; }
+  .nav-btn:hover { background: var(--bg3); color: var(--text2); }
+  .nav-btn.active { background: var(--green-bg); color: var(--green); }
+  .nav-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+  .nav-spacer { flex: 1; }
+
+  /* ── GLOBALE ACTIEBALK ── */
+  .actions { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 10px 24px; display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: 104px; z-index: 98; }
+  .ab { display: flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid; font-family: var(--font); transition: opacity .15s; }
+  .ab:hover { opacity: .85; }
+  .ab svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
+  .ab-g { background: var(--green-bg); border-color: rgba(61,184,122,.35); color: var(--green); }
+  .ab-b { background: var(--blue-bg); border-color: rgba(74,159,232,.35); color: var(--blue); }
+  .ab-o { background: var(--orange-bg); border-color: rgba(232,116,58,.35); color: var(--orange); }
+  .ab-a { background: var(--amber-bg); border-color: rgba(233,162,59,.35); color: var(--amber); }
+  .ab-p { background: var(--purple-bg); border-color: rgba(155,127,232,.3); color: var(--purple); }
+
+  /* ── LAYOUT ── */
+  .body { display: grid; grid-template-columns: 1fr 340px; min-height: calc(100vh - 162px); }
+  .left-container { position: relative; }
+  .right { border-left: 1px solid var(--border); display: flex; flex-direction: column; background: var(--bg1); height: 100%; }
+  
+  .view { display: none; flex-direction: column; gap: 18px; padding: 24px; max-width: 1600px; }
+  .view.active { display: flex; }
+
+  /* ── COMPONENTEN ── */
+  .section-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .section-title { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .09em; color: var(--text3); }
+  
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .stat-icon svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+  .stat-icon.r { background: var(--red-bg); color: var(--red); }
+  .stat-icon.a { background: var(--amber-bg); color: var(--amber); }
+  .stat-icon.g { background: var(--green-bg); color: var(--green); }
+  .stat-val { font-size: 22px; font-weight: 600; line-height: 1; }
+  .stat-val.r { color: var(--red); }
+  .stat-val.a { color: var(--amber); }
+  .stat-val.g { color: var(--green); }
+  .stat-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-top: 2px; }
+
+  /* ── TABELLEN ── */
+  .tbl-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; text-align: left; }
+  thead th { background: var(--bg3); padding: 8px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td { padding: 6px 12px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text2); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg3); }
+  
+  .col-time { text-align: center !important; width: 1%; white-space: nowrap; padding-left: 12px !important; padding-right: 12px !important; }
+  
+  /* Melding als er nog geen data is */
+  .empty-table-msg { padding: 20px; text-align: center; color: var(--text3); font-style: italic; font-size: 13px; }
+
+  .pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase;}
+  .pill-on { background: var(--green-bg); color: var(--green); }
+  
+  .status-dropdown-base,
+  .unit-status-select, .post-status-select,
+  .unit-status-select-detail, .post-status-select-detail { 
+    font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; 
+    white-space: nowrap; border: 1px solid transparent; outline: none; cursor: pointer;
+    appearance: none; -webkit-appearance: none; font-family: var(--font); text-align: center;
+    transition: filter 0.2s;
+    min-width: 100px;
+  }
+  .status-dropdown-base:hover, .unit-status-select:hover, .post-status-select:hover,
+  .unit-status-select-detail:hover, .post-status-select-detail:hover { filter: brightness(1.2); }
+  
+  .status-dropdown-base option, .unit-status-select option, .post-status-select option,
+  .unit-status-select-detail option, .post-status-select-detail option { background: var(--bg2); color: var(--text1); font-weight: normal; }
+  
+  .us-g { background: var(--green-bg); color: var(--green); border-color: rgba(61,184,122,.2); } 
+  .us-r { background: var(--red-bg); color: var(--red); border-color: rgba(224,82,82,.2); } 
+  .us-a { background: var(--amber-bg); color: var(--amber); border-color: rgba(233,162,59,.2); } 
+  .us-b { background: var(--blue-bg); color: var(--blue); border-color: rgba(74,159,232,.2); } 
+
+  /* ── RECHTERPANEEL ITEMS ── */
+  .rp-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 162px; z-index: 10; }
+  .rp-header svg { width: 15px; height: 15px; stroke: var(--text3); stroke-width: 1.8; fill: none; }
+  .rp-header-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .09em; color: var(--text3); }
+  .unit-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px; border-bottom: 1px solid var(--border); gap: 8px; transition: background .12s; }
+  .unit-row:hover { background: var(--bg2); }
+  .unit-left { display: flex; align-items: center; gap: 10px; }
+  .unit-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; transition: background .2s, box-shadow .2s; }
+  
+  .unit-dot.g { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .unit-dot.r { background: var(--red); }
+  .unit-dot.a { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+  .unit-dot.b { background: var(--blue); }
+
+  .unit-name { font-size: 13px; font-weight: 500; color: var(--text1); }
+  .unit-type { font-size: 11px; color: var(--text3); margin-left: 4px; }
+  .unit-loc { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  /* Knoppen */
+  .btn { padding: 9px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font); border: none; }
+  .btn-submit { background: var(--green); color: #fff; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text1); display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+  .btn-outline svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+  .btn-outline:hover { background: var(--bg3); }
+  .unit-type-btn { min-width: 80px; justify-content: center; }
+  .unit-type-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+
+  .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .row-actions .btn { padding: 5px 10px; font-size: 12px; }
+
+  .dashboard-header-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 18px 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg2); margin-bottom: 18px; }
+  .dashboard-title { font-size: 16px; font-weight: 700; color: var(--text1); margin-bottom: 6px; }
+  .dashboard-sub { color: var(--text3); font-size: 12px; line-height: 1.6; max-width: 720px; }
+  .dashboard-tags { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .rp-section { border-top: 1px solid var(--border); margin-top: 16px; }
+  .rp-section .rp-header { padding-top: 14px; position: relative; top: auto; z-index: 1; }
+  .rp-content { display: flex; flex-direction: column; gap: 0; }
+  .rp-content .unit-row { background: transparent; }
+  
+  .mobile-only { display: none !important; }
+  .panel-overlay { display: none; position: fixed; top: 104px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+  .panel-overlay.show { display: block; }
+
+  @media (max-width: 1100px) {
+    .body { grid-template-columns: 1fr; height: auto; overflow: visible; }
+    .mobile-only { display: flex !important; }
+    .right { 
+      position: fixed; right: -360px; top: 104px; bottom: 0; width: 340px; 
+      z-index: 1000; box-shadow: -5px 0 15px rgba(0,0,0,0.5); 
+      transition: right 0.3s ease; height: calc(100vh - 104px); 
+      order: unset; min-height: unset; background: var(--bg1); overflow-y: auto;
+    }
+    .right.show-panel { right: 0; }
+    .rp-header { top: 0; }
+  }
+
+  @media (max-width: 700px) {
+    .actions { padding: 12px 16px; gap: 6px; }
+    .ab { flex: 1 1 100%; justify-content: center; }
+  }
+
+  /* ── KLIKBARE RADIO BLOKKEN ── */
+  .radio-boxes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .radio-boxes input[type="radio"], .radio-boxes input[type="checkbox"] { display: none; }
+  .radio-boxes label {
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+    padding: 8px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; transition: 0.2s; user-select: none;
+  }
+  .radio-boxes label:hover { border-color: var(--text3); color: var(--text1); }
+  .radio-boxes input[type="radio"]:checked + label, .radio-boxes input[type="checkbox"]:checked + label {
+    background: var(--green-bg); border-color: var(--green); color: var(--green); font-weight: 500;
+  }
+
+  /* ── MODALS ── */
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 21, 32, 0.8); display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(3px); }
+  .modal-overlay.show { display: flex; }
+  .modal-content { background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-height: calc(100vh - 80px); display: flex; flex-direction: column; }
+  .detailed-modal .modal-content { width: 1200px; max-width: calc(100% - 40px); }
+  .form-content { padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow: auto; }
+  .form-content.detailed-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 20px; max-height: calc(100vh - 240px); overflow: auto; }
+  .detailed-form .full { grid-column: 1 / -1; }
+  .detailed-form label { font-size: 12px; color: var(--text3); margin-bottom: 6px; display: block; }
+  .detailed-form input[type="text"], .detailed-form select, .detailed-form textarea { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); }
+  .detailed-form textarea { min-height: 120px; resize: vertical; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .modal-header h3 { font-size: 15px; font-weight: 600; color: var(--text1); }
+  .modal-close { background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; }
+  
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label.group-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; }
+  .form-group input[type="text"], .form-group select { background: var(--bg2); border: 1px solid var(--border); color: var(--text1); padding: 10px; border-radius: 6px; font-family: var(--font); font-size: 13px; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--green); }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+  .btn-cancel { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+
+  .assign-modal .modal-content { width: 420px; }
+  .option-list { padding: 0 20px 20px; display: grid; gap: 10px; grid-template-columns: 1fr; }
+  .option-btn { width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg2); color: var(--text1); font-size: 13px; text-align: left; cursor: pointer; transition: background .15s, transform .15s; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .option-btn:hover { background: var(--bg3); transform: translateY(-1px); }
+  .option-btn:active { transform: translateY(0); }
+  .option-btn strong { font-size: 14px; color: var(--text1); }
+  .option-btn span { color: var(--text3); font-size: 12px; }
+  .modal-subtitle { margin-top: 4px; color: var(--text3); font-size: 12px; line-height: 1.4; }
+  .assign-modal .empty-assign-msg { color: var(--text3); font-size: 13px; padding: 12px 0; text-align: center; }
+
+  /* Inline toast for non-blocking messages */
+  #toastContainer { position: fixed; top: 72px; right: 16px; z-index: 1200; }
+  .inline-toast { background: rgba(40,44,52,0.95); color: #fff; padding: 10px 14px; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.5); margin-bottom: 8px; font-weight:600; }
+  .inline-toast.error { background: #d94b4b; }
+  
+  /* Klik-om-te-bewerken & Sortering */
+  .editable-field { cursor: pointer; border-bottom: 1px dashed var(--text3); padding-bottom: 1px; transition: 0.2s; }
+  .editable-field:hover { border-bottom-color: var(--green); color: var(--green); }
+  .sort-header { cursor: pointer; user-select: none; transition: 0.2s; }
+  .sort-header:hover { color: var(--text1); }
+  .sort-icon { font-size: 10px; opacity: 0.5; margin-left: 4px; }
+
+  /* Drag & Drop */
+  .drag-over td { background: var(--bg3) !important; position: relative; }
+  .drag-over td:first-child::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--green); }
+  .unit-row[draggable="true"]:active { cursor: grabbing !important; }
+</style>
+<!-- Link to user's legacy stylesheet to preserve layout; can be refined or trimmed as needed -->
+<link rel="stylesheet" href="legacy-custom.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <a href="https://www.ems.nl/" target="_blank" class="logo-img-link" title="Ga naar EMS.nl">
+      <img src="ems-blauw.png" alt="EMS Logo" class="logo-img">
+    </a>
+    <div class="logo-text">
+      <div class="logo-title">Evenementen meldkamer applicatie</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button id="toggleRightPanelBtn" class="theme-toggle mobile-only" title="Toon/Verberg Eenheden">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+    </button>
+    <select id="zoomSelect" title="Vergroot/verklein weergave" style="background: var(--bg2); color: var(--text1); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 500; outline: none; cursor: pointer;">
+      <option value="0.8">80%</option>
+      <option value="0.9">90%</option>
+      <option value="1" selected>100%</option>
+      <option value="1.1">110%</option>
+      <option value="1.2">120%</option>
+    </select>
+    <button id="themToggle" class="theme-toggle" title="Donker/Licht modus">
+      <svg class="theme-icon-dark" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="theme-icon-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+    <button id="weatherBtn" title="Lokale Buienradar" style="background: var(--bg2); color: var(--text1); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 500; outline: none; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+      <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+      Weer
+    </button>
+    <div id="digitalClock" style="font-weight: 600; font-size: 13px; color: var(--text1); font-variant-numeric: tabular-nums; background: var(--bg2); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); letter-spacing: 1px;">00:00:00</div>
+    <div style="display:flex;align-items:center;gap:7px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);"></span>
+      <span style="color:var(--green);font-weight:500;">Live</span>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" data-target="view-home"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Home</button>
+  <button class="nav-btn" data-target="view-meldingen"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg> Meldingen</button>
+  <button class="nav-btn" data-target="view-eenheden"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h6m-3-3v6M1 20l4-4m0 0h10a2 2 0 002-2V8"/></svg> Eenheden</button>
+  <button class="nav-btn" data-target="view-posten"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h16"/></svg> Posten</button>
+  <button class="nav-btn" data-target="view-logging"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h10"/><path d="M18 18V6"/></svg> Logging</button>
+  <button class="nav-btn" data-action="rapportage"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg> Rapportage</button>
+  <button class="nav-btn" data-action="account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5.5 20a6.5 6.5 0 0113 0"/></svg> Accountinstellingen</button>
+  <button class="nav-btn" data-action="uitloggen"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg> Uitloggen</button>
+</nav>
+
+<div class="actions">
+  <button class="ab ab-g" id="btnQuickMedical"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Snelle medische melding</button>
+  <button id="btnDetailedMedical" class="ab ab-b"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Uitgebreide medische melding</button>
+  <button class="ab ab-o" id="btnBrandwacht"><svg viewBox="0 0 24 24"><path d="M9 3h6a2 2 0 012 2v14a2 2 0 01-2 2H9a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M9 8h6"/></svg> Brandwacht melding</button>
+  <button class="ab ab-p" id="btnLogistiek"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> Logistieke melding</button>
+  <button class="ab ab-a"><svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M12 4v16"/></svg> Logging toevoegen</button>
+</div>
+
+<!-- Toast container for inline non-blocking messages -->
+<div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+<div class="panel-overlay" id="panelOverlay"></div>
+<div class="body">
+
+  <div class="left-container">
+    <div class="view active" id="view-home">
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-icon r"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+          <div><div class="stat-val r" id="countNew">0</div><div class="stat-lbl">Nieuwe meldingen</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon a"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div><div class="stat-val a" id="countActive">0</div><div class="stat-lbl">Uitgegeven meldingen</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon g"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div><div class="stat-val g" id="countLogistiek">0</div><div class="stat-lbl">Logistieke meldingen</div></div>
+        </div>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <div class="section-hdr">
+          <span class="section-title">Nieuwe Meldingen</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th class="col-time">Tijdstip melding</th>
+                <th>Locatie</th>
+                <th>Gebeurtenis</th>
+                <th>Melder</th>
+                <th>Urg</th>
+                <th>Roep n.r / Post</th>
+                <th>Acties</th>
+              </tr>
+            </thead>
+            <tbody id="newIncidentsTable">
+              </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <div class="section-hdr">
+          <span class="section-title">Lopende Meldingen</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th class="col-time">Tijdstip melding</th>
+                <th>Locatie</th>
+                <th>Gebeurtenis</th>
+                <th>Melder</th>
+                <th>Urg</th>
+                <th>Roep n.r / Post</th>
+                <th>Acties</th>
+              </tr>
+            </thead>
+            <tbody id="homeIncidentsTable">
+              </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-meldingen">
+      <div class="section-hdr"><span class="section-title">Alle Lopende Meldingen</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Status</th><th class="col-time">Tijdstip</th><th>Locatie</th><th>Gebeurtenis</th><th>Melder</th><th>Roep n.r / Post</th><th>Acties</th></tr>
+          </thead>
+          <tbody id="allIncidentsTable">
+            </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-logging">
+      <div class="section-hdr"><span class="section-title">Logging (Afgesloten Meldingen)</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Status</th><th class="col-time">Tijdstip</th><th>Locatie</th><th>Gebeurtenis</th><th>Melder</th><th>Roep n.r / Post</th></tr>
+          </thead>
+          <tbody id="loggingIncidentsTable">
+            </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-eenheden">
+      <div class="section-hdr"><span class="section-title">Eenheden Beheer</span></div>
+      
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+        <button id="showAddUnitFormBtn" class="btn btn-outline">Nieuwe eenheid toevoegen</button>
+        <button id="showBulkAddUnitFormBtn" class="btn btn-outline">Bulk eenheden toevoegen</button>
+      </div>
+
+      <div id="unitFormSection" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;">
+        <h3 style="font-size:16px;font-weight:600;color:var(--text1);margin-bottom:20px;">Invoeren Eenheid</h3>
+        <form id="addUnitForm" style="display:flex;flex-direction:column;gap:16px;">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Roepnummer *</label>
+            <input type="text" name="roepnummer" required style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Soort *</label>
+            <div class="unit-type-group" id="unitTypeGroup" style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="BLS">BLS</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="ALS">ALS</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="BLS vervoer">BLS vervoer</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="ALS vervoer">ALS vervoer</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="Reddingsbrigade">Reddingsbrigade</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="Brandwacht">Brandwacht</button>
+            </div>
+            <input type="hidden" name="soort" required>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Locatie</label>
+            <input type="text" name="locatie" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Naam medewerker 1</label>
+            <input type="text" name="naam1" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Naam medewerker 2</label>
+            <input type="text" name="naam2" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Naam medewerker 3</label>
+            <input type="text" name="naam3" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Telefoonnummer</label>
+            <input type="text" name="telefoonnummer" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Status *</label>
+            <select name="status" required style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+              <option value="inzetbaar">inzetbaar</option>
+              <option value="op post">op post</option>
+              <option value="retour post">retour post</option>
+              <option value="pauze">pauze</option>
+              <option value="uitgemeld">uitgemeld</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Gekoppeld aan post</label>
+            <input type="text" name="gekoppeldAanPost" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;flex:1;margin-bottom:0;">Ondersteunend</label>
+            <input type="checkbox" name="ondersteunend" value="true" style="width:18px;height:18px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">iPadnr</label>
+            <input type="text" name="ipadnr" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Tasnummer</label>
+            <input type="text" name="tasnummer" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Radio ID</label>
+            <input type="text" name="radioId" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+                    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+            <button type="submit" class="btn btn-submit" style="flex:1;min-width:140px;">Eenheid Invoeren</button>
+            <button type="button" id="cancelUnitFormBtn" class="btn btn-outline" style="flex:1;min-width:140px;">Annuleren</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="bulkUnitFormSection" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:600;color:var(--text1);margin-bottom:20px;">Meerdere Eenheden Toevoegen</h3>
+        <form id="bulkAddUnitForm">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra BLS teams toevoegen</label>
+              <select name="blsCount" id="blsCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+                <option value="0" selected>0</option>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra ALS teams toevoegen</label>
+              <select name="alsCount" id="alsCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+                <option value="0" selected>0</option>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra brandwachten toevoegen</label>
+              <select name="brandwachtCount" id="brandwachtCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+                <option value="0" selected>0</option>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+              </select>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-submit" style="flex:1;min-width:140px;">Eenheden Toevoegen</button>
+              <button type="button" id="cancelBulkAddUnitFormBtn" class="btn btn-outline" style="flex:1;min-width:140px;">Annuleren</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+    <div id="view-eenheden-overzicht" style="margin-top: 10px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;">
+      <div class="rp-header" style="position: static; border-bottom: 1px solid var(--border);">
+        <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h6m-3-3v6M1 20l4-4"/></svg>
+        <span class="rp-header-title">Gedetailleerd Eenheden Overzicht</span>
+      </div>
+      <div class="tbl-wrap" style="border: none; border-radius: 0;">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th class="sort-header" data-sort="id">Roepnummer <span class="sort-icon">↕</span></th>
+              <th class="sort-header" data-sort="type">Soort <span class="sort-icon">↕</span></th>
+              <th class="sort-header" data-sort="location">Locatie <span class="sort-icon">↕</span></th>
+              <th>Medewerker 1</th>
+              <th>Medewerker 2</th>
+              <th>Medewerker 3</th>
+              <th>Telefoon</th>
+              <th class="sort-header" data-sort="gekoppeldAanPost">Gekoppeld aan post <span class="sort-icon">↕</span></th>
+              <th>Ondersteunend</th>
+              <th class="sort-header" data-sort="status">Status <span class="sort-icon">↕</span></th>
+              <th class="col-editable-cell">iPadnr</th>
+              <th class="col-editable-cell">Tasnummer</th>
+              <th class="col-editable-cell">Radio ID</th>
+            </tr>
+          </thead>
+          <tbody id="detailedUnitsTableBody">
+            <!-- Eenheden worden hier dynamisch geladen -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div> <!-- End of view-eenheden -->
+
+  <div class="view" id="view-posten">
+    <div class="section-hdr"><span class="section-title">Posten Beheer</span></div>
+    
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+      <button id="showAddPostFormBtn" class="btn btn-outline">Nieuwe post toevoegen</button>
+    </div>
+
+    <div id="postFormSection" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;margin-bottom:20px;">
+      <h3 style="font-size:16px;font-weight:600;color:var(--text1);margin-bottom:20px;">Invoeren Post</h3>
+      <form id="addPostForm" style="display:flex;flex-direction:column;gap:16px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Naam Post *</label>
+          <input type="text" name="naam" required style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Locatie *</label>
+          <input type="text" name="locatie" required style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Postcoördinator</label>
+          <input type="text" name="postcoordinator" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Status *</label>
+          <select name="status" required style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+            <option value="open">open</option>
+            <option value="gesloten">gesloten</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+          <button type="submit" class="btn btn-submit" style="flex:1;min-width:140px;">Post Invoeren</button>
+          <button type="button" id="cancelPostFormBtn" class="btn btn-outline" style="flex:1;min-width:140px;">Annuleren</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="view-posten-overzicht" style="margin-top: 10px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;">
+      <div class="rp-header" style="position: static; border-bottom: 1px solid var(--border);">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 10h16"/></svg>
+        <span class="rp-header-title">Gedetailleerd Posten Overzicht</span>
+      </div>
+      <div class="tbl-wrap" style="border: none; border-radius: 0;">
+        <table>
+          <thead><tr><th></th><th class="sort-header-post" data-sort="naam">Naam Post <span class="sort-icon-post">↕</span></th><th class="sort-header-post" data-sort="locatie">Locatie <span class="sort-icon-post">↕</span></th><th class="sort-header-post" data-sort="postcoordinator">Postcoördinator <span class="sort-icon-post">↕</span></th><th class="sort-header-post" data-sort="status">Status <span class="sort-icon-post">↕</span></th><th>Gekoppeld aan eenheden</th><th>Acties</th></tr></thead>
+          <tbody id="detailedPostsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="right">
+    <div class="rp-header">
+      <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h6m-3-3v6M1 20l4-4"/></svg>
+      <span class="rp-header-title" id="linkToEenheden" style="cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--text1)'" onmouseout="this.style.color='var(--text3)'" title="Ga naar Eenheden Beheer">Operationele eenheden</span>
+      <button id="popoutBtn" class="btn btn-outline" style="padding: 4px 6px; margin-left: auto; border: none; font-size: 11px; height: 24px;" title="Open in nieuw venster">
+          <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; margin: 0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </button>
+    </div>
+    
+    <div id="rightPanelUnits"></div>
+
+    <div class="rp-section">
+      <div class="rp-header">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 10h16"/></svg>
+        <span class="rp-header-title" id="linkToPosten" style="cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--text1)'" onmouseout="this.style.color='var(--text3)'" title="Ga naar Posten Beheer">Posten</span>
+      </div>
+      <div class="rp-content" id="rightPanelPosts"></div>
+    </div>
+
+  </div> </div> <div class="modal-overlay" id="quickMedicalModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Snelle medische melding</h3>
+      <button class="modal-close closeModalBtn">&times;</button>
+    </div>
+    <form id="quickMedicalForm" class="form-content">
+      <div class="form-group">
+        <label class="group-label">Melder</label>
+        <input type="text" name="reporter" autocomplete="off" required>
+      </div>
+      <div class="form-group">
+        <label class="group-label">Locatie</label>
+        <input type="text" name="location" required>
+      </div>
+      <div class="form-group">
+        <label class="group-label">Omschrijving</label>
+        <input type="text" name="description" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="group-label">Urgentie</label>
+        <div class="radio-boxes">
+          <input type="radio" id="urg_spoed" name="urgency" value="Spoed" required><label for="urg_spoed">Spoed</label>
+          <input type="radio" id="urg_direct" name="urgency" value="Direct Vertrekken"><label for="urg_direct">Direct Vertrekken</label>
+          <input type="radio" id="urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="urg_uitstel">Uitstelmogelijkheid</label>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="group-label">Geslacht</label>
+        <div class="radio-boxes">
+          <input type="radio" id="ges_man" name="gender" value="Man" required><label for="ges_man">Man</label>
+          <input type="radio" id="ges_vrouw" name="gender" value="Vrouw"><label for="ges_vrouw">Vrouw</label>
+          <input type="radio" id="ges_x" name="gender" value="X"><label for="ges_x">X</label>
+          <input type="radio" id="ges_onb" name="gender" value="Onbekend"><label for="ges_onb">Onbekend</label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel closeModalBtn">Annuleren</button>
+        <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
+      </div>
+    </form>
+  </div>
+</div>
+ 
+<div class="modal-overlay" id="brandwachtModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Brandwacht melding</h3>
+      <button class="modal-close closeModalBtn">&times;</button>
+    </div>
+    <form id="brandwachtForm" class="form-content">
+      <div class="form-group">
+        <label class="group-label">Melder</label>
+        <input type="text" name="reporter" autocomplete="off" required>
+      </div>
+      <div class="form-group">
+        <label class="group-label">Locatie</label>
+        <input type="text" name="location" required>
+      </div>
+      <div class="form-group">
+        <label class="group-label">Omschrijving</label>
+        <input type="text" name="description" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="group-label">Urgentie</label>
+        <div class="radio-boxes">
+          <input type="radio" id="bw_urg_spoed" name="urgency" value="Spoed" required><label for="bw_urg_spoed">Spoed</label>
+          <input type="radio" id="bw_urg_direct" name="urgency" value="Direct Vertrekken"><label for="bw_urg_direct">Direct Vertrekken</label>
+          <input type="radio" id="bw_urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="bw_urg_uitstel">Uitstelmogelijkheid</label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel closeModalBtn">Annuleren</button>
+        <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="logistiekModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Logistieke melding</h3>
+      <button class="modal-close closeModalBtn">&times;</button>
+    </div>
+    <form id="logistiekForm" class="form-content">
+      <div class="form-group">
+        <label class="group-label">Melder</label>
+        <input type="text" name="reporter" autocomplete="off" required>
+      </div>
+      <div class="form-group">
+        <label class="group-label">Locatie</label>
+        <input type="text" name="location" required>
+      </div>
+      <div class="form-group">
+        <label class="group-label">Gebeurtenis / Omschrijving</label>
+        <input type="text" name="description" required>
+      </div>
+      <div class="form-group">
+        <label class="group-label">Urgentie</label>
+        <div class="radio-boxes">
+          <input type="radio" id="log_urg_spoed" name="urgency" value="Spoed"><label for="log_urg_spoed">Spoed</label>
+          <input type="radio" id="log_urg_normaal" name="urgency" value="Normaal" required><label for="log_urg_normaal">Normaal</label>
+          <input type="radio" id="log_urg_laag" name="urgency" value="Laag"><label for="log_urg_laag">Laag</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel closeModalBtn">Annuleren</button>
+        <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay detailed-modal" id="detailedMedicalModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Frontoffice (intake SBAR) medische melding</h3>
+      <button class="btn btn-outline" id="detailedCloseBtn">Sluiten</button>
+    </div>
+    <form id="detailedMedicalForm" class="form-content detailed-form">
+      <div>
+        <div class="form-group">
+          <label class="group-label">Melder</label>
+          <input type="text" name="reporter">
+        </div>
+      </div>
+      <div>
+        <div class="form-group">
+          <label class="group-label">Telefoonnummer melder</label>
+          <input type="text" name="phone">
+        </div>
+      </div>
+      <div>
+        <div class="form-group">
+          <label class="group-label">Locatie</label>
+          <input type="text" name="location">
+        </div>
+      </div>
+      <div>
+        <div class="form-group">
+          <label class="group-label">Urgentie</label>
+          <div class="radio-boxes">
+            <input type="radio" id="det_urg_direct" name="urgency" value="Direct Vertrekken" required><label for="det_urg_direct">Direct Vertrekken</label>
+            <input type="radio" id="det_urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="det_urg_uitstel">Uitstelmogelijkheid</label>
+            <input type="radio" id="det_urg_spoed" name="urgency" value="Spoed"><label for="det_urg_spoed">Spoed</label>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="form-group">
+          <label class="group-label">Geslacht</label>
+          <div class="radio-boxes">
+            <input type="radio" id="det_ges_man" name="gender" value="Man" required><label for="det_ges_man">Man</label>
+            <input type="radio" id="det_ges_vrouw" name="gender" value="Vrouw"><label for="det_ges_vrouw">Vrouw</label>
+            <input type="radio" id="det_ges_x" name="gender" value="X"><label for="det_ges_x">X</label>
+            <input type="radio" id="det_ges_onb" name="gender" value="Onbekend"><label for="det_ges_onb">Onbekend</label>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="form-group">
+          <label class="group-label">Geschatte leeftijd</label>
+          <input type="text" name="age">
+        </div>
+      </div>
+
+      <div>
+        <div class="form-group">
+          <label class="group-label">Omschrijving melding</label>
+          <textarea name="description"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <div class="form-group">
+          <label class="group-label">(B) Background</label>
+          <textarea name="background"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <div class="form-group">
+          <label class="group-label">(A) Assessment</label>
+          <textarea name="assessment"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <div class="form-group">
+          <label class="group-label">(R) Recommendation</label>
+          <div class="radio-boxes">
+            <input type="checkbox" id="rec_ehbo" name="rec" value="EHBO"><label for="rec_ehbo">EHBO</label>
+            <input type="checkbox" id="rec_ambulance" name="rec" value="Ambulance"><label for="rec_ambulance">Ambulance</label>
+            <input type="checkbox" id="rec_arts" name="rec" value="Arts"><label for="rec_arts">Arts</label>
+            <input type="checkbox" id="rec_verpleegkundige" name="rec" value="Verpleegkundige"><label for="rec_verpleegkundige">Verpleegkundige</label>
+            <input type="checkbox" id="rec_beveiliging" name="rec" value="Beveiliging"><label for="rec_beveiliging">Beveiliging</label>
+            <input type="checkbox" id="rec_politie" name="rec" value="Politie"><label for="rec_politie">Politie</label>
+            <input type="checkbox" id="rec_brandweer" name="rec" value="Brandweer"><label for="rec_brandweer">Brandweer</label>
+            <input type="checkbox" id="rec_organisatie" name="rec" value="Organisatie"><label for="rec_organisatie">Organisatie</label>
+            <input type="checkbox" id="rec_verkeer" name="rec" value="Verkeer"><label for="rec_verkeer">Verkeer</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer full">
+        <button type="button" class="btn btn-outline" id="detailedCancel">Sluiten</button>
+        <button type="submit" class="btn btn-submit">Opslaan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay escalation-modal" id="escalationModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Opschalen</h3>
+      <button class="modal-close" id="escalationCloseBtn">&times;</button>
+    </div>
+    <div class="option-list">
+      <button type="button" class="option-btn" data-escalation="Assistentie ALS">Assistentie ALS</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie 2e BLS team">Assistentie 2e BLS team</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie BLS vervoer">Assistentie BLS vervoer</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie ALS vervoer">Assistentie ALS vervoer</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie (P)CO">Assistentie (P)CO</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie beveiliging">Assistentie beveiliging</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie reddingsbrigade">Assistentie reddingsbrigade</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay assign-modal" id="assignModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <h3>Beschikbare operationele eenheden</h3>
+        <p id="assignModalSubtitle" class="modal-subtitle">Kies een beschikbare operationele eenheid.</p>
+      </div>
+      <button class="modal-close" id="assignCloseBtn">&times;</button>
+    </div>
+    <div class="option-list" id="assignUnitList"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="afloopModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Afloop</h3>
+      <button class="modal-close" id="afloopCloseBtn">&times;</button>
+    </div>
+    <div class="option-list" id="afloopOptionList">
+      <button type="button" class="option-btn" data-afloop="Loze melding">Loze melding</button>
+      <button type="button" class="option-btn" data-afloop="Zorg ter plaatse">Zorg ter plaatse</button>
+      <button type="button" class="option-btn" data-afloop="Retour BLS">Retour BLS</button>
+      <button type="button" class="option-btn" data-afloop="Retour ALS">Retour ALS</button>
+      <button type="button" class="option-btn" data-afloop="Dubbele melding">Dubbele melding</button>
+      <button type="button" class="option-btn" data-afloop="Brand meester">Brand meester</button>
+      <button type="button" class="option-btn" data-afloop="Assistentie Brandweer">Assistentie Brandweer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="weatherModal">
+  <div class="modal-content" style="width: 680px; max-width: 95vw;">
+    <div class="modal-header">
+      <h3>Uitgebreid Weer & Buienradar</h3>
+      <button class="modal-close" id="weatherCloseBtn">&times;</button>
+    </div>
+    <div style="background: var(--bg2); padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+      <iframe id="buienradarIframe" src="https://gadgets.buienradar.nl/gadget/zoommap/?lat=52.09&lng=5.12&overname=2&zoom=8&size=3&v=0" scrolling="no" width="330" height="330" frameborder="no" style="border: 1px solid var(--border); border-radius: 8px; background: #fff; max-width: 100%;"></iframe>
+      <iframe src="https://gadgets.buienradar.nl/gadget/radarfivedays" scrolling="no" width="256" height="330" frameborder="no" style="border: 1px solid var(--border); border-radius: 8px; background: #fff; max-width: 100%;"></iframe>
+    </div>
+  </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+  // ==========================================
+  // 0. DONKER/LICHT MODUS TOGGLE
+  // ==========================================
+  const themeToggle = document.getElementById('themToggle');
+  const htmlElement = document.documentElement;
+
+  // Laad opgeslagen theme voorkeur, standaard is lichte modus
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  if (savedTheme === 'light') {
+      htmlElement.classList.add('light-mode');
+  }
+
+  // Toggle functie
+  if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+          htmlElement.classList.toggle('light-mode');
+          const currentTheme = htmlElement.classList.contains('light-mode') ? 'light' : 'dark';
+          localStorage.setItem('theme', currentTheme);
+      });
+  }
+  
+  // ==========================================
+  // POPOUT & MOBILE SIDEBAR LOGICA
+  // ==========================================
+  const urlParams = new URLSearchParams(window.location.search);
+  const isPopout = urlParams.get('popout') === 'true';
+
+  if (isPopout) {
+      // Verberg alle overbodige elementen in het pop-out venster
+      document.querySelector('.topbar').style.display = 'none';
+      document.querySelector('.nav').style.display = 'none';
+      document.querySelector('.actions').style.display = 'none';
+      document.querySelector('.left-container').style.display = 'none';
+      document.querySelector('.body').style.gridTemplateColumns = '1fr';
+      document.querySelector('.body').style.height = '100vh';
+      document.querySelector('.right').style.width = '100%';
+      document.querySelector('.right').style.height = '100vh';
+      document.querySelector('.right').style.border = 'none';
+      document.querySelector('.right').style.position = 'relative';
+      document.querySelector('.right').style.right = '0';
+      document.querySelector('.right').style.overflowY = 'auto';
+      document.querySelectorAll('.rp-header').forEach(h => h.style.top = '0');
+      document.getElementById('popoutBtn').style.display = 'none';
+  }
+
+  const popoutBtn = document.getElementById('popoutBtn');
+  if (popoutBtn && !isPopout) {
+      popoutBtn.addEventListener('click', () => {
+          window.open(window.location.pathname + '?popout=true', 'EenhedenPanel', 'width=380,height=800,left=1000,top=100');
+          document.querySelector('.right').style.display = 'none';
+          document.querySelector('.body').style.gridTemplateColumns = '1fr';
+          showToast('Eenheden paneel geopend in nieuw venster. Herlaad de pagina om hem weer vast te zetten.');
+      });
+  }
+
+  const toggleRightPanelBtn = document.getElementById('toggleRightPanelBtn');
+  const rightPanel = document.querySelector('.right');
+  const panelOverlay = document.getElementById('panelOverlay');
+
+  if (toggleRightPanelBtn && rightPanel && panelOverlay) {
+      toggleRightPanelBtn.addEventListener('click', () => {
+          rightPanel.classList.toggle('show-panel');
+          panelOverlay.classList.toggle('show');
+      });
+      panelOverlay.addEventListener('click', () => {
+          rightPanel.classList.remove('show-panel');
+          panelOverlay.classList.remove('show');
+      });
+  }
+
+  // ==========================================
+  // SNELKOPPELING NAAR EENHEDEN
+  // ==========================================
+  const linkToEenheden = document.getElementById('linkToEenheden');
+  if (linkToEenheden) {
+      linkToEenheden.addEventListener('click', () => {
+          const eenhedenNavBtn = document.querySelector('.nav-btn[data-target="view-eenheden"]');
+          if (eenhedenNavBtn && !isPopout) eenhedenNavBtn.click();
+      });
+  }
+
+  const linkToPosten = document.getElementById('linkToPosten');
+  if (linkToPosten) {
+      linkToPosten.addEventListener('click', () => {
+          const postenNavBtn = document.querySelector('.nav-btn[data-target="view-posten"]');
+          if (postenNavBtn && !isPopout) postenNavBtn.click();
+      });
+  }
+
+  // ==========================================
+  // 1. DE JAVASCRIPT DATABASES (Geheugen)
+  // ==========================================
+  
+  // Meldingen Array is nu standaard helemaal leeg!
+  let incidents = [];
+
+  // Eenheden array - start leeg
+  let units = [];
+  let posts = [];
+
+  // Laad meldingen uit localStorage
+  function loadIncidentsFromStorage() {
+      const stored = localStorage.getItem('incidents');
+      if (stored) {
+          incidents = JSON.parse(stored);
+      }
+  }
+
+  // Bewaar meldingen in localStorage
+  function saveIncidentsToStorage() {
+      localStorage.setItem('incidents', JSON.stringify(incidents));
+  }
+
+  function loadPostsFromStorage() {
+      const stored = localStorage.getItem('posts');
+      if (stored) {
+          posts = JSON.parse(stored);
+      }
+  }
+  function savePostsToStorage() {
+      localStorage.setItem('posts', JSON.stringify(posts));
+  }
+
+  // ==========================================
+  // 2. RENDERING FUNCTIES (Tekenen op het scherm)
+  // ==========================================
+
+  function getStatusStyle(status) {
+      status = (status || '').toLowerCase();
+      // Groen voor inzetbaar of op post, alles anders rood
+      if (['inzetbaar', 'op post'].includes(status)) return { bg: 'us-g', dot: 'g' };
+      return { bg: 'us-r', dot: 'r' };
+  }
+
+  function getPostStatusStyle(status) {
+      status = (status || '').toLowerCase();
+      if (['open'].includes(status)) return { bg: 'us-g', dot: 'g' };
+      return { bg: 'us-r', dot: 'r' }; // gesloten
+  }
+
+    // Non-blocking toast helper
+    function showToast(message, isError = false, timeout = 3000) {
+      const container = document.getElementById('toastContainer');
+      if (!container) return console.warn('Toast container not found');
+      const el = document.createElement('div');
+      el.className = 'inline-toast' + (isError ? ' error' : '');
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => { el.style.transition = 'opacity .25s'; el.style.opacity = '0'; setTimeout(()=> el.remove(), 260); }, timeout);
+    }
+
+  function assignUnitToIncidentByDrag(unitId, incidentId) {
+      const unit = units.find(u => u.id === unitId);
+      const incident = incidents.find(i => i.id === incidentId);
+
+      if (!unit || !incident) return;
+
+      // Controleer of de eenheid al is toegewezen aan deze specifieke melding
+      if (incident.units && incident.units.some(u => u === unit.id || u.endsWith(': ' + unit.id))) {
+          showToast(`Eenheid ${unit.id} is al gekoppeld aan deze melding.`, true);
+          return;
+      }
+
+      incident.units = incident.units || [];
+      const isOpschaling = incident.units.length > 0;
+      const label = isOpschaling ? `Opschaling: ${unit.id}` : unit.id;
+      
+      incident.units.push(label);
+      if (incident.status === 'Nieuw') incident.status = 'In behandeling';
+      
+      unit.status = 'uitgerukt';
+      unit.location = incident.location;
+      
+      saveUnitsToStorage();
+      saveIncidentsToStorage();
+      
+      renderTables();
+      renderUnits();
+      if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+      
+      showToast(`Eenheid ${unit.id} succesvol ${isOpschaling ? 'toegevoegd als opschaling' : 'toegewezen'}.`);
+  }
+
+  function makeRowDropTarget(tr, incidentId) {
+      tr.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          tr.classList.add('drag-over');
+      });
+      tr.addEventListener('dragenter', (e) => {
+          e.preventDefault();
+          tr.classList.add('drag-over');
+      });
+      tr.addEventListener('dragleave', (e) => {
+          if (!tr.contains(e.relatedTarget)) {
+              tr.classList.remove('drag-over');
+          }
+      });
+      tr.addEventListener('drop', (e) => {
+          e.preventDefault();
+          tr.classList.remove('drag-over');
+          const unitId = e.dataTransfer.getData('text/plain');
+          if (unitId) assignUnitToIncidentByDrag(unitId, incidentId);
+      });
+  }
+
+  function renderUnits() {
+      const container = document.getElementById('rightPanelUnits');
+      container.innerHTML = ''; 
+
+      const operationalUnits = units.filter(u => u.status !== 'uitgemeld');
+      if (operationalUnits.length === 0) {
+          container.innerHTML = '<div class="empty-table-msg" style="padding:16px;">Geen operationele eenheden beschikbaar</div>';
+          return;
+      }
+
+      operationalUnits.forEach((u, index) => {
+          const style = getStatusStyle(u.status);
+          const isDraggable = (u.status !== 'uitgemeld' && u.status !== 'uitgerukt');
+          
+          const rowHTML = `
+            <div class="unit-row" ${isDraggable ? `draggable="true" data-drag-unit="${u.id}" style="cursor: grab;"` : ''}>
+              <div class="unit-left">
+                <span class="unit-dot ${style.dot}"></span>
+                <div>
+                  <div><span class="unit-name">${u.id}</span><span class="unit-type">${u.type}</span></div>
+                  <div class="unit-loc">Locatie: ${u.location}</div>
+                </div>
+              </div>
+              <select class="status-dropdown-base unit-status-select ${style.bg}" data-index="${index}">
+                <option value="uitgerukt" ${u.status === 'uitgerukt' ? 'selected' : ''}>uitgerukt</option>
+                <option value="inzetbaar" ${u.status === 'inzetbaar' ? 'selected' : ''}>inzetbaar</option>
+                <option value="retour post" ${u.status === 'retour post' ? 'selected' : ''}>retour post</option>
+                <option value="op post" ${u.status === 'op post' ? 'selected' : ''}>op post</option>
+                <option value="pauze" ${u.status === 'pauze' ? 'selected' : ''}>pauze</option>
+                <option value="uitgemeld" ${u.status === 'uitgemeld' ? 'selected' : ''}>uitgemeld</option>
+              </select>
+            </div>
+          `;
+          container.innerHTML += rowHTML;
+      });
+
+      container.querySelectorAll('.unit-row[draggable="true"]').forEach(row => {
+          row.addEventListener('dragstart', (e) => {
+              e.dataTransfer.setData('text/plain', e.target.getAttribute('data-drag-unit'));
+              e.dataTransfer.effectAllowed = 'copyMove';
+          });
+      });
+
+      document.querySelectorAll('.unit-status-select').forEach(dropdown => {
+          dropdown.addEventListener('change', (e) => {
+              const visibleIndex = parseInt(e.target.getAttribute('data-index'));
+              const operationalIndex = units.findIndex(u => u.status !== 'uitgemeld' && units.filter((_, i) => units[i].status !== 'uitgemeld').indexOf(u) === visibleIndex);
+              const unitIndex = units.findIndex((u, i) => u.status !== 'uitgemeld' && operationalUnits.indexOf(u) === visibleIndex);
+              if (unitIndex !== -1) {
+                  units[unitIndex].status = e.target.value;
+                  saveUnitsToStorage();
+              }
+              renderUnits();
+              renderUnitsTable();
+              renderTables();
+              renderDetailedUnitsTable();
+          });
+      });
+  }
+
+  function renderPosts() {
+      const container = document.getElementById('rightPanelPosts');
+      if (!container) return;
+      container.innerHTML = ''; 
+      if (posts.length === 0) {
+          container.innerHTML = '<div class="empty-table-msg" style="padding:16px;">Geen posten geregistreerd</div>';
+          return;
+      }
+      posts.forEach((p) => {
+          const style = getPostStatusStyle(p.status);
+          const rowHTML = `
+            <div class="unit-row">
+              <div class="unit-left"><span class="unit-dot ${style.dot}"></span><div><div class="unit-name">${p.naam}</div><div class="unit-loc">Locatie: ${p.locatie || '-'}</div></div></div>
+              <select class="status-dropdown-base post-status-select ${style.bg}" data-id="${p.id}">
+                <option value="open" ${p.status === 'open' ? 'selected' : ''}>open</option>
+                <option value="gesloten" ${p.status === 'gesloten' ? 'selected' : ''}>gesloten</option>
+              </select>
+            </div>
+          `;
+          container.innerHTML += rowHTML;
+      });
+      document.querySelectorAll('.post-status-select').forEach(dropdown => {
+          dropdown.addEventListener('change', (e) => {
+              const postId = e.target.getAttribute('data-id');
+              const postIndex = posts.findIndex(x => x.id === postId);
+              if (postIndex !== -1) {
+                  posts[postIndex].status = e.target.value;
+                  savePostsToStorage();
+                  renderPosts();
+                  if (typeof renderDetailedPostsTable === 'function') renderDetailedPostsTable();
+              }
+          });
+      });
+  }
+
+  // Toggle visibility of the header action buttons in the 'Lopende Meldingen' dashboard
+  function updateHeaderButtonsVisibility() {
+      const actions = document.querySelector('#view-home .section-actions');
+      if (!actions) return;
+      const activeCount = incidents.filter(i => !i.status.startsWith('Afgesloten')).length;
+      actions.style.display = activeCount > 0 ? 'flex' : 'none';
+  }
+
+  function renderTables() {
+      const newTable = document.getElementById('newIncidentsTable');
+      const homeTable = document.getElementById('homeIncidentsTable');
+      const allTable = document.getElementById('allIncidentsTable');
+      const loggingTable = document.getElementById('loggingIncidentsTable');
+      
+      if (newTable) newTable.innerHTML = '';
+      homeTable.innerHTML = '';
+      allTable.innerHTML = '';
+      if (loggingTable) loggingTable.innerHTML = '';
+
+      const activeIncidents = incidents.filter(inc => !inc.status.startsWith('Afgesloten'));
+      const closedIncidents = incidents.filter(inc => inc.status.startsWith('Afgesloten'));
+      
+      const newIncidents = activeIncidents.filter(inc => !inc.units || inc.units.length === 0);
+      const assignedIncidents = activeIncidents.filter(inc => inc.units && inc.units.length > 0);
+
+      // Nieuwe meldingen (zonder eenheid)
+      if (newTable) {
+          if (newIncidents.length === 0) {
+              newTable.innerHTML = `<tr><td colspan="8" class="empty-table-msg">Geen nieuwe meldingen...</td></tr>`;
+          } else {
+              newIncidents.forEach(inc => {
+                  const assignedUnits = '-';
+                  const trNew = document.createElement('tr');
+              makeRowDropTarget(trNew, inc.id);
+                  trNew.innerHTML = `
+                    <td><span class="pill pill-on">${inc.status}</span></td>
+                    <td class="col-time" style="color:var(--text3);font-size:11px">${inc.time}</td>
+                    <td>${inc.location}</td>
+                    <td>${inc.event}</td>
+                    <td>${inc.reporter}</td>
+                    <td><span style="color:var(--amber);font-weight:600;">${inc.urgency}</span></td>
+                    <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
+                    <td>
+                      <div class="row-actions">
+                        <button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}" disabled style="opacity: 0.5; cursor: not-allowed;" title="Wijs eerst een eenheid toe">Opschalen</button>
+                        <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
+                        <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Afloop</button>
+                      </div>
+                    </td>
+                  `;
+                  newTable.appendChild(trNew);
+              });
+          }
+      }
+
+      // Lopende meldingen (met eenheid)
+      if (assignedIncidents.length === 0) {
+          homeTable.innerHTML = `<tr><td colspan="8" class="empty-table-msg">Geen toegewezen meldingen...</td></tr>`;
+      } else {
+          assignedIncidents.forEach(inc => {
+              const assignedUnits = (inc.units && inc.units.length) ? inc.units.join('<br>') : (inc.unit ? inc.unit : '-');
+              const trHome = document.createElement('tr');
+          makeRowDropTarget(trHome, inc.id);
+              trHome.innerHTML = `
+                <td><span class="pill pill-on">${inc.status}</span></td>
+                <td class="col-time" style="color:var(--text3);font-size:11px">${inc.time}</td>
+                <td>${inc.location}</td>
+                <td>${inc.event}</td>
+                <td>${inc.reporter}</td>
+                <td><span style="color:var(--amber);font-weight:600;">${inc.urgency}</span></td>
+                <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
+                <td>
+                  <div class="row-actions">
+                    <button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}">Opschalen</button>
+                    <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
+                    <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Afloop</button>
+                  </div>
+                </td>
+              `;
+              homeTable.appendChild(trHome);
+          });
+      }
+
+      // Alle lopende meldingen (beide samen in de Alle Lopende Meldingen tab)
+      if (activeIncidents.length === 0) {
+          allTable.innerHTML = `<tr><td colspan="7" class="empty-table-msg">Er zijn momenteel geen lopende meldingen.</td></tr>`;
+      } else {
+          activeIncidents.forEach(inc => {
+              const assignedUnits = (inc.units && inc.units.length) ? inc.units.join('<br>') : (inc.unit ? inc.unit : '-');
+
+              const isAssigned = assignedUnits !== '-';
+              const opschaalBtn = isAssigned 
+                  ? `<button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}">Opschalen</button>`
+                  : `<button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}" disabled style="opacity: 0.5; cursor: not-allowed;" title="Wijs eerst een eenheid toe">Opschalen</button>`;
+
+              const trAll = document.createElement('tr');
+          makeRowDropTarget(trAll, inc.id);
+              trAll.innerHTML = `
+                <td><span class="pill pill-on">${inc.status}</span></td>
+                <td class="col-time">${inc.time}</td>
+                <td>${inc.location}</td>
+                <td>${inc.event}</td>
+                <td>${inc.reporter}</td>
+                <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
+                <td>
+                  <div class="row-actions">
+                    ${opschaalBtn}
+                    <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
+                    <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Afloop</button>
+                  </div>
+                </td>
+              `;
+              allTable.appendChild(trAll);
+          });
+      }
+
+      // Render de afgesloten meldingen in de logging tabel
+      if (loggingTable) {
+          if (closedIncidents.length === 0) {
+              loggingTable.innerHTML = `<tr><td colspan="6" class="empty-table-msg">Geen afgesloten meldingen.</td></tr>`;
+          } else {
+              closedIncidents.forEach(inc => {
+                  const assignedUnits = (inc.units && inc.units.length) ? inc.units.join('<br>') : (inc.unit ? inc.unit : '-');
+                  const trHist = document.createElement('tr');
+                  trHist.innerHTML = `
+                    <td><span class="pill" style="background:var(--bg3); color:var(--text3); border:1px solid var(--border);">${inc.status}</span></td>
+                    <td class="col-time">${inc.time}</td>
+                    <td>${inc.location}</td>
+                    <td>${inc.event}</td>
+                    <td>${inc.reporter}</td>
+                    <td><span style="color:var(--text2);">${assignedUnits}</span></td>
+                  `;
+                  loggingTable.appendChild(trHist);
+              });
+          }
+      }
+
+      // Update the counters
+      const countNewEl = document.getElementById('countNew');
+      if(countNewEl) countNewEl.innerText = newIncidents.length;
+      
+      const countActiveEl = document.getElementById('countActive');
+      if(countActiveEl) countActiveEl.innerText = assignedIncidents.length;
+
+      const countLogistiekEl = document.getElementById('countLogistiek');
+      if(countLogistiekEl) countLogistiekEl.innerText = activeIncidents.filter(inc => inc.id && inc.id.startsWith('L-')).length;
+
+      // Toon of verberg header buttons op basis van of er meldingen zijn
+      updateHeaderButtonsVisibility();
+
+      attachRowActionHandlers();
+  }
+
+   let currentEscalationIncidentId = null;
+   let currentAssignIncidentId = null;
+   let currentEscalationType = null;
+  let currentAfloopIncidentId = null;
+
+   function handleIncidentAction(action, incidentId) {
+       const incident = incidents.find(i => i.id === incidentId);
+       if (!incident) return;
+       if (action === 'opschalen') {
+           currentEscalationIncidentId = incidentId;
+           document.getElementById('escalationModal').classList.add('show');
+       } else if (action === 'toewijzen') {
+           openAssignModal(incidentId);
+      } else if (action === 'afsluiten') {
+        openAfloopModal(incidentId);
+       }
+   }
+
+   function openAssignModal(incidentId, escalationType = null) {
+       currentAssignIncidentId = incidentId;
+       currentEscalationType = escalationType;
+       const subtitle = document.getElementById('assignModalSubtitle');
+       subtitle.textContent = escalationType
+           ? `Assistentie: ${escalationType} — kies een beschikbare eenheid.`
+           : 'Kies een beschikbare operationele eenheid.';
+       renderAssignUnitOptions();
+       document.getElementById('assignModal').classList.add('show');
+   }
+
+   function renderAssignUnitOptions() {
+       const assignList = document.getElementById('assignUnitList');
+       const incident = incidents.find(i => i.id === currentAssignIncidentId);
+       if (!incident) {
+           assignList.innerHTML = '<div class="empty-assign-msg">Geen melding geselecteerd.</div>';
+           return;
+       }
+
+       const filters = {
+           'Assistentie ALS': u => u.type === 'ALS',
+           'Assistentie 2e BLS team': u => u.type === 'BLS',
+          'Assistentie BLS vervoer': u => u.type === 'BLS',
+          'Assistentie ALS vervoer': u => u.type === 'ALS',
+           'Assistentie (P)CO': () => true,
+           'Assistentie beveiliging': () => true,
+           'Assistentie reddingsbrigade': () => true
+       };
+
+       // Filter eenheden die beschikbaar zijn (niet uitgemeld en niet uitgerukt)
+       const baseUnits = units.filter(u => u.status !== 'uitgemeld' && u.status !== 'uitgerukt');
+       const filterFn = currentEscalationType && filters[currentEscalationType] ? filters[currentEscalationType] : () => true;
+       const availableUnits = baseUnits.filter(filterFn);
+
+       if (availableUnits.length === 0) {
+           assignList.innerHTML = '<div class="empty-assign-msg">Geen beschikbare operationele eenheden voor deze assistentie.</div>';
+           return;
+       }
+
+       assignList.innerHTML = availableUnits.map(u => `
+         <button type="button" class="option-btn" data-unit="${u.id}">
+           <strong>${u.id}</strong>
+           <span>${u.type} • ${u.status} • ${u.location}</span>
+         </button>
+       `).join('');
+
+       assignList.querySelectorAll('.option-btn').forEach(btn => {
+           btn.addEventListener('click', () => {
+               const unitId = btn.getAttribute('data-unit');
+               const unit = units.find(u => u.id === unitId);
+               const incidentToAssign = incidents.find(i => i.id === currentAssignIncidentId);
+               if (!unit || !incidentToAssign) return;
+
+             incidentToAssign.units = incidentToAssign.units || [];
+             const label = currentEscalationType ? `${currentEscalationType}: ${unit.id}` : unit.id;
+             if (!incidentToAssign.units.includes(label)) incidentToAssign.units.push(label);
+             if (incidentToAssign.status === 'Nieuw') incidentToAssign.status = 'In behandeling';
+             unit.status = 'uitgerukt';
+             unit.location = incidentToAssign.location;
+                 saveUnitsToStorage();
+                 saveIncidentsToStorage();
+             renderTables();
+             renderUnits();
+                 renderDetailedUnitsTable();
+             closeAssignModal();
+           });
+       });
+   }
+
+   function closeEscalationModal() {
+       document.getElementById('escalationModal').classList.remove('show');
+       currentEscalationIncidentId = null;
+   }
+
+   function closeAssignModal() {
+       document.getElementById('assignModal').classList.remove('show');
+       currentAssignIncidentId = null;
+   }
+
+   function attachRowActionHandlers() {
+       document.querySelectorAll('.row-actions button').forEach(btn => {
+           btn.addEventListener('click', () => {
+               handleIncidentAction(btn.getAttribute('data-action'), btn.getAttribute('data-id'));
+           });
+       });
+   }
+
+  const navButtons = document.querySelectorAll('.nav-btn');
+  const views = document.querySelectorAll('.view');
+  navButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-target');
+          const action = btn.getAttribute('data-action');
+
+          // Logic for action buttons (like 'uitloggen') that don't switch views
+          if (action) {
+              if (action === 'uitloggen') {
+                showToast('Uitloggen...');
+              } else {
+                showToast(`Actie: ${action}`);
+              }
+              return; // Stop processing, don't change active view
+          }
+
+          // Logic for view-switching buttons
+          if (target) {
+              navButtons.forEach(b => b.classList.remove('active'));
+              views.forEach(v => v.classList.remove('active'));
+              btn.classList.add('active');
+              document.getElementById(target).classList.add('active');
+
+              // Show/hide right panel based on view
+              const rightPanel = document.querySelector('.right');
+              const bodyLayout = document.querySelector('.body');
+              const isMobile = window.innerWidth <= 1100;
+              const isPopout = new URLSearchParams(window.location.search).get('popout') === 'true';
+
+              if (target === 'view-home' && !isPopout) {
+                  rightPanel.style.display = 'flex';
+                  if (!isMobile) bodyLayout.style.gridTemplateColumns = '1fr 340px';
+              } else if (!isPopout) {
+                  rightPanel.style.display = 'none';
+                  if (!isMobile) bodyLayout.style.gridTemplateColumns = '1fr';
+              }
+
+              // Specific logic for 'view-eenheden'
+              if (target === 'view-eenheden') {
+                  if (unitFormSection) unitFormSection.style.display = 'none';
+                  if (bulkUnitFormSection) bulkUnitFormSection.style.display = 'none';
+                  resetUnitFormButtons();
+                  renderDetailedUnitsTable();
+              } else {
+                  if (unitFormSection) unitFormSection.style.display = 'none';
+                  if (bulkUnitFormSection) bulkUnitFormSection.style.display = 'none';
+              }
+
+              // Specific logic for 'view-posten'
+              if (target === 'view-posten') {
+                  if (typeof renderDetailedPostsTable === 'function') renderDetailedPostsTable();
+              }
+          }
+      });
+  });
+
+  const modal = document.getElementById('quickMedicalModal');
+  const form = document.getElementById('quickMedicalForm');
+  document.getElementById('btnQuickMedical').addEventListener('click', () => modal.classList.add('show'));
+  
+  document.querySelectorAll('.closeModalBtn').forEach(cBtn => {
+      cBtn.addEventListener('click', (e) => {
+          const overlay = e.target.closest('.modal-overlay');
+          if (overlay) {
+              overlay.classList.remove('show');
+              const formInOverlay = overlay.querySelector('form');
+              if (formInOverlay) formInOverlay.reset();
+          }
+      });
+  });
+
+  document.getElementById('assignCloseBtn').addEventListener('click', () => {
+      closeAssignModal();
+  });
+
+  document.getElementById('escalationCloseBtn').addEventListener('click', () => {
+      closeEscalationModal();
+  });
+
+  document.querySelectorAll('#escalationModal .option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+          const escalationType = btn.getAttribute('data-escalation');
+          const incidentId = currentEscalationIncidentId;
+          const incident = incidents.find(i => i.id === incidentId);
+          closeEscalationModal();
+          if (!incident) return;
+        const assignNeeded = ['Assistentie ALS', 'Assistentie 2e BLS team', 'Assistentie BLS vervoer', 'Assistentie ALS vervoer'];
+        if (assignNeeded.includes(escalationType)) {
+          openAssignModal(incidentId, escalationType);
+        } else {
+          incident.units = incident.units || [];
+          if (!incident.units.includes(escalationType)) incident.units.push(escalationType);
+          saveIncidentsToStorage();
+          renderTables();
+        }
+      });
+  });
+  
+  // Afloop logica uit de opschaal-loop gehaald
+  document.getElementById('afloopCloseBtn').addEventListener('click', () => {
+      document.getElementById('afloopModal').classList.remove('show');
+      currentAfloopIncidentId = null;
+  });
+
+  function openAfloopModal(incidentId) {
+      currentAfloopIncidentId = incidentId;
+      document.getElementById('afloopModal').classList.add('show');
+  }
+
+  document.querySelectorAll('#afloopModal .option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+          const reason = btn.getAttribute('data-afloop');
+          const incident = incidents.find(i => i.id === currentAfloopIncidentId);
+          if (!incident) return;
+          incident.status = `Afgesloten: ${reason}`;
+
+          const upUnits = incident.units || [];
+          if (reason === 'Retour ALS' || reason === 'Retour BLS') {
+            upUnits.forEach(uidStr => {
+              const u = units.find(x => uidStr === x.id || uidStr.endsWith(': ' + x.id));
+              if (u) u.status = 'retour post';
+            });
+          } else {
+            upUnits.forEach(uidStr => {
+              const u = units.find(x => uidStr === x.id || uidStr.endsWith(': ' + x.id));
+              if (u) u.status = 'op post';
+            });
+          }
+
+          saveUnitsToStorage();
+          saveIncidentsToStorage();
+          renderTables();
+          renderUnits();
+          renderDetailedUnitsTable();
+          document.getElementById('afloopModal').classList.remove('show');
+          currentAfloopIncidentId = null;
+      });
+  });
+
+          // Detailed SBAR modal handlers
+          const detailedModal = document.getElementById('detailedMedicalModal');
+          const detailedForm = document.getElementById('detailedMedicalForm');
+          document.getElementById('btnDetailedMedical').addEventListener('click', () => detailedModal.classList.add('show'));
+          document.getElementById('detailedCloseBtn').addEventListener('click', () => { detailedModal.classList.remove('show'); detailedForm.reset(); });
+          document.getElementById('detailedCancel').addEventListener('click', () => { detailedModal.classList.remove('show'); detailedForm.reset(); });
+
+          detailedForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const fd = new FormData(detailedForm);
+            const reporter = (fd.get('reporter') || '').toLowerCase().trim();
+            let assignedUnit = "-";
+            if (reporter.startsWith('u') && !isNaN(reporter.substring(1))) {
+              const uNum = reporter.substring(1).padStart(2, '0');
+              assignedUnit = `Uitruk ${uNum}`;
+              const unitToUpdate = units.find(u => u.id === assignedUnit);
+              if (unitToUpdate) {
+                unitToUpdate.status = 'uitgerukt';
+                unitToUpdate.location = fd.get('location');
+                  saveUnitsToStorage();
+              }
+            }
+
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+
+            const recommendations = [];
+            detailedForm.querySelectorAll('input[name="rec"]:checked').forEach(cb => recommendations.push(cb.value));
+
+            incidents.push({
+              id: 'M-' + Math.floor(Math.random()*10000),
+              status: assignedUnit && assignedUnit !== '-' ? 'In behandeling' : 'Nieuw',
+              time: timeStr,
+              location: fd.get('location'),
+              event: fd.get('description') || 'SBAR melding',
+              reporter: fd.get('reporter'),
+              urgency: fd.get('urgency'),
+              units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : [],
+              details: {
+                phone: fd.get('phone'),
+                age: fd.get('age'),
+                gender: fd.get('gender'),
+                background: fd.get('background'),
+                assessment: fd.get('assessment'),
+                recommendations
+              }
+            });
+
+          saveIncidentsToStorage();
+            renderTables();
+            renderUnits();
+            renderDetailedUnitsTable();
+            detailedModal.classList.remove('show');
+            detailedForm.reset();
+          });
+
+  form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const melder = formData.get('reporter').toLowerCase().trim();
+      
+      let assignedUnit = "-";
+      let alertMsg = "Melding succesvol aangemaakt.";
+
+      // Systeem intelligentie: herken u1, u2, u3, etc.
+      if (melder.startsWith('u') && !isNaN(melder.substring(1))) {
+          const uNum = melder.substring(1).padStart(2, '0');
+          assignedUnit = `Uitruk ${uNum}`;
+          
+          const unitToUpdate = units.find(u => u.id === assignedUnit);
+          if(unitToUpdate) {
+              unitToUpdate.status = "uitgerukt";
+              unitToUpdate.location = formData.get('location'); 
+                  saveUnitsToStorage();
+              alertMsg = `MELDING AANGEMAAKT!\nEenheid '${assignedUnit}' is herkend en de status is automatisch gezet op 'uitgerukt'.`;
+          }
+      }
+
+      const nu = new Date();
+      const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
+
+      incidents.push({
+          id: "M-" + Math.floor(Math.random() * 10000), 
+          status: assignedUnit && assignedUnit !== '-' ? 'In behandeling' : 'Nieuw',
+          time: tijdString,
+          location: formData.get('location'),
+          event: formData.get('description'),
+          reporter: formData.get('reporter'),
+          urgency: formData.get('urgency'),
+          units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
+      });
+
+      saveIncidentsToStorage();
+      renderTables();
+      renderUnits();
+      renderDetailedUnitsTable();
+      
+      modal.classList.remove('show');
+      form.reset();
+      // confirmation alert removed per request
+  });
+
+  // ==========================================
+  // BRANDWACHT MELDING FORMULIER
+  // ==========================================
+  const bwModal = document.getElementById('brandwachtModal');
+  const bwForm = document.getElementById('brandwachtForm');
+  const btnBrandwacht = document.getElementById('btnBrandwacht');
+  
+  if (btnBrandwacht && bwModal) {
+      btnBrandwacht.addEventListener('click', () => bwModal.classList.add('show'));
+  }
+
+  if (bwForm) {
+      bwForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const formData = new FormData(bwForm);
+          const melder = formData.get('reporter').toLowerCase().trim();
+          
+          let assignedUnit = "-";
+          
+          // Systeem intelligentie: herken bw1, bw2 -> BW-01, BW-02
+          if (melder.startsWith('bw') && !isNaN(melder.substring(2))) {
+              const bwNum = melder.substring(2).padStart(2, '0');
+              assignedUnit = `BW-${bwNum}`;
+              const unitToUpdate = units.find(u => u.id === assignedUnit);
+              if(unitToUpdate) {
+                  unitToUpdate.status = "uitgerukt";
+                  unitToUpdate.location = formData.get('location'); 
+                  saveUnitsToStorage();
+              }
+          }
+
+          const nu = new Date();
+          const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
+
+          incidents.push({
+              id: "BW-" + Math.floor(Math.random() * 10000), 
+              status: assignedUnit && assignedUnit !== '-' ? 'In behandeling' : 'Nieuw',
+              time: tijdString,
+              location: formData.get('location'),
+              event: formData.get('description'),
+              reporter: formData.get('reporter'),
+              urgency: formData.get('urgency'),
+              units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
+          });
+
+          saveIncidentsToStorage();
+          renderTables();
+          renderUnits();
+          if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+          
+          bwModal.classList.remove('show');
+          bwForm.reset();
+          showToast('Brandwacht melding succesvol aangemaakt.');
+      });
+  }
+
+  // ==========================================
+  // LOGISTIEKE MELDING FORMULIER
+  // ==========================================
+  const logModal = document.getElementById('logistiekModal');
+  const logForm = document.getElementById('logistiekForm');
+  const btnLogistiek = document.getElementById('btnLogistiek');
+  
+  if (btnLogistiek && logModal) {
+      btnLogistiek.addEventListener('click', () => logModal.classList.add('show'));
+  }
+
+  if (logForm) {
+      logForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const formData = new FormData(logForm);
+          const melder = formData.get('reporter').toLowerCase().trim();
+          
+          let assignedUnit = "-";
+          
+          // Systeem intelligentie: herken log1, log2 -> LOG-01, LOG-02 (optioneel, indien eenheden worden toegevoegd)
+          if (melder.startsWith('log') && !isNaN(melder.substring(3))) {
+              const logNum = melder.substring(3).padStart(2, '0');
+              assignedUnit = `LOG-${logNum}`;
+              const unitToUpdate = units.find(u => u.id === assignedUnit);
+              if(unitToUpdate) {
+                  unitToUpdate.status = "uitgerukt";
+                  unitToUpdate.location = formData.get('location'); 
+                  saveUnitsToStorage();
+              }
+          }
+
+          const nu = new Date();
+          const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
+
+          incidents.push({
+              id: "L-" + Math.floor(Math.random() * 10000), 
+              status: assignedUnit && assignedUnit !== '-' ? 'In behandeling' : 'Nieuw',
+              time: tijdString,
+              location: formData.get('location'),
+              event: formData.get('description'),
+              reporter: formData.get('reporter'),
+              urgency: formData.get('urgency'),
+              units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
+          });
+
+          saveIncidentsToStorage();
+          renderTables();
+          renderUnits();
+          if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+          
+          logModal.classList.remove('show');
+          logForm.reset();
+          showToast('Logistieke melding succesvol aangemaakt.');
+      });
+  }
+
+  // Re-attach row buttons after each re-render
+  function refreshRowActions() {
+      attachRowActionHandlers();
+  }
+
+  // ==========================================
+  // EENHEDEN INVOER FORMULIER
+  // ==========================================
+  const addUnitForm = document.getElementById('addUnitForm');
+  const showAddUnitFormBtn = document.getElementById('showAddUnitFormBtn');
+  const showBulkAddUnitFormBtn = document.getElementById('showBulkAddUnitFormBtn'); // NEW
+  const unitFormSection = document.getElementById('unitFormSection');
+  const unitTypeButtons = document.querySelectorAll('.unit-type-btn');
+  const unitTypeInput = document.querySelector('input[name="soort"]');
+
+  const cancelUnitFormBtn = document.getElementById('cancelUnitFormBtn');
+  const cancelBulkAddUnitFormBtn = document.getElementById('cancelBulkAddUnitFormBtn');
+  const bulkUnitFormSection = document.getElementById('bulkUnitFormSection');
+  const bulkAddUnitForm = document.getElementById('bulkAddUnitForm');
+
+  // Function to reset button styles for the form toggles
+  function resetUnitFormButtons() {
+      if (showAddUnitFormBtn) {
+          showAddUnitFormBtn.classList.remove('btn-submit');
+          showAddUnitFormBtn.classList.add('btn-outline');
+      }
+      if (showBulkAddUnitFormBtn) {
+          showBulkAddUnitFormBtn.classList.remove('btn-submit');
+          showBulkAddUnitFormBtn.classList.add('btn-outline');
+      }
+  }
+
+  // Initially hide all sub-sections and reset button styles
+  if (unitFormSection) unitFormSection.style.display = 'none';
+  if (bulkUnitFormSection) bulkUnitFormSection.style.display = 'none';
+  resetUnitFormButtons();
+
+  // Show/hide the add unit form
+  if (showAddUnitFormBtn && unitFormSection && bulkUnitFormSection) {
+      showAddUnitFormBtn.addEventListener('click', () => {
+          if (unitFormSection.style.display === 'block') {
+              unitFormSection.style.display = 'none';
+              showAddUnitFormBtn.classList.remove('btn-submit');
+              showAddUnitFormBtn.classList.add('btn-outline');
+          } else {
+              unitFormSection.style.display = 'block';
+              bulkUnitFormSection.style.display = 'none';
+              
+              showAddUnitFormBtn.classList.remove('btn-outline');
+              showAddUnitFormBtn.classList.add('btn-submit');
+              
+              showBulkAddUnitFormBtn.classList.remove('btn-submit');
+              showBulkAddUnitFormBtn.classList.add('btn-outline');
+          }
+      });
+  }
+
+  if (cancelUnitFormBtn && unitFormSection) {
+      cancelUnitFormBtn.addEventListener('click', () => {
+          unitFormSection.style.display = 'none';
+          addUnitForm.reset();
+          unitTypeInput.value = '';
+          unitTypeButtons.forEach(btn => btn.classList.remove('active'));
+          resetUnitFormButtons(); // Reset both buttons
+      });
+  }
+
+  if (unitTypeButtons && unitTypeInput) {
+      unitTypeButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+              unitTypeButtons.forEach(other => other.classList.remove('active'));
+              btn.classList.add('active');
+              unitTypeInput.value = btn.getAttribute('data-value');
+          });
+      });
+  }
+
+  // NEW: Event listener for "Bulk eenheden toevoegen"
+  if (showBulkAddUnitFormBtn && bulkUnitFormSection && unitFormSection) {
+      showBulkAddUnitFormBtn.addEventListener('click', () => {
+          if (bulkUnitFormSection.style.display === 'block') {
+              bulkUnitFormSection.style.display = 'none';
+              showBulkAddUnitFormBtn.classList.remove('btn-submit');
+              showBulkAddUnitFormBtn.classList.add('btn-outline');
+          } else {
+              bulkUnitFormSection.style.display = 'block';
+              unitFormSection.style.display = 'none';
+              bulkAddUnitForm.reset();
+              
+              showBulkAddUnitFormBtn.classList.remove('btn-outline');
+              showBulkAddUnitFormBtn.classList.add('btn-submit');
+              
+              showAddUnitFormBtn.classList.remove('btn-submit');
+              showAddUnitFormBtn.classList.add('btn-outline');
+          }
+      });
+  }
+
+  // NEW: Modify cancelBulkAddUnitFormBtn
+  if (cancelBulkAddUnitFormBtn && bulkUnitFormSection) {
+      cancelBulkAddUnitFormBtn.addEventListener('click', () => {
+          bulkUnitFormSection.style.display = 'none';
+          bulkAddUnitForm.reset();
+          resetUnitFormButtons(); // Reset both buttons
+      });
+  }
+
+  // Laad eenheden uit localStorage
+  function loadUnitsFromStorage() {
+      const stored = localStorage.getItem('units');
+      if (stored) {
+          units = JSON.parse(stored);
+      }
+  }
+
+  // Bewaar eenheden in localStorage
+  function saveUnitsToStorage() {
+      localStorage.setItem('units', JSON.stringify(units));
+  }
+
+  // Render tabel met geregistreerde eenheden
+  function renderUnitsTable() {
+      const tbody = document.getElementById('unitsTableBody');
+      if (!tbody) return;
+      
+      if (units.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="empty-table-msg">Geen eenheden geregistreerd</td></tr>';
+          return;
+      }
+
+      tbody.innerHTML = units.map((u, index) => `
+          <tr>
+              <td>${u.id}</td>
+              <td>${u.type}</td>
+              <td>${u.location}</td>
+              <td>${u.naam1 || ''}</td>
+              <td>${u.naam2 || ''}</td>
+              <td>${u.naam3 || ''}</td>
+              <td>${u.telefoonnummer || ''}</td>
+              <td><span style="color:var(--text2);">${u.status}</span></td>
+              <td>${u.gekoppeldAanPost || ''}</td>
+              <td>${u.ondersteunend ? 'Ja' : 'Nee'}</td>
+              <td>${u.ipadnr || ''}</td>
+              <td>${u.tasnummer || ''}</td>
+              <td>${u.radioId || ''}</td>
+              <td>
+                  <button type="button" class="btn btn-outline" data-delete-unit="${index}" style="padding:6px 12px;font-size:12px;">Verwijderen</button>
+              </td>
+          </tr>
+      `).join('');
+
+      // Event listeners voor delete buttons
+      tbody.querySelectorAll('[data-delete-unit]').forEach(btn => {
+          btn.addEventListener('click', () => {
+              const idx = parseInt(btn.getAttribute('data-delete-unit'));
+              units.splice(idx, 1);
+              saveUnitsToStorage();
+              renderUnitsTable();
+              renderUnits();
+              renderTables();
+                  renderDetailedUnitsTable();
+          });
+      });
+  }
+
+  // Handle formulier inzending
+  if (addUnitForm) {
+      addUnitForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const fd = new FormData(addUnitForm);
+          
+          const newUnit = {
+              id: fd.get('roepnummer').trim(),
+              type: fd.get('soort'),
+              location: fd.get('locatie').trim() || '-',
+              naam1: fd.get('naam1').trim() || '',
+              naam2: fd.get('naam2').trim() || '',
+              naam3: fd.get('naam3').trim() || '',
+              telefoonnummer: fd.get('telefoonnummer').trim() || '',
+              status: fd.get('status'),
+              gekoppeldAanPost: fd.get('gekoppeldAanPost').trim() || '',
+              ondersteunend: fd.get('ondersteunend') === 'true',
+              ipadnr: fd.get('ipadnr').trim() || '',
+              tasnummer: fd.get('tasnummer').trim() || '',
+              radioId: fd.get('radioId').trim() || ''
+          };
+
+          if (!newUnit.type) {
+              alert('Kies eerst een eenheidstype.');
+              return;
+          }
+
+          // Check of roepnummer al bestaat
+          if (units.find(u => u.id === newUnit.id)) {
+              alert('Eenheid met roepnummer "' + newUnit.id + '" bestaat al!');
+              return;
+          }
+
+          // Voeg eenheid toe
+          units.push(newUnit);
+          saveUnitsToStorage();
+          
+          // Update UI
+          renderUnitsTable();
+          renderUnits();
+          renderTables();
+          renderDetailedUnitsTable();
+          
+          // Reset formulier
+          addUnitForm.reset();
+          showToast('Eenheid "' + newUnit.id + '" succesvol toegevoegd!');
+      });
+  }
+
+  // ==========================================
+  // GEDETAILLEERD EENHEDEN OVERZICHT TABEL
+  // ==========================================
+  function renderDetailedUnitsTable() {
+      const tbody = document.getElementById('detailedUnitsTableBody');
+      if (!tbody) return;
+
+      if (units.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="14" class="empty-table-msg">Geen eenheden geregistreerd</td></tr>';
+          return;
+      }
+
+      tbody.innerHTML = units.map(u => {
+          // Gebruik de bestaande styling-functie zodat de kleur altijd perfect overeenkomt met de rechterbalk
+          const style = getStatusStyle(u.status);
+          const statusIcon = `<span class="unit-dot ${style.dot}" title="${u.status}" style="display:inline-block; vertical-align: middle;"></span>`;
+
+          const getEditableSpan = (field, value) => `
+              <span class="editable-field" data-id="${u.id}" data-field="${field}" data-value="${value || ''}">
+                  ${value && value.trim() !== '' ? value : '<i>Niet ingevuld</i>'}
+              </span>
+          `;
+          
+          const statusDropdown = `
+              <select class="unit-status-select-detail ${style.bg}" data-unit-id="${u.id}">
+                <option value="uitgerukt" ${u.status === 'uitgerukt' ? 'selected' : ''}>uitgerukt</option>
+                <option value="inzetbaar" ${u.status === 'inzetbaar' ? 'selected' : ''}>inzetbaar</option>
+                <option value="retour post" ${u.status === 'retour post' ? 'selected' : ''}>retour post</option>
+                <option value="op post" ${u.status === 'op post' ? 'selected' : ''}>op post</option>
+                <option value="pauze" ${u.status === 'pauze' ? 'selected' : ''}>pauze</option>
+                <option value="uitgemeld" ${u.status === 'uitgemeld' ? 'selected' : ''}>uitgemeld</option>
+              </select>
+          `;
+
+          return `
+              <tr>
+                  <td>${statusIcon}</td>
+                  <td>${u.id}</td>
+                  <td>${getEditableSpan('type', u.type)}</td>
+                  <td>${getEditableSpan('location', u.location)}</td>
+                  <td>${getEditableSpan('naam1', u.naam1)}</td>
+                  <td>${getEditableSpan('naam2', u.naam2)}</td>
+                  <td>${getEditableSpan('naam3', u.naam3)}</td>
+                  <td>${getEditableSpan('telefoonnummer', u.telefoonnummer)}</td>
+                  <td>${getEditableSpan('gekoppeldAanPost', u.gekoppeldAanPost)}</td>
+                  <td>${u.ondersteunend ? 'Ja' : 'Nee'}</td>
+                  <td>${statusDropdown}</td>
+                  <td>${getEditableSpan('ipadnr', u.ipadnr)}</td>
+                  <td>${getEditableSpan('tasnummer', u.tasnummer)}</td>
+                  <td>${getEditableSpan('radioId', u.radioId)}</td>
+              </tr>
+          `;
+      }).join('');
+
+      // Attach editable field logic after rendering
+      attachEditableFieldHandlers();
+      
+      // Koppel event listeners voor de status dropdown in deze tabel
+      document.querySelectorAll('.unit-status-select-detail').forEach(select => {
+          select.addEventListener('change', (e) => {
+              const unitId = e.target.getAttribute('data-unit-id');
+              const newStatus = e.target.value;
+              const unitIndex = units.findIndex(u => u.id === unitId);
+              if (unitIndex !== -1) {
+                  units[unitIndex].status = newStatus;
+                  saveUnitsToStorage();
+                  renderUnits();
+                  renderUnitsTable();
+                  renderDetailedUnitsTable(); // Herlaad tabel om kleuren bij te werken
+              }
+          });
+      });
+  }
+
+  // Function to attach/re-attach editable field event handlers
+  function attachEditableFieldHandlers() {
+      $(document).off("click", ".editable-field"); // Prevent multiple bindings
+      $(document).on("click", ".editable-field", function(e) {
+          e.stopPropagation();
+          var $span = $(this);
+          if ($span.find("input").length > 0) return; // already editing
+
+          var currentText = $span.attr("data-value") || "";
+          var unitId = $span.data("id");
+          var field = $span.data("field");
+
+          var $input = $("<input>", {
+              type: "text",
+              value: currentText,
+              class: "edit-field-input",
+              style: "width: 100px; font-size: 13px; padding: 4px; border: 1px solid var(--green); border-radius: 4px; background: var(--bg0); color: var(--text1); outline: none;"
+          });
+
+          // Voor kleinere cellen zoals iPadnr, Tasnummer of Radio ID
+          if (field === 'radioId' || field === 'tasnummer' || field === 'ipadnr') { 
+               $input.css("width", "60px");
+          }
+
+          var $saveBtn = $("<button>", { html: '&#10004;', style: "margin-left:6px; cursor:pointer; background:var(--green); color:#fff; border:none; border-radius:4px; padding:3px 8px; font-size:12px;" });
+          var $cancelBtn = $("<button>", { html: '&#10006;', style: "margin-left:4px; cursor:pointer; background:var(--red); color:#fff; border:none; border-radius:4px; padding:3px 8px; font-size:12px;" });
+
+          $span.empty().append($input).append($saveBtn).append($cancelBtn);
+          $input.focus().select();
+
+          var restore = function() {
+               var val = $span.attr("data-value");
+               if (val && val.toString().trim() !== "" && val.toString().trim() !== "0") {
+                   $span.text(val);
+               } else {
+                   $span.html("<i>Niet ingevuld</i>");
+               }
+          };
+
+          var save = function() {
+              var newVal = $input.val();
+              if (field === 'radioId' && newVal && !/^\d+$/.test(newVal)) {
+                  showToast("Radio ID moet een getal zijn.", true);
+                  restore();
+                  return;
+              }
+              const unitIndex = units.findIndex(u => u.id === unitId);
+              if (unitIndex !== -1) {
+                  units[unitIndex][field] = newVal;
+                  saveUnitsToStorage();
+                  renderUnits(); // Update right panel
+                  renderDetailedUnitsTable(); // Update detailed table
+                  showToast(`Eenheid ${unitId} bijgewerkt.`);
+              }
+              restore();
+          };
+
+          $saveBtn.click(function(e) { e.stopPropagation(); save(); });
+          $cancelBtn.click(function(e) { e.stopPropagation(); restore(); });
+          $input.keypress(function(e) {
+              if (e.which == 13) {
+                  e.preventDefault();
+                  save();
+              }
+          });
+          $input.click(function(e) { e.stopPropagation(); });
+      });
+  }
+
+  // ==========================================
+  // BULK EENHEDEN TOEVOEGEN FORMULIER
+  // ==========================================
+  if (bulkAddUnitForm) {
+      bulkAddUnitForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const fd = new FormData(bulkAddUnitForm);
+          const blsCount = parseInt(fd.get('blsCount') || '0');
+          const brandwachtCount = parseInt(fd.get('brandwachtCount') || '0');
+          const alsCount = parseInt(fd.get('alsCount') || '0');
+
+          let newUnitsAdded = 0;
+
+          // Determine starting numbers for BLS and ALS
+          let maxBlsNum = 0;
+          let maxAlsNum = 0;
+          units.forEach(u => {
+              if (u.type === 'BLS' && u.id.startsWith('BLS-')) {
+                  const num = parseInt(u.id.substring(4));
+                  if (!isNaN(num) && num > maxBlsNum) maxBlsNum = num;
+              } else if (u.type === 'ALS' && u.id.startsWith('ALS-')) {
+                  const num = parseInt(u.id.substring(4));
+                  if (!isNaN(num) && num > maxAlsNum) maxAlsNum = num;
+              } else if (u.type === 'Brandwacht' && u.id.startsWith('BW-')) {
+                  const num = parseInt(u.id.substring(3));
+                  if (!isNaN(num) && num > maxBwNum) maxBwNum = num;
+              }
+          });
+
+          for (let i = 0; i < blsCount; i++) {
+              maxBlsNum++;
+              const newUnitId = `BLS-${String(maxBlsNum).padStart(2, '0')}`;
+              if (!units.find(u => u.id === newUnitId)) { // Ensure uniqueness
+                  units.push({
+                      id: newUnitId,
+                      type: 'BLS',
+                      location: 'Onbekend',
+                      naam1: '', naam2: '', naam3: '',
+                      telefoonnummer: '',
+                      status: 'inzetbaar',
+                      gekoppeldAanPost: '',
+                      ondersteunend: false,
+                      ipadnr: '', tasnummer: '', radioId: ''
+                  });
+                  newUnitsAdded++;
+              }
+          }
+
+          for (let i = 0; i < alsCount; i++) {
+              maxAlsNum++;
+              const newUnitId = `ALS-${String(maxAlsNum).padStart(2, '0')}`;
+              if (!units.find(u => u.id === newUnitId)) { // Ensure uniqueness
+                  units.push({
+                      id: newUnitId,
+                      type: 'ALS',
+                      location: 'Onbekend',
+                      naam1: '', naam2: '', naam3: '',
+                      telefoonnummer: '',
+                      status: 'inzetbaar',
+                      gekoppeldAanPost: '',
+                      ondersteunend: false,
+                      ipadnr: '', tasnummer: '', radioId: ''
+                  });
+                  newUnitsAdded++;
+              }
+          }
+
+          for (let i = 0; i < brandwachtCount; i++) {
+              maxBwNum++;
+              const newUnitId = `BW-${String(maxBwNum).padStart(2, '0')}`;
+              if (!units.find(u => u.id === newUnitId)) { // Ensure uniqueness
+                  units.push({
+                      id: newUnitId,
+                      type: 'Brandwacht',
+                      location: 'Onbekend',
+                      naam1: '', naam2: '', naam3: '',
+                      telefoonnummer: '',
+                      status: 'inzetbaar',
+                      gekoppeldAanPost: '',
+                      ondersteunend: false,
+                      ipadnr: '', tasnummer: '', radioId: ''
+                  });
+                  newUnitsAdded++;
+              }
+          }
+
+
+          if (newUnitsAdded > 0) {
+              saveUnitsToStorage();
+              renderUnits();
+              renderTables();
+              renderDetailedUnitsTable();
+              showToast(`${newUnitsAdded} eenheden succesvol toegevoegd!`);
+          } else {
+              showToast('Geen nieuwe eenheden toegevoegd.', true);
+          }
+          
+          bulkAddUnitForm.reset();
+      });
+  }
+  
+  // ==========================================
+  // SORTEREN VAN EENHEDEN
+  // ==========================================
+  let currentSort = { col: 'id', asc: true };
+
+  function sortUnits(col) {
+      if (currentSort.col === col) {
+          currentSort.asc = !currentSort.asc;
+      } else {
+          currentSort.col = col;
+          currentSort.asc = true;
+      }
+
+      units.sort((a, b) => {
+          let valA = a[col] ? a[col].toString().toLowerCase() : '';
+          let valB = b[col] ? b[col].toString().toLowerCase() : '';
+
+          // Intelligente sortering voor roepnummers met getallen (zodat ALS-2 vóór ALS-10 komt)
+          if (col === 'id') {
+               const matchA = valA.match(/^([a-z-]+)(\d+)$/i);
+               const matchB = valB.match(/^([a-z-]+)(\d+)$/i);
+               if (matchA && matchB && matchA[1] === matchB[1]) {
+                   return currentSort.asc ? parseInt(matchA[2]) - parseInt(matchB[2]) : parseInt(matchB[2]) - parseInt(matchA[2]);
+               }
+          }
+          if (valA < valB) return currentSort.asc ? -1 : 1;
+          if (valA > valB) return currentSort.asc ? 1 : -1;
+          return 0;
+      });
+
+      saveUnitsToStorage();
+      renderDetailedUnitsTable();
+      renderUnitsTable();
+      renderUnits();
+      
+      // Update pijltjes in de kolomkoppen
+      document.querySelectorAll('.sort-header .sort-icon').forEach(icon => icon.textContent = '↕');
+      const activeHeader = document.querySelector(`.sort-header[data-sort="${col}"] .sort-icon`);
+      if (activeHeader) activeHeader.textContent = currentSort.asc ? '↓' : '↑';
+  }
+
+  // Koppel de sorteer-knoppen aan de tabel
+  document.addEventListener('click', function(e) {
+      const header = e.target.closest('.sort-header');
+      if (header) {
+          sortUnits(header.getAttribute('data-sort'));
+      }
+  });
+
+  // ==========================================
+  // POSTEN BEHEER LOGICA
+  // ==========================================
+  const addPostForm = document.getElementById('addPostForm');
+  const showAddPostFormBtn = document.getElementById('showAddPostFormBtn');
+  const postFormSection = document.getElementById('postFormSection');
+  const cancelPostFormBtn = document.getElementById('cancelPostFormBtn');
+
+  if (showAddPostFormBtn && postFormSection) {
+      showAddPostFormBtn.addEventListener('click', () => {
+          if (postFormSection.style.display === 'block') {
+              postFormSection.style.display = 'none';
+              showAddPostFormBtn.classList.remove('btn-submit');
+              showAddPostFormBtn.classList.add('btn-outline');
+          } else {
+              postFormSection.style.display = 'block';
+              showAddPostFormBtn.classList.remove('btn-outline');
+              showAddPostFormBtn.classList.add('btn-submit');
+          }
+      });
+  }
+  if (cancelPostFormBtn && postFormSection) {
+      cancelPostFormBtn.addEventListener('click', () => {
+          postFormSection.style.display = 'none';
+          addPostForm.reset();
+          showAddPostFormBtn.classList.remove('btn-submit');
+          showAddPostFormBtn.classList.add('btn-outline');
+      });
+  }
+  if (addPostForm) {
+      addPostForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const fd = new FormData(addPostForm);
+          const newPost = {
+              id: 'P-' + Math.floor(Math.random() * 10000),
+              naam: fd.get('naam').trim(),
+              locatie: fd.get('locatie').trim(),
+              postcoordinator: fd.get('postcoordinator') ? fd.get('postcoordinator').trim() : '',
+              status: fd.get('status')
+          };
+          posts.push(newPost);
+          savePostsToStorage();
+          renderPosts();
+          renderDetailedPostsTable();
+          addPostForm.reset();
+          postFormSection.style.display = 'none';
+          showAddPostFormBtn.classList.remove('btn-submit');
+          showAddPostFormBtn.classList.add('btn-outline');
+          showToast('Post "' + newPost.naam + '" succesvol toegevoegd!');
+      });
+  }
+
+  function renderDetailedPostsTable() {
+      const tbody = document.getElementById('detailedPostsTableBody');
+      if (!tbody) return;
+      if (posts.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="empty-table-msg">Geen posten geregistreerd</td></tr>';
+          return;
+      }
+      tbody.innerHTML = posts.map(p => {
+          const style = getPostStatusStyle(p.status);
+          const statusIcon = `<span class="unit-dot ${style.dot}" title="${p.status}" style="display:inline-block; vertical-align: middle;"></span>`;
+          const getEditableSpan = (field, value) => `<span class="editable-post-field" data-id="${p.id}" data-field="${field}" data-value="${value || ''}">${value && value.trim() !== '' ? value : '<i>Niet ingevuld</i>'}</span>`;
+          const statusDropdown = `<select class="status-dropdown-base post-status-select-detail ${style.bg}" data-id="${p.id}"><option value="open" ${p.status === 'open' ? 'selected' : ''}>open</option><option value="gesloten" ${p.status === 'gesloten' ? 'selected' : ''}>gesloten</option></select>`;
+          
+          // Bereken welke eenheden gekoppeld zijn aan deze specifieke post
+          const linkedUnitsList = units.filter(u => u.gekoppeldAanPost && u.gekoppeldAanPost.toLowerCase() === p.naam.toLowerCase()).map(u => `<li style="color:var(--blue);font-weight:600;">${u.id}</li>`).join('');
+          const linkedUnitsHTML = linkedUnitsList ? `<ul style="margin:0; padding-left:16px;">${linkedUnitsList}</ul>` : '-';
+
+          return `
+            <tr>
+              <td>${statusIcon}</td>
+              <td>${getEditableSpan('naam', p.naam)}</td>
+              <td>${getEditableSpan('locatie', p.locatie)}</td>
+              <td>${getEditableSpan('postcoordinator', p.postcoordinator)}</td>
+              <td>${statusDropdown}</td>
+              <td>${linkedUnitsHTML}</td>
+              <td><button type="button" class="btn btn-outline" data-delete-post="${p.id}" style="padding:6px 12px;font-size:12px;">Verwijderen</button></td>
+            </tr>`;
+      }).join('');
+
+      $(document).off("click", ".editable-post-field"); 
+      $(document).on("click", ".editable-post-field", function(e) {
+          e.stopPropagation();
+          var $span = $(this);
+          if ($span.find("input").length > 0) return; 
+          var currentText = $span.attr("data-value") || "";
+          var postId = $span.data("id");
+          var field = $span.data("field");
+          var $input = $("<input>", { type: "text", value: currentText, class: "edit-field-input", style: "width: 120px; font-size: 13px; padding: 4px; border: 1px solid var(--green); border-radius: 4px; background: var(--bg0); color: var(--text1); outline: none;" });
+          var $saveBtn = $("<button>", { html: '&#10004;', style: "margin-left:6px; cursor:pointer; background:var(--green); color:#fff; border:none; border-radius:4px; padding:3px 8px; font-size:12px;" });
+          var $cancelBtn = $("<button>", { html: '&#10006;', style: "margin-left:4px; cursor:pointer; background:var(--red); color:#fff; border:none; border-radius:4px; padding:3px 8px; font-size:12px;" });
+          $span.empty().append($input).append($saveBtn).append($cancelBtn);
+          $input.focus().select();
+          var restore = function() { var val = $span.attr("data-value"); if (val && val.toString().trim() !== "") { $span.text(val); } else { $span.html("<i>Niet ingevuld</i>"); } };
+          var save = function() {
+              var newVal = $input.val();
+              const postIndex = posts.findIndex(x => x.id === postId);
+              if (postIndex !== -1) { posts[postIndex][field] = newVal; savePostsToStorage(); renderPosts(); renderDetailedPostsTable(); showToast(`Post bijgewerkt.`); }
+              restore();
+          };
+          $saveBtn.click(function(e) { e.stopPropagation(); save(); });
+          $cancelBtn.click(function(e) { e.stopPropagation(); restore(); });
+          $input.keypress(function(e) { if (e.which == 13) { e.preventDefault(); save(); } });
+          $input.click(function(e) { e.stopPropagation(); });
+      });
+
+      document.querySelectorAll('.post-status-select-detail').forEach(select => {
+          select.addEventListener('change', (e) => {
+              const postId = e.target.getAttribute('data-id');
+              const postIndex = posts.findIndex(x => x.id === postId);
+              if (postIndex !== -1) { posts[postIndex].status = e.target.value; savePostsToStorage(); renderPosts(); renderDetailedPostsTable(); }
+          });
+      });
+      document.querySelectorAll('[data-delete-post]').forEach(btn => {
+          btn.addEventListener('click', () => {
+              const postId = btn.getAttribute('data-delete-post');
+              const idx = posts.findIndex(x => x.id === postId);
+              if (idx !== -1) { posts.splice(idx, 1); savePostsToStorage(); renderPosts(); renderDetailedPostsTable(); }
+          });
+      });
+  }
+
+  let currentPostSort = { col: 'naam', asc: true };
+  function sortPosts(col) {
+      if (currentPostSort.col === col) { currentPostSort.asc = !currentPostSort.asc; } else { currentPostSort.col = col; currentPostSort.asc = true; }
+      posts.sort((a, b) => {
+          let valA = a[col] ? a[col].toString().toLowerCase() : '';
+          let valB = b[col] ? b[col].toString().toLowerCase() : '';
+          if (valA < valB) return currentPostSort.asc ? -1 : 1;
+          if (valA > valB) return currentPostSort.asc ? 1 : -1;
+          return 0;
+      });
+      savePostsToStorage();
+      renderDetailedPostsTable();
+      renderPosts();
+      document.querySelectorAll('.sort-header-post .sort-icon-post').forEach(icon => icon.textContent = '↕');
+      const activeHeader = document.querySelector(`.sort-header-post[data-sort="${col}"] .sort-icon-post`);
+      if (activeHeader) activeHeader.textContent = currentPostSort.asc ? '↓' : '↑';
+  }
+  document.addEventListener('click', function(e) {
+      const header = e.target.closest('.sort-header-post');
+      if (header) sortPosts(header.getAttribute('data-sort'));
+  });
+
+  // Laad eenheden bij startup
+  loadUnitsFromStorage();
+  loadPostsFromStorage();
+  loadIncidentsFromStorage();
+
+  // Roep sorteerfunctie direct aan bij opstarten zodat alles alfabetisch is, dit activeert ook meteen renderUnits() etc.
+  sortUnits('id'); 
+  sortPosts('naam');
+  renderTables(); 
+  refreshRowActions();
+  
+  // Luister naar wijzigingen in localStorage vanaf het ANDERE venster (Pop-out vs Hoofdvenster)
+  window.addEventListener('storage', (e) => {
+      if (e.key === 'units') {
+          loadUnitsFromStorage();
+          renderUnits();
+          if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+      }
+      if (e.key === 'incidents') {
+          loadIncidentsFromStorage();
+          if (typeof renderTables === 'function') renderTables();
+      }
+      if (e.key === 'posts') {
+          loadPostsFromStorage();
+          renderPosts();
+          if (typeof renderDetailedPostsTable === 'function') renderDetailedPostsTable();
+      }
+  });
+  
+  // ==========================================
+  // DIGITALE KLOK
+  // ==========================================
+  function updateClock() {
+      const clockElement = document.getElementById('digitalClock');
+      if (clockElement) {
+          const now = new Date();
+          const timeString = now.toLocaleTimeString('nl-NL', { hour12: false });
+          clockElement.textContent = timeString;
+      }
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ==========================================
+  // BUIENRADAR / WEER MODAL
+  // ==========================================
+  const weatherBtn = document.getElementById('weatherBtn');
+  const weatherModal = document.getElementById('weatherModal');
+  const weatherCloseBtn = document.getElementById('weatherCloseBtn');
+  const buienradarIframe = document.getElementById('buienradarIframe');
+
+  if (weatherBtn && weatherModal) {
+      weatherBtn.addEventListener('click', () => {
+          weatherModal.classList.add('show');
+          if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                      const lat = position.coords.latitude;
+                      const lon = position.coords.longitude;
+                      buienradarIframe.src = `https://gadgets.buienradar.nl/gadget/zoommap/?lat=${lat}&lng=${lon}&overname=2&zoom=8&size=3&v=0`;
+                  },
+                  (error) => {
+                      console.warn('Locatie niet beschikbaar, standaard buienradar wordt getoond.');
+                  }
+              );
+          }
+      });
+      weatherCloseBtn.addEventListener('click', () => {
+          weatherModal.classList.remove('show');
+      });
+  }
+
+  // ==========================================
+  // ZOOM FUNCTIE
+  // ==========================================
+  const zoomSelect = document.getElementById('zoomSelect');
+  function applyZoom(zoomLevel) {
+      document.body.style.zoom = zoomLevel;
+      document.body.style.transform = `scale(${zoomLevel})`;
+      document.body.style.transformOrigin = 'top center';
+      document.body.style.width = zoomLevel !== '1' ? `${100 / zoomLevel}%` : '100%';
+  }
+  if (zoomSelect) {
+      zoomSelect.addEventListener('change', (e) => applyZoom(e.target.value));
+  }
+
+</script>
+<!-- Link to user's legacy stylesheet to preserve layout; can be refined or trimmed as needed -->
+<link rel="stylesheet" href="legacy-custom.css">
+
+</body>
+</html>
