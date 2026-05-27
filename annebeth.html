@@ -358,6 +358,7 @@
         .c-blue { color: var(--icon-blue); }
         .bg-green-light { background-color: #d1f0d9; color: var(--icon-green); }
         .bg-yellow-light { background-color: #fcefd0; color: var(--icon-yellow); }
+        .c-orange { color: orange; }
 
         /* Kleine schermen: zorg dat content goed schaalt */
         @media (max-width: 360px) {
@@ -1430,7 +1431,8 @@
                     endDateTime.setMinutes(endDateTime.getMinutes() - endDateTime.getTimezoneOffset());
                     const formattedEndTime = endDateTime.toISOString();
 
-                    const notes = subtitle.split(' - ')[1] || '';
+                    const notesParts = subtitle.split(' - ');
+                    const notes = notesParts.length > 1 ? notesParts.slice(1).join(' - ') : '';
             
                     document.getElementById('saveBtn').innerHTML = 'Bijwerken';
                     document.getElementById('deleteSleepBtn').style.display = 'block';
@@ -1549,7 +1551,7 @@
                 if (!item.title) continue;
                 const titleLower = item.title.toLowerCase();
                 
-                if (!lastSleep && titleLower.includes('slaap')) lastSleep = item.timestamp;
+                if (!lastSleep && titleLower === 'slapen') lastSleep = item.timestamp;
                 if (!lastBreast && titleLower.includes('borst')) lastBreast = item.timestamp;
                 if (!lastDiaper && titleLower.includes('luier')) lastDiaper = item.timestamp;
                 if (!lastBottle && titleLower.includes('fles')) lastBottle = item.timestamp;
@@ -1590,8 +1592,9 @@
         
         // --- Timer Logica ---
         let timerInterval;
-        let timerSeconds = 0;
-        let isTimerRunning = false;
+        let timerSeconds = parseInt(localStorage.getItem('sleepTimerSeconds')) || 0;
+        let isTimerRunning = localStorage.getItem('sleepTimerRunning') === 'true';
+        let sleepTimerStartTime = parseInt(localStorage.getItem('sleepTimerStart')) || 0;
         const timerDisplay = document.querySelector('.timer-display');
         const timerBtn = document.querySelector('.sleep-action-btn');
 
@@ -1602,24 +1605,40 @@
             timerDisplay.textContent = `${h}:${m}:${s}`;
         }
 
+        if (isTimerRunning && sleepTimerStartTime) {
+            timerBtn.innerHTML = '<i class="fa-solid fa-stop"></i> Wakker geworden';
+            timerInterval = setInterval(() => {
+                timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
+                updateTimerDisplay();
+            }, 1000);
+        } else if (timerSeconds > 0) {
+            timerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat timer';
+            updateTimerDisplay();
+        }
+
         timerBtn.addEventListener('click', () => {
             if (isTimerRunning) {
-                // Pauzeer de timer
                 clearInterval(timerInterval);
                 isTimerRunning = false;
+                localStorage.setItem('sleepTimerRunning', 'false');
+                localStorage.setItem('sleepTimerSeconds', timerSeconds.toString());
                 timerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat timer';
             } else {
-                // Start of hervat de timer
-                if (timerSeconds === 0) { // Eerste keer starten
+                if (timerSeconds === 0) {
                     const nowISO = getCurrentDateTime();
                     sleepModal.dataset.date = nowISO.slice(0, 10);
                     document.getElementById('sleepStart').value = nowISO.slice(11, 16);
-                    document.getElementById('sleepEnd').value = ''; // Maak eindtijd leeg als timer start
+                    document.getElementById('sleepEnd').value = '';
+                    sleepTimerStartTime = Date.now();
+                } else {
+                    sleepTimerStartTime = Date.now() - (timerSeconds * 1000);
                 }
+                localStorage.setItem('sleepTimerStart', sleepTimerStartTime.toString());
+                localStorage.setItem('sleepTimerRunning', 'true');
                 isTimerRunning = true;
                 timerBtn.innerHTML = '<i class="fa-solid fa-stop"></i> Wakker geworden';
                 timerInterval = setInterval(() => {
-                    timerSeconds++;
+                    timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
                     updateTimerDisplay();
                 }, 1000);
             }
@@ -1629,6 +1648,10 @@
             clearInterval(timerInterval);
             isTimerRunning = false;
             timerSeconds = 0;
+            sleepTimerStartTime = 0;
+            localStorage.removeItem('sleepTimerStart');
+            localStorage.removeItem('sleepTimerRunning');
+            localStorage.removeItem('sleepTimerSeconds');
             updateTimerDisplay();
             timerBtn.innerHTML = '<i class="fa-solid fa-stopwatch"></i> In slaap gevallen';
         }
@@ -1676,29 +1699,23 @@
     
             const startDateTime = new Date(`${storedDate}T${sleepStartVal}`);
             
-            // Bepaal de eindtijd. Als het veld leeg is (omdat de timer liep), gebruik de huidige tijd.
-            const endDateTime = sleepEndVal ? new Date(`${storedDate}T${sleepEndVal}`) : new Date();
+            let endDateTime;
+            let durationMs;
+
+            if (timerSeconds > 0 && !sleepEndVal) {
+                durationMs = timerSeconds * 1000;
+                endDateTime = new Date(startDateTime.getTime() + durationMs);
+            } else {
+                endDateTime = sleepEndVal ? new Date(`${storedDate}T${sleepEndVal}`) : new Date();
+                if (endDateTime < startDateTime) {
+                    endDateTime.setDate(endDateTime.getDate() + 1);
+                    if (endDateTime < startDateTime) return;
+                }
+                durationMs = endDateTime - startDateTime;
+            }
 
             if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
                 return alert('Ongeldige start- of eindtijd.');
-            }
-
-            // Als de eindtijd voor de starttijd ligt, gaan we ervan uit dat het de volgende dag is.
-            if (endDateTime < startDateTime) {
-                endDateTime.setDate(endDateTime.getDate() + 1);
-                // Dubbelcheck: als het nog steeds in het verleden is, is het een fout.
-                if (endDateTime < startDateTime) {
-                    return;
-                }
-            }
-
-            let durationMs;
-            // Als de timer is gebruikt, heeft die voorrang voor de duur.
-            if (timerSeconds > 0) {
-                durationMs = timerSeconds * 1000;
-            } else {
-                // Anders, bereken het verschil tussen de ingevulde tijden.
-                durationMs = endDateTime - startDateTime;
             }
 
             const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
@@ -1839,7 +1856,7 @@
             try {
                 saveDiaperBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opslaan...';
                 saveDiaperBtn.disabled = true;
-                if (currentEditItem && currentEditItem.title.includes('luier')) {
+                if (currentEditItem && (currentEditItem.title.includes('luier') || currentEditItem.title === 'Verschonen')) {
                     await updateDoc(doc(db, "timeline", currentEditItem.id), itemData);
                 } else {
                     await addDoc(collection(db, "timeline"), itemData);
@@ -1863,13 +1880,39 @@
         const saveBreastBtn = document.getElementById('saveBreastBtn');
 
         let leftInterval, rightInterval;
-        let leftSeconds = 0, rightSeconds = 0;
-        let isLeftRunning = false, isRightRunning = false;
+        let leftSeconds = parseInt(localStorage.getItem('breastLeftSeconds')) || 0;
+        let rightSeconds = parseInt(localStorage.getItem('breastRightSeconds')) || 0;
+        let isLeftRunning = localStorage.getItem('breastLeftRunning') === 'true';
+        let isRightRunning = localStorage.getItem('breastRightRunning') === 'true';
+        let breastLeftStart = parseInt(localStorage.getItem('breastLeftStart')) || 0;
+        let breastRightStart = parseInt(localStorage.getItem('breastRightStart')) || 0;
 
         function formatBreastTime(sec) {
             const m = String(Math.floor(sec / 60)).padStart(2, '0');
             const s = String(sec % 60).padStart(2, '0');
             return `${m}:${s}`;
+        }
+
+        if (isLeftRunning && breastLeftStart) {
+            document.getElementById('leftTimerBtn').innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
+            leftInterval = setInterval(() => {
+                leftSeconds = Math.floor((Date.now() - breastLeftStart) / 1000);
+                document.getElementById('leftTimerDisplay').textContent = formatBreastTime(leftSeconds);
+            }, 1000);
+        } else if (leftSeconds > 0) {
+            document.getElementById('leftTimerBtn').innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
+            document.getElementById('leftTimerDisplay').textContent = formatBreastTime(leftSeconds);
+        }
+
+        if (isRightRunning && breastRightStart) {
+            document.getElementById('rightTimerBtn').innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
+            rightInterval = setInterval(() => {
+                rightSeconds = Math.floor((Date.now() - breastRightStart) / 1000);
+                document.getElementById('rightTimerDisplay').textContent = formatBreastTime(rightSeconds);
+            }, 1000);
+        } else if (rightSeconds > 0) {
+            document.getElementById('rightTimerBtn').innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
+            document.getElementById('rightTimerDisplay').textContent = formatBreastTime(rightSeconds);
         }
 
         // Linker Timer
@@ -1878,12 +1921,21 @@
             if (isLeftRunning) {
                 clearInterval(leftInterval);
                 isLeftRunning = false;
+                localStorage.setItem('breastLeftRunning', 'false');
+                localStorage.setItem('breastLeftSeconds', leftSeconds.toString());
                 leftTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
             } else {
+                if (leftSeconds === 0) {
+                    breastLeftStart = Date.now();
+                } else {
+                    breastLeftStart = Date.now() - (leftSeconds * 1000);
+                }
+                localStorage.setItem('breastLeftStart', breastLeftStart.toString());
+                localStorage.setItem('breastLeftRunning', 'true');
                 isLeftRunning = true;
                 leftTimerBtn.innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
                 leftInterval = setInterval(() => {
-                    leftSeconds++;
+                    leftSeconds = Math.floor((Date.now() - breastLeftStart) / 1000);
                     document.getElementById('leftTimerDisplay').textContent = formatBreastTime(leftSeconds);
                 }, 1000);
             }
@@ -1895,12 +1947,21 @@
             if (isRightRunning) {
                 clearInterval(rightInterval);
                 isRightRunning = false;
+                localStorage.setItem('breastRightRunning', 'false');
+                localStorage.setItem('breastRightSeconds', rightSeconds.toString());
                 rightTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
             } else {
+                if (rightSeconds === 0) {
+                    breastRightStart = Date.now();
+                } else {
+                    breastRightStart = Date.now() - (rightSeconds * 1000);
+                }
+                localStorage.setItem('breastRightStart', breastRightStart.toString());
+                localStorage.setItem('breastRightRunning', 'true');
                 isRightRunning = true;
                 rightTimerBtn.innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
                 rightInterval = setInterval(() => {
-                    rightSeconds++;
+                    rightSeconds = Math.floor((Date.now() - breastRightStart) / 1000);
                     document.getElementById('rightTimerDisplay').textContent = formatBreastTime(rightSeconds);
                 }, 1000);
             }
@@ -1930,6 +1991,13 @@
             clearInterval(leftInterval); clearInterval(rightInterval);
             isLeftRunning = false; isRightRunning = false;
             leftSeconds = 0; rightSeconds = 0;
+            breastLeftStart = 0; breastRightStart = 0;
+            localStorage.removeItem('breastLeftStart');
+            localStorage.removeItem('breastLeftRunning');
+            localStorage.removeItem('breastLeftSeconds');
+            localStorage.removeItem('breastRightStart');
+            localStorage.removeItem('breastRightRunning');
+            localStorage.removeItem('breastRightSeconds');
             document.getElementById('leftTimerDisplay').textContent = '00:00';
             document.getElementById('rightTimerDisplay').textContent = '00:00';
             leftTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Start';
@@ -2106,13 +2174,39 @@
         const savePumpBtn = document.getElementById('savePumpBtn');
 
         let pumpLeftInterval, pumpRightInterval;
-        let pumpLeftSeconds = 0, pumpRightSeconds = 0;
-        let isPumpLeftRunning = false, isPumpRightRunning = false;
+        let pumpLeftSeconds = parseInt(localStorage.getItem('pumpLeftSeconds')) || 0;
+        let pumpRightSeconds = parseInt(localStorage.getItem('pumpRightSeconds')) || 0;
+        let isPumpLeftRunning = localStorage.getItem('pumpLeftRunning') === 'true';
+        let isPumpRightRunning = localStorage.getItem('pumpRightRunning') === 'true';
+        let pumpLeftStart = parseInt(localStorage.getItem('pumpLeftStart')) || 0;
+        let pumpRightStart = parseInt(localStorage.getItem('pumpRightStart')) || 0;
 
         function formatPumpTime(sec) {
             const m = String(Math.floor(sec / 60)).padStart(2, '0');
             const s = String(sec % 60).padStart(2, '0');
             return `${m}:${s}`;
+        }
+
+        if (isPumpLeftRunning && pumpLeftStart) {
+            document.getElementById('pumpLeftTimerBtn').innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
+            pumpLeftInterval = setInterval(() => {
+                pumpLeftSeconds = Math.floor((Date.now() - pumpLeftStart) / 1000);
+                document.getElementById('pumpLeftTimerDisplay').textContent = formatPumpTime(pumpLeftSeconds);
+            }, 1000);
+        } else if (pumpLeftSeconds > 0) {
+            document.getElementById('pumpLeftTimerBtn').innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
+            document.getElementById('pumpLeftTimerDisplay').textContent = formatPumpTime(pumpLeftSeconds);
+        }
+
+        if (isPumpRightRunning && pumpRightStart) {
+            document.getElementById('pumpRightTimerBtn').innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
+            pumpRightInterval = setInterval(() => {
+                pumpRightSeconds = Math.floor((Date.now() - pumpRightStart) / 1000);
+                document.getElementById('pumpRightTimerDisplay').textContent = formatPumpTime(pumpRightSeconds);
+            }, 1000);
+        } else if (pumpRightSeconds > 0) {
+            document.getElementById('pumpRightTimerBtn').innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
+            document.getElementById('pumpRightTimerDisplay').textContent = formatPumpTime(pumpRightSeconds);
         }
 
         // Linker Timer Kolven
@@ -2121,12 +2215,21 @@
             if (isPumpLeftRunning) {
                 clearInterval(pumpLeftInterval);
                 isPumpLeftRunning = false;
+                localStorage.setItem('pumpLeftRunning', 'false');
+                localStorage.setItem('pumpLeftSeconds', pumpLeftSeconds);
                 pumpLeftTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
             } else {
+                if (pumpLeftSeconds === 0) {
+                    pumpLeftStart = Date.now();
+                } else {
+                    pumpLeftStart = Date.now() - (pumpLeftSeconds * 1000);
+                }
+                localStorage.setItem('pumpLeftStart', pumpLeftStart.toString());
+                localStorage.setItem('pumpLeftRunning', 'true');
                 isPumpLeftRunning = true;
                 pumpLeftTimerBtn.innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
                 pumpLeftInterval = setInterval(() => {
-                    pumpLeftSeconds++;
+                    pumpLeftSeconds = Math.floor((Date.now() - pumpLeftStart) / 1000);
                     document.getElementById('pumpLeftTimerDisplay').textContent = formatPumpTime(pumpLeftSeconds);
                 }, 1000);
             }
@@ -2138,12 +2241,21 @@
             if (isPumpRightRunning) {
                 clearInterval(pumpRightInterval);
                 isPumpRightRunning = false;
+                localStorage.setItem('pumpRightRunning', 'false');
+                localStorage.setItem('pumpRightSeconds', pumpRightSeconds);
                 pumpRightTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
             } else {
+                if (pumpRightSeconds === 0) {
+                    pumpRightStart = Date.now();
+                } else {
+                    pumpRightStart = Date.now() - (pumpRightSeconds * 1000);
+                }
+                localStorage.setItem('pumpRightStart', pumpRightStart.toString());
+                localStorage.setItem('pumpRightRunning', 'true');
                 isPumpRightRunning = true;
                 pumpRightTimerBtn.innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
                 pumpRightInterval = setInterval(() => {
-                    pumpRightSeconds++;
+                    pumpRightSeconds = Math.floor((Date.now() - pumpRightStart) / 1000);
                     document.getElementById('pumpRightTimerDisplay').textContent = formatPumpTime(pumpRightSeconds);
                 }, 1000);
             }
@@ -2174,6 +2286,13 @@
             clearInterval(pumpLeftInterval); clearInterval(pumpRightInterval);
             isPumpLeftRunning = false; isPumpRightRunning = false;
             pumpLeftSeconds = 0; pumpRightSeconds = 0;
+            pumpLeftStart = 0; pumpRightStart = 0;
+            localStorage.removeItem('pumpLeftStart');
+            localStorage.removeItem('pumpLeftRunning');
+            localStorage.removeItem('pumpLeftSeconds');
+            localStorage.removeItem('pumpRightStart');
+            localStorage.removeItem('pumpRightRunning');
+            localStorage.removeItem('pumpRightSeconds');
             document.getElementById('pumpLeftTimerDisplay').textContent = '00:00';
             document.getElementById('pumpRightTimerDisplay').textContent = '00:00';
             pumpLeftTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Start';
