@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced CAD & Bouwtekening Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #1a1b26;
+            --sidebar-bg: #24283b;
+            --panel-bg: #2f354f;
+            --accent: #7aa2f7;
+            --accent-hover: #bb9af3;
+            --text-main: #a9b1d6;
+            --text-light: #c0caf5;
+            --border-color: #414868;
+            --danger: #f7768e;
+            --success: #9ece6a;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Top Header Bar */
+        header {
+            background-color: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* Main Workspace Layout */
+        .workspace {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+
+        /* Sidebars */
+        .sidebar {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 15px;
+            gap: 20px;
+        }
+
+        .sidebar.right-sidebar {
+            border-right: none;
+            border-left: 1px solid var(--border-color);
+        }
+
+        /* Canvas Container Zone */
+        .canvas-viewport {
+            flex: 1;
+            background-color: #13141f;
+            overflow: auto;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .canvas-wrapper {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+            background-color: #ffffff;
+        }
+
+        /* UI Panels & Controls */
+        .panel-section {
+            background-color: var(--panel-bg);
+            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            font-weight: bold;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .btn-full {
+            grid-column: span 2;
+        }
+
+        /* Buttons & Inputs */
+        button {
+            background-color: #363d59;
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        button:hover {
+            background-color: var(--accent);
+            color: #1a1b26;
+        }
+
+        button.active {
+            background-color: var(--accent);
+            color: #1a1b26;
+            font-weight: bold;
+            border-color: var(--accent);
+        }
+
+        button.danger-btn {
+            background-color: #442b3d;
+            border-color: #6b2633;
+            color: var(--danger);
+        }
+        button.danger-btn:hover {
+            background-color: var(--danger);
+            color: #1a1b26;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .input-group label {
+            color: var(--text-main);
+        }
+
+        input[type="range"], input[type="color"], input[type="file"], select {
+            width: 100%;
+            padding: 6px;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            border-radius: 4px;
+        }
+
+        /* Status bar */
+        .status-bar {
+            position: absolute;
+            bottom: 15px;
+            left: 20px;
+            background: rgba(36, 40, 59, 0.9);
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid var(--border-color);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Custom Stamp Item styling */
+        .stamp-btn {
+            background-color: #24283b;
+            text-align: left;
+            justify-content: flex-start;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* Pipeline/Leidingen presets unique borders */
+        .pipe-btn[data-pipe="electra"] { border-left: 4px solid #ffcc00; }
+        .pipe-btn[data-pipe="koudwater"] { border-left: 4px solid #00aaff; }
+        .pipe-btn[data-pipe="warmwater"] { border-left: 4px solid #ff3333; }
+        .pipe-btn[data-pipe="afvoer"] { border-left: 4px solid #888888; }
+        .pipe-btn[data-pipe="vloerverwarming"] { border-left: 4px solid #ff7700; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: var(--sidebar-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 8px; width: 400px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Technische Bouwtekening & Installatie Editor (CAD Light)</h1>
+    <div class="file-actions">
+        <button id="helpBtn" style="background-color: var(--panel-bg);">❓ Help</button>
+        <label style="font-size:0.85rem;" for="fileLoader">Inladen: </label>
+        <input type="file" id="fileLoader" accept="image/*,.json" style="width: auto; max-width: 200px;">
+        <button id="saveProjectBtn" style="background-color: var(--panel-bg);">💾 Opslaan (.json)</button>
+        <button id="undoBtn" style="background-color: var(--panel-bg);">↩ Undo</button>
+        <button id="clearCanvas" class="danger-btn">Wis Alles</button>
+        <button id="exportImage" style="background-color: var(--success); color: #11111b; font-weight: bold;">Afbeelding</button>
+        <button id="exportPdfBtn" style="background-color: var(--success); color: #11111b; font-weight: bold;">PDF</button>
+    </div>
+</header>
+
+<div class="workspace">
+    <div class="sidebar">
+        <div class="panel-section">
+            <div class="panel-title">Gereedschap</div>
+            <div class="btn-grid">
+                <button id="tool-select" class="active" onclick="switchTool('select')">Selecteer</button>
+                <button id="tool-pan" onclick="switchTool('pan')">Pan / Versleep</button>
+                <button id="tool-line" onclick="switchTool('line')">Rechte Lijn</button>
+                <button id="tool-curve" onclick="switchTool('curve')">〰️ Flexibele Buis</button>
+                <button id="tool-freehand" onclick="switchTool('freehand')">Vrije Hand</button>
+                <button id="tool-measure" onclick="switchTool('measure')">📏 Maatlijn</button>
+                <button id="tool-area" onclick="switchTool('area')">📐 m² Oppervlakte</button>
+                <button id="tool-text" onclick="switchTool('text')">Tekst</button>
+                <button id="resetViewBtn" class="btn-full" onclick="resetView()">🔍 Reset Zoom / Pan</button>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-title">Leidingwerk Presets</div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <button class="pipe-btn" data-pipe="electra" onclick="switchTool('pipe-electra')">⚡ Elektra PVC Buis (Geel)</button>
+                <button class="pipe-btn" data-pipe="koudwater" onclick="switchTool('pipe-koudwater')">💧 Koud Water (Blauw)</button>
+                <button class="pipe-btn" data-pipe="warmwater" onclick="switchTool('pipe-warmwater')">🔥 Warm Water (Rood)</button>
+                <button class="pipe-btn" data-pipe="vloerverwarming" onclick="switchTool('pipe-vloerverwarming')">🌀 Vloerverwarming (Oranje)</button>
+                <button class="pipe-btn" data-pipe="afvoer" onclick="switchTool('pipe-afvoer')">🕳️ Vuilwaterafvoer (Grijs)</button>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-title">Raster (Grid)</div>
+            <button id="toggleGridBtn" onclick="toggleGrid()" style="width: 100%;"># Raster Aan / Uit</button>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-title">Eigenschappen & Schaal</div>
+            <div class="input-group">
+                <label for="customColor">Kleur:</label>
+                <input type="color" id="customColor" value="#ff0000">
+            </div>
+            <div class="input-group">
+                <label for="customWidth">Lijndikte (<span id="widthVal">4</span>px):</label>
+                <input type="range" id="customWidth" min="1" max="30" value="4" oninput="document.getElementById('widthVal').innerText=this.value">
+            </div>
+            <div class="input-group">
+                <label for="fontSize">Tekstgrootte (<span id="fontVal">20</span>px):</label>
+                <input type="range" id="fontSize" min="10" max="100" value="20" oninput="document.getElementById('fontVal').innerText=this.value">
+            </div>
+            <div class="input-group">
+                <label for="scaleInput">Schaal (px per meter):</label>
+                <input type="number" id="scaleInput" value="100" style="padding:4px">
+            </div>
+            <div class="input-group">
+                <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="snapObjectsCheck" checked> Object Snapping</label>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-title">Lagen (Zichtbaarheid)</div>
+            <div style="display:flex; flex-direction:column; gap:5px; font-size:0.85rem;">
+                <label><input type="checkbox" checked onchange="toggleLayer('bg', this.checked)"> Achtergrond</label>
+                <label><input type="checkbox" checked onchange="toggleLayer('pipe', this.checked)"> Leidingen</label>
+                <label><input type="checkbox" checked onchange="toggleLayer('symbol', this.checked)"> Symbolen</label>
+                <label><input type="checkbox" checked onchange="toggleLayer('text', this.checked)"> Tekst & Maatlijnen</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="canvas-viewport" id="viewport">
+        <div class="canvas-wrapper">
+            <canvas id="cadCanvas"></canvas>
+        </div>
+        <div class="status-bar" id="statusBar">
+            Modus: SELECT | Zoomniveau: 100% | Scroll = Pannen | Ctrl+Scroll = Zoomen
+        </div>
+    </div>
+
+    <div class="sidebar right-sidebar">
+        <div class="panel-section">
+            <div class="panel-title">Componenten: Elektra</div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <button class="stamp-btn" onclick="addSymbol('wcd')">🔌 Wandcontactdoos (WCD)</button>
+                <button class="stamp-btn" onclick="addSymbol('wcd-dubbel')">🔌🔌 WCD Dubbel</button>
+                <button class="stamp-btn" onclick="addSymbol('schakelaar')">🎛️ Schakelaar (Enkel)</button>
+                <button class="stamp-btn" onclick="addSymbol('lichtpunt')">💡 Centraal / Lichtpunt</button>
+                <button class="stamp-btn" onclick="addSymbol('rookmelder')">🚨 Rookmelder</button>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-title">Sanitair & Verwarming</div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <button class="stamp-btn" onclick="addSymbol('waterpunt')">🚰 Wateraansluiting</button>
+                <button class="stamp-btn" onclick="addSymbol('radiator')">♨️ Radiator / Verwarming</button>
+                <button class="stamp-btn" onclick="addSymbol('warmtepomp')">📦 Warmtepomp / CV</button>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-title">Geselecteerd Object</div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button onclick="changeOrder('front')">Breng naar Voren</button>
+                <button onclick="changeOrder('back')">Breng naar Achteren</button>
+                <button id="deleteObject" class="danger-btn">🗑️ Verwijder Selectie</button>
+            </div>
+            <div style="font-size: 0.75rem; margin-top: 10px; color: var(--text-main); text-align: center;">
+                Tip: Druk op <b>Delete</b> of <b>Backspace</b> om een geselecteerd element direct te wissen.
+            </div>
+        </div>
+        
+        <div class="panel-section">
+            <div class="panel-title">Hulpmiddelen</div>
+            <button class="btn-full" onclick="generateLegend()">📝 Genereer Legenda</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="helpModal">
+    <div class="modal-content">
+        <h2>Sneltoetsen & Help</h2>
+        <ul style="line-height: 1.8;">
+            <li><b>Spatiebalk (vasthouden) / Muiswiel-klik:</b> Pannen (schuiven)</li>
+            <li><b>Ctrl + Scroll:</b> In-/Uitzoomen</li>
+            <li><b>Shift (tijdens tekenen):</b> Orthogonaal (90 graden) lijnen</li>
+            <li><b>Enter of Escape:</b> Oppervlakte meting afsluiten</li>
+            <li><b>Delete / Backspace:</b> Selectie verwijderen</li>
+            <li><b>Ctrl + Z:</b> Ongedaan maken (Undo)</li>
+            <li><b>Ctrl + C / Ctrl + V:</b> Kopiëren en plakken</li>
+            <li><b>Ctrl + G / Ctrl + Shift + G:</b> Groeperen / Degroeperen</li>
+            <li><b>R:</b> Object 90 graden roteren</li>
+        </ul>
+        <button onclick="document.getElementById('helpModal').style.display='none'" style="width:100%; padding:10px; font-weight:bold;">Sluiten</button>
+    </div>
+</div>
+
+<script>
+    // Initialiseer Fabric Canvas
+    const canvas = new fabric.Canvas('cadCanvas', {
+        width: 1000,
+        height: 750,
+        preserveObjectStacking: true,
+        fireMiddleClick: true
+    });
+
+    // ==========================
+    // AUTO-SAVE & UNDO LOGICA
+    // ==========================
+    let historyStack = [];
+    let isUndoing = false;
+    let maxHistory = 20; // Sla tot 20 stappen op in het geheugen
+
+    function saveState() {
+        if (isUndoing) return; // Sla niet op tijdens het undo-proces
+        try {
+            const jsonState = JSON.stringify(canvas.toJSON(['cadType']));
+            
+            // Voorkom identieke opeenvolgende opnames in de geschiedenis
+            if (historyStack.length > 0 && historyStack[historyStack.length - 1] === jsonState) return;
+            
+            historyStack.push(jsonState);
+            if (historyStack.length > maxHistory) historyStack.shift();
+            
+            localStorage.setItem('cadDrawingState', jsonState);
+            statusBar.style.color = "var(--text-main)"; // Reset kleur als het lukt
+        } catch (e) {
+            console.warn("Lokaal opslaan mislukt. Achtergrond is mogelijk te groot.", e);
+            statusBar.innerText = "Let op: Ontwerp is te groot om automatisch te bewaren! Download je ontwerp handmatig.";
+            statusBar.style.color = "var(--danger)";
+        }
+    }
+
+    function undo() {
+        if (historyStack.length > 1) {
+            isUndoing = true;
+            historyStack.pop(); // Verwijder de huidige stap
+            const previousState = historyStack[historyStack.length - 1]; // Pak de vorige stap
+            
+            canvas.loadFromJSON(previousState, function() {
+                canvas.renderAll();
+                isUndoing = false;
+                try { localStorage.setItem('cadDrawingState', previousState); } catch(e) {}
+                updateStatus();
+            });
+        }
+    }
+
+    function setupAutoSave() {
+        canvas.on('object:added', saveState);
+        canvas.on('object:modified', saveState);
+        canvas.on('object:removed', saveState);
+        canvas.on('path:created', saveState);
+    }
+
+    const savedData = localStorage.getItem('cadDrawingState');
+    if (savedData) {
+        try {
+            canvas.loadFromJSON(savedData, function() {
+                canvas.renderAll();
+                historyStack.push(savedData); // Start de geschiedenis met de geladen data
+                setupAutoSave();
+                updateStatus();
+                if (gridEnabled) updateVisualGrid(); // Herlaad het raster
+            });
+        } catch(e) {
+            console.error("Kon opgeslagen data niet laden", e);
+            historyStack.push(JSON.stringify(canvas.toJSON(['cadType'])));
+            setupAutoSave();
+        }
+    } else {
+        historyStack.push(JSON.stringify(canvas.toJSON(['cadType'])));
+        setupAutoSave();
+    }
+
+    // Reset Zoom en Pan naar originele positie
+    function resetView() {
+        canvas.setZoom(1);
+        canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
+        updateStatus();
+        canvas.renderAll();
+    }
+
+    let currentTool = 'select';
+    let isDrawingLine = false;
+    let activeLine = null;
+    let isPanning = false;
+    let activeMeasureText = null;
+    let gridEnabled = false;
+    const gridSize = 25;
+    let gridLines = [];
+    let lastPosX, lastPosY;
+    
+    // Area tools
+    let areaPoints = [];
+    let areaLines = [];
+
+    // Status elementen
+    const statusBar = document.getElementById('statusBar');
+    const customColor = document.getElementById('customColor');
+    const customWidth = document.getElementById('customWidth');
+
+    // 1. Zoom en Pan Functionaliteit (Muiswiel & Spatiebalk / Knop)
+    canvas.on('mouse:wheel', function(opt) {
+        var e = opt.e;
+        if (e.ctrlKey || e.metaKey) {
+            // Zoom met Ctrl + Scroll
+            var delta = e.deltaY;
+            var zoom = canvas.getZoom();
+            zoom *= 0.999 ** delta;
+            if (zoom > 20) zoom = 20;
+            if (zoom < 0.1) zoom = 0.1;
+            canvas.zoomToPoint({ x: e.offsetX, y: e.offsetY }, zoom);
+        } else {
+            // Pan met Normaal Scrollen (of Trackpad)
+            let vpt = canvas.viewportTransform;
+            vpt[4] -= e.deltaX;
+            vpt[5] -= e.deltaY;
+            canvas.requestRenderAll();
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        updateStatus();
+    });
+
+    // Raster (Grid) logica
+    function toggleGrid() {
+        gridEnabled = !gridEnabled;
+        const btn = document.getElementById('toggleGridBtn');
+        gridEnabled ? btn.classList.add('active') : btn.classList.remove('active');
+        updateVisualGrid();
+    }
+
+    function updateVisualGrid() {
+        gridLines.forEach(l => canvas.remove(l));
+        gridLines = [];
+        if (gridEnabled) {
+            isUndoing = true; // Zorg dat raster niet in Undo history komt
+            const w = 4000, h = 4000; // Grootte van de map
+            for (let i = -w/2; i <= w/2; i += gridSize) {
+                let vLine = new fabric.Line([i, -h/2, i, h/2], { stroke: 'rgba(65, 72, 104, 0.4)', strokeWidth: 1, selectable: false, evented: false, excludeFromExport: true });
+                let hLine = new fabric.Line([-w/2, i, w/2, i], { stroke: 'rgba(65, 72, 104, 0.4)', strokeWidth: 1, selectable: false, evented: false, excludeFromExport: true });
+                gridLines.push(vLine, hLine);
+                canvas.add(vLine, hLine);
+                vLine.sendToBack();
+                hLine.sendToBack();
+            }
+            if (canvas.backgroundImage) canvas.backgroundImage.sendToBack();
+            isUndoing = false;
+        }
+        canvas.renderAll();
+    }
+
+    // Detecteer spatiebalk voor tijdelijk pannen
+    let spacePressed = false;
+    let _clipboard = null;
+
+    function copySelected() {
+        let activeObject = canvas.getActiveObject();
+        if (activeObject) {
+            activeObject.clone(function(cloned) {
+                _clipboard = cloned;
+            });
+        }
+    }
+
+    function pasteSelected() {
+        if (!_clipboard) return;
+        _clipboard.clone(function(clonedObj) {
+            canvas.discardActiveObject();
+            clonedObj.set({
+                left: clonedObj.left + 20,
+                top: clonedObj.top + 20,
+                evented: true,
+            });
+            if (clonedObj.type === 'activeSelection') {
+                clonedObj.canvas = canvas;
+                clonedObj.forEachObject(function(obj) {
+                    canvas.add(obj);
+                });
+                clonedObj.setCoords();
+            } else {
+                canvas.add(clonedObj);
+            }
+            _clipboard.top += 20;
+            _clipboard.left += 20;
+            canvas.setActiveObject(clonedObj);
+            canvas.requestRenderAll();
+            saveState();
+        });
+    }
+
+    window.addEventListener('keydown', function(e) {
+        if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
+            spacePressed = true;
+            if(currentTool !== 'pan') {
+                canvas.setCursor('grab');
+            }
+        }
+        // Sneltoets voor wissen
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            deleteSelected();
+        }
+        // Rotereren met R
+        if ((e.key === 'r' || e.key === 'R') && document.activeElement.tagName !== 'INPUT') {
+            rotateSelected();
+        }
+        // Ctrl+Z (of Cmd+Z op Mac)
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+            e.preventDefault();
+            undo();
+        }
+        if (e.key === 'Enter' || e.key === 'Escape') {
+            if (currentTool === 'area' && areaPoints.length > 2) finishArea();
+        }
+        // Copy / Paste (Ctrl+C / Ctrl+V)
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C') && document.activeElement.tagName !== 'INPUT') {
+            copySelected();
+        }
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V') && document.activeElement.tagName !== 'INPUT') {
+            e.preventDefault(); // Voorkom browser-default
+            pasteSelected();
+        }
+    });
+
+    window.addEventListener('keyup', function(e) {
+        if (e.code === 'Space') {
+            spacePressed = false;
+            if(currentTool !== 'pan') canvas.setCursor('default');
+        }
+    });
+
+    // Snappen naar het raster tijdens het verplaatsen van objecten
+    canvas.on('object:moving', function(options) {
+        if (gridEnabled) {
+            options.target.set({
+                left: Math.round(options.target.left / gridSize) * gridSize,
+                top: Math.round(options.target.top / gridSize) * gridSize
+            });
+        } else if (document.getElementById('snapObjectsCheck').checked) {
+            // Snap to other objects
+            let target = options.target;
+            let snapDist = 15;
+            canvas.getObjects().forEach(obj => {
+                if (obj === target || obj.excludeFromExport) return;
+                if (Math.abs(target.left - obj.left) < snapDist && Math.abs(target.top - obj.top) < snapDist) {
+                    target.set({ left: obj.left, top: obj.top });
+                }
+            });
+        }
+    });
+
+    canvas.on('path:created', function(opt) {
+        opt.path.cadType = 'pipe';
+        saveState();
+    });
+
+    // Muis Interacties voor Tekenen en Verslepen van Viewport
+    canvas.on('mouse:down', function(o) {
+        let pointer = canvas.getPointer(o.e);
+
+        // PAN MODUS (of als spatiebalk is ingedrukt of middelste muisknop)
+        if (currentTool === 'pan' || spacePressed || (o.e && o.e.button === 1)) {
+            isPanning = true;
+            canvas.selection = false;
+            lastPosX = o.e.clientX;
+            lastPosY = o.e.clientY;
+            canvas.setCursor('grabbing');
+            return;
+        }
+
+        if (currentTool === 'area') {
+            isDrawingLine = true;
+            let pointerX = gridEnabled ? Math.round(pointer.x / gridSize) * gridSize : pointer.x;
+            let pointerY = gridEnabled ? Math.round(pointer.y / gridSize) * gridSize : pointer.y;
+            
+            areaPoints.push({ x: pointerX, y: pointerY });
+            
+            if (areaPoints.length > 1) {
+                let prev = areaPoints[areaPoints.length - 2];
+                let l = new fabric.Line([prev.x, prev.y, pointerX, pointerY], {
+                    stroke: '#9ece6a', strokeWidth: 2, selectable: false, evented: false
+                });
+                areaLines.push(l);
+                canvas.add(l);
+            }
+
+            activeLine = new fabric.Line([pointerX, pointerY, pointerX, pointerY], {
+                stroke: '#9ece6a', strokeWidth: 2, strokeDashArray: [5,5], selectable: false, evented: false
+            });
+            areaLines.push(activeLine);
+            canvas.add(activeLine);
+            return;
+        }
+
+        // RECHTE LIJNEN, LEIDINGEN & MAATLIJN MODUS
+        if (currentTool === 'line' || currentTool.startsWith('pipe-') || currentTool === 'measure') {
+            isDrawingLine = true;
+            
+            let startX = gridEnabled ? Math.round(pointer.x / gridSize) * gridSize : pointer.x;
+            let startY = gridEnabled ? Math.round(pointer.y / gridSize) * gridSize : pointer.y;
+            let points = [ startX, startY, startX, startY ];
+            
+            let strokeColor = customColor.value;
+            let strokeWidth = parseInt(customWidth.value);
+            let strokeDash = null;
+
+            // Definieer specifieke eigenschappen per leidingtype
+            if (currentTool === 'measure') { strokeColor = '#9ece6a'; strokeWidth = 2; strokeDash = [5, 5]; }
+            else if (currentTool === 'pipe-electra') { strokeColor = '#fbdf11'; strokeWidth = 5; }
+            else if (currentTool === 'pipe-koudwater') { strokeColor = '#00aaff'; strokeWidth = 4; }
+            else if (currentTool === 'pipe-warmwater') { strokeColor = '#ff3333'; strokeWidth = 4; }
+            else if (currentTool === 'pipe-vloerverwarming') { strokeColor = '#ff7700'; strokeWidth = 3; }
+            else if (currentTool === 'pipe-afvoer') { strokeColor = '#777777'; strokeWidth = 8; }
+
+            activeLine = new fabric.Line(points, {
+                strokeWidth: strokeWidth,
+                fill: strokeColor,
+                stroke: strokeColor,
+                originX: 'center',
+                originY: 'center',
+                selectable: currentTool !== 'measure', // Maatlijn wordt gegroepeerd en dán pas selecteerbaar
+                hasControls: true,
+                strokeDashArray: strokeDash,
+                strokeLineCap: 'round',
+                cadType: currentTool === 'measure' ? 'text' : 'pipe'
+            });
+            isUndoing = true;
+            canvas.add(activeLine);
+            
+            if (currentTool === 'measure') {
+                activeMeasureText = new fabric.Text('0 m', {
+                    left: startX,
+                    top: startY - 15,
+                    fontSize: parseInt(document.getElementById('fontSize').value) || 14,
+                    fill: strokeColor,
+                    backgroundColor: 'rgba(26, 27, 38, 0.85)',
+                    originX: 'center',
+                    originY: 'center',
+                    selectable: false,
+                    evented: false,
+                    cadType: 'text'
+                });
+                canvas.add(activeMeasureText);
+            }
+            isUndoing = false;
+        }
+    });
+
+    canvas.on('mouse:move', function(o) {
+        // Pannen uitvoeren
+        if (isPanning) {
+            let e = o.e;
+            let vpt = canvas.viewportTransform;
+            vpt[4] += e.clientX - lastPosX;
+            vpt[5] += e.clientY - lastPosY;
+            canvas.requestRenderAll();
+            lastPosX = e.clientX;
+            lastPosY = e.clientY;
+            return;
+        }
+
+        // Lijnelasticiteit bijwerken
+        if (isDrawingLine && activeLine) {
+            let pointer = canvas.getPointer(o.e);
+            let targetX = gridEnabled ? Math.round(pointer.x / gridSize) * gridSize : pointer.x;
+            let targetY = gridEnabled ? Math.round(pointer.y / gridSize) * gridSize : pointer.y;
+
+            // Als Shift is ingedrukt, forceer perfect horizontale of verticale lijnen (90 graden)
+            if (o.e.shiftKey) {
+                let dx = Math.abs(pointer.x - activeLine.x1);
+                let dy = Math.abs(pointer.y - activeLine.y1);
+                if (dx > dy) {
+                    targetY = activeLine.y1; // Forceer horizontaal
+                } else {
+                    targetX = activeLine.x1; // Forceer verticaal
+                }
+            }
+
+            if (document.getElementById('snapObjectsCheck').checked && !gridEnabled && !o.e.shiftKey) {
+                let snapDist = 15;
+                canvas.getObjects().forEach(obj => {
+                    if (obj.cadType === 'symbol') {
+                        if (Math.abs(targetX - obj.left) < snapDist && Math.abs(targetY - obj.top) < snapDist) {
+                            targetX = obj.left; targetY = obj.top;
+                        }
+                    }
+                });
+            }
+
+            activeLine.set({ x2: targetX, y2: targetY });
+            
+            // Real-time tekst bijwerken van de maatlijn
+            if (currentTool === 'measure' && activeMeasureText) {
+                let dx = targetX - activeLine.x1;
+                let dy = targetY - activeLine.y1;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                if (angle > 90 || angle < -90) angle += 180; // Houd tekst leesbaar
+                let meters = (dist / (parseFloat(document.getElementById('scaleInput').value) || 100)).toFixed(2);
+
+                activeMeasureText.set({
+                    left: activeLine.x1 + dx / 2,
+                    top: activeLine.y1 + dy / 2 - 15,
+                    text: meters + ' m',
+                    angle: angle
+                });
+            }
+            canvas.renderAll();
+        }
+    });
+
+    canvas.on('mouse:up', function(o) {
+        if (isPanning) {
+            isPanning = false;
+            canvas.selection = (currentTool === 'select');
+            canvas.setCursor(currentTool === 'pan' ? 'grab' : 'default');
+            return;
+        }
+        
+        if (currentTool === 'area') {
+            return; // Gebruiker moet op Enter drukken om vlak te sluiten
+        }
+
+        if (isDrawingLine) {
+            isDrawingLine = false;
+            if(activeLine) {
+                activeLine.setCoords();
+            }
+            
+            // Groepeer de lijn en de tekst samen tot één maatlijn-object
+            if (currentTool === 'measure' && activeLine && activeMeasureText) {
+                activeLine.set({ selectable: true, evented: true });
+                activeMeasureText.set({ selectable: true, evented: true });
+                
+                let group = new fabric.Group([activeLine, activeMeasureText], {
+                    selectable: true,
+                    hasControls: true,
+                    cadType: 'text'
+                });
+                
+                isUndoing = true;
+                canvas.remove(activeLine, activeMeasureText);
+                canvas.add(group);
+                isUndoing = false;
+                activeMeasureText = null;
+            }
+
+            // Na het trekken van een leiding, herstel naar selectietool als gewenst, of blijf in modus
+            canvas.renderAll();
+            saveState(); // Zorg dat de nieuw getrokken lijn direct wordt opgeslagen
+        }
+    });
+
+    canvas.on('mouse:dblclick', function(o) {
+        if (currentTool === 'area' && areaPoints.length > 2) {
+            finishArea();
+        }
+    });
+
+    // 2. Switchen van Modus & Gereedschap
+    function switchTool(toolName) {
+        currentTool = toolName;
+        
+        // Deactiveer alle actieve buttons in de zijbalk
+        document.querySelectorAll('.sidebar button').forEach(btn => btn.classList.remove('active'));
+        
+        // Activeer juiste button visueel
+        let targetBtn = document.getElementById('tool-' + toolName) || document.querySelector(`[data-pipe="${toolName.replace('pipe-', '')}"]`);
+        if(targetBtn) targetBtn.classList.add('active');
+
+        // Configureer Fabric Tekenmodus voor Vrije Hand
+        if (toolName === 'curve') {
+            canvas.isDrawingMode = true;
+            canvas.freeDrawingBrush.color = customColor.value;
+            canvas.freeDrawingBrush.width = parseInt(customWidth.value);
+            canvas.freeDrawingBrush.decimation = 8; // Gladde bochten
+        } else if (toolName === 'freehand') {
+            canvas.isDrawingMode = true;
+            canvas.freeDrawingBrush.color = customColor.value;
+            canvas.freeDrawingBrush.width = parseInt(customWidth.value);
+            canvas.freeDrawingBrush.decimation = 0; // Exact tekenen
+        } else {
+            canvas.isDrawingMode = false;
+        }
+
+        // Selecteerbaarheid aanpassen op basis van modus
+        if (toolName === 'select') {
+            canvas.selection = true;
+            canvas.forEachObject(o => { o.selectable = true; o.evented = true; });
+            canvas.setCursor('default');
+        } else {
+            canvas.selection = false;
+            canvas.forEachObject(o => { o.selectable = false; o.evented = false; });
+            if(toolName === 'pan') canvas.setCursor('grab');
+            else canvas.setCursor('crosshair');
+        }
+
+        updateStatus();
+    }
+
+    // Update statusbalk tekst
+    function updateStatus() {
+        let zoomPerc = Math.round(canvas.getZoom() * 100);
+        let modusText = currentTool.toUpperCase();
+        statusBar.innerText = `Modus: ${modusText} | Zoomniveau: ${zoomPerc}% | Scroll = Pannen | Ctrl+Scroll = Zoomen`;
+    }
+
+    // Koppel kleur- en dikteveranderingen aan de Vrije hand penseel
+    customColor.addEventListener('change', (e) => {
+        if(canvas.isDrawingMode) canvas.freeDrawingBrush.color = e.target.value;
+    });
+    customWidth.addEventListener('input', (e) => {
+        if(canvas.isDrawingMode) canvas.freeDrawingBrush.width = parseInt(e.target.value);
+    });
+
+
+    // 3. Technische Componenten Stempels Genereren (Architectonische Groepen)
+    function addSymbol(type) {
+        // Switch direct naar selectietool zodat het geplaatste object gemanipuleerd kan worden
+        switchTool('select');
+
+        let elements = [];
+        let center = canvas.getCenter();
+        
+        // Bereken gecentreerde positie rekening houdend met de huidige zoom/pan transformatie
+        let zoom = canvas.getZoom();
+        let vpt = canvas.viewportTransform;
+        let posX = (center.left - vpt[4]) / zoom;
+        let posY = (center.top - vpt[5]) / zoom;
+
+        if (gridEnabled) { // Laat symbolen ook netjes op het raster snappen
+            posX = Math.round(posX / gridSize) * gridSize;
+            posY = Math.round(posY / gridSize) * gridSize;
+        }
+
+        if (type === 'wcd') {
+            // Wandcontactdoos normsymbool: Cirkel met twee parallelle pennen
+            let circle = new fabric.Circle({ radius: 12, fill: 'transparent', stroke: '#00ffcc', strokeWidth: 2, originX: 'center', originY: 'center' });
+            let pin1 = new fabric.Line([0, -6, 22, -6], { stroke: '#00ffcc', strokeWidth: 2 });
+            let pin2 = new fabric.Line([0, 6, 22, 6], { stroke: '#00ffcc', strokeWidth: 2 });
+            elements = [circle, pin1, pin2];
+        } 
+        else if (type === 'wcd-dubbel') {
+            // Dubbele WCD normsymbool
+            let circle1 = new fabric.Circle({ radius: 12, fill: 'transparent', stroke: '#00ffcc', strokeWidth: 2, left: -10, top: 0, originX: 'center', originY: 'center' });
+            let circle2 = new fabric.Circle({ radius: 12, fill: 'transparent', stroke: '#00ffcc', strokeWidth: 2, left: 10, top: 0, originX: 'center', originY: 'center' });
+            let pin1 = new fabric.Line([-10, -6, 25, -6], { stroke: '#00ffcc', strokeWidth: 2 });
+            let pin2 = new fabric.Line([-10, 6, 25, 6], { stroke: '#00ffcc', strokeWidth: 2 });
+            elements = [circle1, circle2, pin1, pin2];
+        }
+        else if (type === 'schakelaar') {
+            // Schakelaar symbool: Cirkel met schuine vlaglijn
+            let circle = new fabric.Circle({ radius: 10, fill: 'transparent', stroke: '#ff00ff', strokeWidth: 2, originX: 'center', originY: 'center' });
+            let line = new fabric.Line([0, 0, 18, -18], { stroke: '#ff00ff', strokeWidth: 2 });
+            let hook = new fabric.Line([18, -18, 24, -12], { stroke: '#ff00ff', strokeWidth: 2 });
+            elements = [circle, line, hook];
+        } 
+        else if (type === 'lichtpoint' || type === 'lichtpunt') {
+            // Plafond lichtpunt / Kruis in cirkel
+            let circle = new fabric.Circle({ radius: 14, fill: 'transparent', stroke: '#ffff00', strokeWidth: 2, originX: 'center', originY: 'center' });
+            let cross1 = new fabric.Line([-10, -10, 10, 10], { stroke: '#ffff00', strokeWidth: 2, originX: 'center', originY: 'center' });
+            let cross2 = new fabric.Line([-10, 10, 10, -10], { stroke: '#ffff00', strokeWidth: 2, originX: 'center', originY: 'center' });
+            elements = [circle, cross1, cross2];
+        }
+        else if (type === 'rookmelder') {
+            // Rookmelder: Vierkant met een R erin of kruis
+            let rect = new fabric.Rect({ width: 26, height: 26, fill: 'transparent', stroke: '#f7768e', strokeWidth: 2, originX: 'center', originY: 'center' });
+            let innerText = new fabric.Text('R', { fontSize: 16, fill: '#f7768e', originX: 'center', originY: 'center', fontWeight: 'bold' });
+            elements = [rect, innerText];
+        }
+        else if (type === 'lasdoos') {
+            // Lasdoos / Verdeeldoos
+            let circle = new fabric.Circle({ radius: 6, fill: '#fbdf11', stroke: '#fbdf11', strokeWidth: 2, originX: 'center', originY: 'center' });
+            elements = [circle];
+        }
+        else if (type === 'waterpunt') {
+            // Wateraansluiting: Driehoek of blauwe iconische cirkelset
+            let outerCircle = new fabric.Circle({ radius: 12, fill: 'transparent', stroke: '#00e5ff', strokeWidth: 2, originX: 'center', originY: 'center' });
+            let innerCircle = new fabric.Circle({ radius: 5, fill: '#00e5ff', originX: 'center', originY: 'center' });
+            elements = [outerCircle, innerCircle];
+        }
+        else if (type === 'radiator') {
+            // Radiator: Rechthoek met interne ribben/lijnen
+            let body = new fabric.Rect({ width: 45, height: 18, fill: 'transparent', stroke: '#a9b1d6', strokeWidth: 2, originX: 'center', originY: 'center' });
+            let l1 = new fabric.Line([-15, -9, -15, 9], { stroke: '#a9b1d6', strokeWidth: 1 });
+            let l2 = new fabric.Line([-5, -9, -5, 9], { stroke: '#a9b1d6', strokeWidth: 1 });
+            let l3 = new fabric.Line([5, -9, 5, 9], { stroke: '#a9b1d6', strokeWidth: 1 });
+            let l4 = new fabric.Line([15, -9, 15, 9], { stroke: '#a9b1d6', strokeWidth: 1 });
+            elements = [body, l1, l2, l3, l4];
+        }
+        else if (type === 'warmtepomp') {
+            // Warmtepomp / CV ketel: Vierkant met kruis of aanduiding WP
+            let box = new fabric.Rect({ width: 35, height: 35, fill: '#2f354f', stroke: '#9ece6a', strokeWidth: 2, originX: 'center', originY: 'center' });
+            let txt = new fabric.Text('WP', { fontSize: 14, fill: '#9ece6a', originX: 'center', originY: 'center', fontWeight: 'bold' });
+            elements = [box, txt];
+        }
+
+        // Groepeer alle getekende sub-vormen tot één verplaatsbaar CAD-symbool
+        if (elements.length > 0) {
+            let symbolGroup = new fabric.Group(elements, {
+                left: posX,
+                top: posY,
+                originX: 'center',
+                originY: 'center',
+                cornerColor: 'white',
+                cornerSize: 8,
+                transparentCorners: false,
+                cadType: 'symbol'
+            });
+            canvas.add(symbolGroup);
+            canvas.setActiveObject(symbolGroup);
+            canvas.renderAll();
+        }
+    }
+
+    // Vrije Tekst tool handler
+    document.getElementById('tool-text').addEventListener('click', () => {
+        let center = canvas.getCenter();
+        let zoom = canvas.getZoom();
+        let vpt = canvas.viewportTransform;
+        let fontSize = parseInt(document.getElementById('fontSize').value) || 20;
+        
+        let textNode = new fabric.IText('Label', {
+            left: (center.left - vpt[4]) / zoom,
+            top: (center.top - vpt[5]) / zoom,
+            fontFamily: 'Segoe UI',
+            fontSize: fontSize,
+            fill: customColor.value,
+            cornerColor: 'white',
+            cadType: 'text'
+        });
+        canvas.add(textNode);
+        canvas.setActiveObject(textNode);
+        switchTool('select');
+    });
+
+
+    // 4. Afbeeldingen / Funda Bouwtekeningen Inladen lokaal
+    const fileLoader = document.getElementById('fileLoader');
+    fileLoader.addEventListener('change', function(e) {
+        let file = e.target.files[0];
+        if (!file) return;
+
+        let reader = new FileReader();
+        
+        if (file.name.endsWith('.json')) {
+            reader.onload = function(f) {
+                canvas.loadFromJSON(f.target.result, function() {
+                    canvas.renderAll();
+                    historyStack.push(JSON.stringify(canvas.toJSON(['cadType'])));
+                    saveState();
+                    updateStatus();
+                });
+            };
+            reader.readAsText(file);
+            return;
+        }
+        
+        reader.onload = function(f) {
+            let data = f.target.result;
+            fabric.Image.fromURL(data, function(img) {
+                // Optimaliseer canvas grootte naar de blauwdruk resolutie
+                canvas.setWidth(img.width > window.innerWidth ? img.width : window.innerWidth - 600);
+                canvas.setHeight(img.height > window.innerHeight ? img.height : window.innerHeight - 100);
+                
+                // Stel afbeelding in als niet-selecteerbare achtergrondlaag
+                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+                    scaleX: 1,
+                    scaleY: 1
+                });
+                
+                // Reset zoom
+                canvas.setZoom(1);
+                canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
+                updateStatus();
+                saveState(); // Bewaar de ingeladen achtergrond meteen
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+
+
+    // 5. Object Beheer Acties (Wissen, Lagenvolgorde)
+    document.getElementById('deleteObject').addEventListener('click', deleteSelected);
+
+    function deleteSelected() {
+        let activeObjects = canvas.getActiveObjects();
+        if (activeObjects && activeObjects.length > 0) {
+            activeObjects.forEach(obj => {
+                canvas.remove(obj);
+            });
+            canvas.discardActiveObject();
+            canvas.renderAll();
+        }
+    }
+
+    function changeOrder(action) {
+        let active = canvas.getActiveObject();
+        if (!active) return;
+        if (action === 'front') canvas.bringToFront(active);
+        if (action === 'back') canvas.sendToBack(active);
+        canvas.renderAll();
+        saveState(); // Zorg dat laag-volgorde wordt opgeslagen
+    }
+
+    function groupSelected() {
+        let activeObj = canvas.getActiveObject();
+        if (!activeObj || activeObj.type !== 'activeSelection') return;
+        
+        isUndoing = true;
+        activeObj.toGroup();
+        isUndoing = false;
+        canvas.requestRenderAll();
+        saveState();
+    }
+
+    function ungroupSelected() {
+        let activeObj = canvas.getActiveObject();
+        if (!activeObj || activeObj.type !== 'group') return;
+        
+        isUndoing = true;
+        activeObj.toActiveSelection();
+        isUndoing = false;
+        canvas.requestRenderAll();
+        saveState();
+    }
+
+    function toggleLayer(type, isVisible) {
+        if (type === 'bg' && canvas.backgroundImage) {
+            canvas.backgroundImage.opacity = isVisible ? 1 : 0;
+        } else {
+            canvas.getObjects().forEach(obj => {
+                if (obj.cadType === type) {
+                    obj.opacity = isVisible ? 1 : 0;
+                    obj.evented = isVisible;
+                    obj.selectable = isVisible;
+                }
+            });
+        }
+        canvas.discardActiveObject();
+        canvas.requestRenderAll();
+    }
+
+    document.getElementById('undoBtn').addEventListener('click', undo);
+
+    document.getElementById('clearCanvas').addEventListener('click', () => {
+        // Verwijder alle objecten behalve achtergrondafbeelding
+        isUndoing = true; // Voorkom dat elk verwijderd element los in de geschiedenis komt
+        canvas.getObjects().forEach(obj => {
+            if (!gridLines.includes(obj)) canvas.remove(obj);
+        });
+        isUndoing = false;
+        canvas.renderAll();
+        saveState(); // Sla het lege canvas in één keer op
+    });
+
+    document.getElementById('helpBtn').addEventListener('click', () => {
+        document.getElementById('helpModal').style.display = 'flex';
+    });
+
+    document.getElementById('saveProjectBtn').addEventListener('click', () => {
+        const json = JSON.stringify(canvas.toJSON(['cadType'])); 
+        const blob = new Blob([json], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'cad_project.json';
+        link.click();
+    });
+
+    document.getElementById('exportPdfBtn').addEventListener('click', () => {
+        canvas.discardActiveObject();
+        canvas.renderAll();
+        let dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1.0 });
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape' });
+        const imgProps = doc.getImageProperties(dataURL);
+        const pdfWidth = doc.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        doc.addImage(dataURL, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        doc.save('technisch_ontwerp.pdf');
+    });
+
+    function generateLegend() {
+        let items = {};
+        canvas.getObjects().forEach(obj => {
+            if (obj.cadType === 'symbol' || obj.cadType === 'pipe') {
+                let color = obj.fill || obj.stroke;
+                if (obj.type === 'path' || obj.type === 'line') color = obj.stroke;
+                if (obj.type === 'group') { let sub = obj.getObjects()[0]; color = sub.stroke || sub.fill; }
+                let typeName = obj.cadType === 'symbol' ? 'Symbool' : 'Leiding';
+                items[typeName + '_' + color] = { color: color, name: typeName };
+            }
+        });
+        let legendElements = [];
+        legendElements.push(new fabric.Rect({ width: 200, height: Object.keys(items).length * 30 + 40, fill: 'rgba(36, 40, 59, 0.9)', stroke: '#414868', rx: 5, ry: 5 }));
+        legendElements.push(new fabric.Text('Legenda', { left: 10, top: 10, fontSize: 16, fill: '#c0caf5', fontWeight: 'bold' }));
+        let y = 40;
+        for (let key in items) {
+            legendElements.push(new fabric.Circle({ radius: 8, fill: items[key].color, left: 10, top: y }));
+            legendElements.push(new fabric.Text(items[key].name, { left: 35, top: y, fontSize: 14, fill: '#c0caf5' }));
+            y += 30;
+        }
+        canvas.add(new fabric.Group(legendElements, { left: 50, top: 50, cadType: 'text' }));
+        saveState();
+    }
+
+    // 6. Exporteren van het samengestelde CAD-ontwerp
+    document.getElementById('exportImage').addEventListener('click', () => {
+        // Deselecteer actieve objecten voor een schone export
+        canvas.discardActiveObject();
+        canvas.renderAll();
+        
+        let dataURL = canvas.toDataURL({
+            format: 'png',
+            quality: 1.0
+        });
+        
+        let dlLink = document.createElement('a');
+        dlLink.download = 'technisch_installatie_ontwerp.png';
+        dlLink.href = dataURL;
+        dlLink.click();
+    });
+</script>
+
+</body>
+</html>

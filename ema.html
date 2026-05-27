@@ -393,6 +393,9 @@
   <button class="ab ab-o" id="btnBrandwacht"><svg viewBox="0 0 24 24"><path d="M9 3h6a2 2 0 012 2v14a2 2 0 01-2 2H9a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M9 8h6"/></svg> Brandwacht melding</button>
   <button class="ab ab-p" id="btnLogistiek"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> Logistieke melding</button>
   <button class="ab ab-a"><svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M12 4v16"/></svg> Logging toevoegen</button>
+  <button class="ab" id="btnProtocols" style="background: var(--bg3); border-color: var(--border); color: var(--text1); margin-left: auto;">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Protocollen
+  </button>
 </div>
 
 <!-- Toast container for inline non-blocking messages -->
@@ -1087,6 +1090,57 @@
   </div>
 </div>
 
+<!-- Protocollen Overzicht Modal -->
+<div class="modal-overlay" id="protocolListModal">
+  <div class="modal-content" style="width: 400px;">
+    <div class="modal-header">
+      <h3>Kies een Protocol</h3>
+      <button class="modal-close closeModalBtn">&times;</button>
+    </div>
+    <div class="option-list" style="padding-top: 20px;">
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol1">
+        <strong>Protocol 1</strong>
+        <span>Korte omschrijving van dit protocol</span>
+      </button>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol2">
+        <strong>Protocol 2</strong>
+        <span>Korte omschrijving van dit protocol</span>
+      </button>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol3">
+        <strong>Protocol 3</strong>
+        <span>Korte omschrijving van dit protocol</span>
+      </button>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol4">
+        <strong>Protocol 4</strong>
+        <span>Korte omschrijving van dit protocol</span>
+      </button>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol5">
+        <strong>Protocol 5</strong>
+        <span>Korte omschrijving van dit protocol</span>
+      </button>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol6">
+        <strong>Protocol 6</strong>
+        <span>Korte omschrijving van dit protocol</span>
+      </button>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol7">
+        <strong>Protocol 7</strong>
+        <span>Korte omschrijving van dit protocol</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Protocol Document Modal -->
+<div class="modal-overlay" id="protocolViewModal">
+  <div class="modal-content" style="width: 750px; max-width: 95vw;">
+    <div class="modal-header">
+      <h3 id="protocolViewTitle">Protocol</h3>
+      <button class="modal-close closeModalBtn">&times;</button>
+    </div>
+    <div style="padding: 24px; max-height: calc(100vh - 120px); overflow-y: auto; background: var(--bg2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; font-size: 14px; line-height: 1.6;" id="protocolViewContent"></div>
+  </div>
+</div>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
@@ -1108,6 +1162,17 @@
   const analytics = getAnalytics(app);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  function addLog(type, message, unitId, incidentId, location) {
+      const logEntry = { id: 'LOG-' + Date.now(), timestamp: new Date().toISOString(), type, message, unitId, incidentId, location };
+      setDoc(doc(db, "logs", logEntry.id), logEntry).catch(e => console.warn(e));
+  }
+  
+  function addIncidentAudit(incident, action) {
+      const timeStr = new Date().getHours().toString().padStart(2,'0')+':'+new Date().getMinutes().toString().padStart(2,'0');
+      incident.auditTrail = incident.auditTrail || [];
+      incident.auditTrail.push({ time: timeStr, action });
+  }
 
   // ==========================================
   // 0A. LOGIN SCHERM LOGICA
@@ -1772,7 +1837,9 @@
              if (!incidentToAssign.units.includes(label)) incidentToAssign.units.push(label);
              if (incidentToAssign.status === 'Nieuw') incidentToAssign.status = 'In behandeling';
              unit.status = 'uitgerukt';
+             unit.statusTimestamp = new Date().toISOString();
              unit.location = incidentToAssign.location;
+             addIncidentAudit(incidentToAssign, `Eenheid toegewezen: ${label}`);
              setDoc(doc(db, "units", unit.id), unit);
              setDoc(doc(db, "incidents", incidentToAssign.id), incidentToAssign);
              addLog('Status', 'Eenheid uitgerukt', unit.id, incidentToAssign.id, incidentToAssign.location);
@@ -1928,6 +1995,7 @@
           incident.closedAtTimestamp = nu.toISOString();
           
           incident.status = `Afgesloten: ${reason}`;
+          addIncidentAudit(incident, `Melding afgesloten (${reason})`);
           setDoc(doc(db, "incidents", incident.id), incident);
           addLog('Afloop', `Afloop: ${reason}`, '', incident.id, incident.location);
 
@@ -1996,6 +2064,7 @@
                 recommendations
               }
             });
+            addIncidentAudit(incidents[incidents.length - 1], `Aangemaakt (SBAR) - ${fd.get('urgency')}`);
 
             setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
             renderTables();
@@ -2041,6 +2110,7 @@
               urgency: formData.get('urgency'),
               units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
           });
+          addIncidentAudit(incidents[incidents.length - 1], `Aangemaakt - ${formData.get('urgency')}`);
     
           setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
           addLog('Toegevoegd', `Medische melding aangemaakt`, '', incidents[incidents.length-1].id, formData.get('location'));
@@ -2140,6 +2210,7 @@
               urgency: formData.get('urgency'),
               units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
           });
+          addIncidentAudit(incidents[incidents.length - 1], `Brandwacht melding aangemaakt - ${formData.get('urgency')}`);
 
           setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
           renderTables();
@@ -2196,6 +2267,7 @@
               urgency: formData.get('urgency'),
               units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
           });
+          addIncidentAudit(incidents[incidents.length - 1], `Logistieke melding aangemaakt - ${formData.get('urgency')}`);
 
           setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
           renderTables();
@@ -2869,6 +2941,44 @@
   updateClock();
 
   // ==========================================
+  // TIMERS VOOR EENHEDEN (PAUZE / INZET)
+  // ==========================================
+  function formatElapsedTime(isoString) {
+      if (!isoString) return "00:00";
+      const start = new Date(isoString).getTime();
+      if (isNaN(start)) return "00:00";
+      const now = Date.now();
+      const diff = Math.max(0, Math.floor((now - start) / 1000));
+      const h = Math.floor(diff / 3600);
+      const m = Math.floor((diff % 3600) / 60);
+      const s = diff % 60;
+      if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function updateTimers() {
+      document.querySelectorAll('.unit-timer').forEach(el => {
+          const ts = el.getAttribute('data-timestamp');
+          const status = el.getAttribute('data-status');
+          
+          if (status !== 'pauze') {
+              el.style.display = 'none';
+              return;
+          }
+          
+          el.style.display = 'block';
+          if (ts) {
+              const elapsed = formatElapsedTime(ts);
+              el.textContent = `Pauze: ${elapsed}`;
+              const diffSec = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+              if (diffSec > 1800) el.style.color = 'var(--red)';
+              else el.style.color = 'var(--amber)';
+          }
+      });
+  }
+  setInterval(updateTimers, 1000);
+
+  // ==========================================
   // BUIENRADAR / WEER MODAL
   // ==========================================
   const weatherBtn = document.getElementById('weatherBtn');
@@ -2950,13 +3060,39 @@
   const zoomSelect = document.getElementById('zoomSelect');
   function applyZoom(zoomLevel) {
       document.body.style.zoom = zoomLevel;
-      document.body.style.transform = `scale(${zoomLevel})`;
-      document.body.style.transformOrigin = 'top center';
-      document.body.style.width = zoomLevel !== '1' ? `${100 / zoomLevel}%` : '100%';
   }
   if (zoomSelect) {
       zoomSelect.addEventListener('change', (e) => applyZoom(e.target.value));
   }
+
+  // ==========================================
+  // PROTOCOLLEN LOGICA
+  // ==========================================
+  const protocols = {
+      reanimatie: { titel: 'Reanimatie (BLS / AED)', inhoud: `<ol style="padding-left:20px;line-height:2"><li>Controleer bewustzijn — roep naam, schouder aanraken</li><li>Roep hulp — alarm slaan, AED ophalen</li><li>Controleer ademhaling max. 10 seconden</li><li>Start borstcompressies: 30x, 5–6 cm diep, 100–120/min</li><li>2 beademingen (indien getraind)</li><li>Wissel elke 2 minuten</li><li>Zodra AED aanwezig: aansluiten en instructies volgen</li></ol>` },
+      ontruiming: { titel: 'Ontruiming / Calamiteit', inhoud: `<ol style="padding-left:20px;line-height:2"><li>Melding ontvangen van beveiliging of organisatie</li><li>Informeer alle posten via portofoon</li><li>Zet extra eenheden naar uitgangen</li><li>Houd centrale post bemand voor coördinatie</li><li>Registreer slachtoffers en vermisten</li><li>Wacht instructies van leidinggevende / brandweer</li></ol>` },
+      agressie:   { titel: 'Agressie / Vechtpartij', inhoud: `<ol style="padding-left:20px;line-height:2"><li>Schakel beveiliging direct in</li><li>Houd afstand — ga niet zelf tussenbeide</li><li>Zorg voor vrije vluchtweg voor bezoekers</li><li>Registreer locatie en beschrijving dader(s)</li><li>Eerste hulp gereed houden voor eventuele slachtoffers</li><li>Informeer de organisatie en overweeg politie 112</li></ol>` }
+  };
+
+  const btnProtocols = document.getElementById('btnProtocols');
+  if (btnProtocols) {
+      btnProtocols.addEventListener('click', () => {
+          document.getElementById('protocolListModal').classList.add('show');
+      });
+  }
+
+  document.querySelectorAll('.protocol-select-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+          const protId = btn.getAttribute('data-protocol');
+          const data = protocols[protId];
+          if (data) {
+              document.getElementById('protocolViewTitle').textContent = data.titel;
+              document.getElementById('protocolViewContent').innerHTML = data.inhoud;
+              document.getElementById('protocolListModal').classList.remove('show');
+              document.getElementById('protocolViewModal').classList.add('show');
+          }
+      });
+  });
 
 </script>
 <!-- Link to user's legacy stylesheet to preserve layout; can be refined or trimmed as needed -->
