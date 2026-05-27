@@ -2501,7 +2501,7 @@
 
           const getEditableSpan = (field, value) => `
               <span class="editable-field" data-id="${u.id}" data-field="${field}" data-value="${value || ''}">
-                  ${value && value.trim() !== '' ? value : '<i>Niet ingevuld</i>'}
+                  ${value && value.toString().trim() !== '' ? value : '<i>Niet ingevuld</i>'}
               </span>
           `;
           
@@ -2838,7 +2838,7 @@
       tbody.innerHTML = posts.map(p => {
           const style = getPostStatusStyle(p.status);
           const statusIcon = `<span class="unit-dot ${style.dot}" title="${p.status}" style="display:inline-block; vertical-align: middle;"></span>`;
-          const getEditableSpan = (field, value) => `<span class="editable-post-field" data-id="${p.id}" data-field="${field}" data-value="${value || ''}">${value && value.trim() !== '' ? value : '<i>Niet ingevuld</i>'}</span>`;
+          const getEditableSpan = (field, value) => `<span class="editable-post-field" data-id="${p.id}" data-field="${field}" data-value="${value || ''}">${value && value.toString().trim() !== '' ? value : '<i>Niet ingevuld</i>'}</span>`;
           const statusDropdown = `<select class="status-dropdown-base post-status-select-detail ${style.bg}" data-id="${p.id}"><option value="open" ${p.status === 'open' ? 'selected' : ''}>open</option><option value="gesloten" ${p.status === 'gesloten' ? 'selected' : ''}>gesloten</option></select>`;
           
           // Bereken welke eenheden gekoppeld zijn aan deze specifieke post
