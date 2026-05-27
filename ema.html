@@ -1029,12 +1029,13 @@
 <div class="modal-overlay" id="afloopModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Afloop</h3>
+      <h3>Statusen</h3>
       <button class="modal-close" id="afloopCloseBtn">&times;</button>
     </div>
     <div class="option-list" id="afloopOptionList">
       <button type="button" class="option-btn" data-afloop="Loze melding">Loze melding</button>
       <button type="button" class="option-btn" data-afloop="Zorg ter plaatse">Zorg ter plaatse</button>
+      <button type="button" class="option-btn" data-afloop="Inzetbaar">Inzetbaar</button>
       <button type="button" class="option-btn" data-afloop="Retour BLS">Retour BLS</button>
       <button type="button" class="option-btn" data-afloop="Retour ALS">Retour ALS</button>
       <button type="button" class="option-btn" data-afloop="Dubbele melding">Dubbele melding</button>
@@ -1368,6 +1369,7 @@
   // Eenheden array - start leeg
   let units = [];
   let posts = [];
+  let logs = [];
 
   // ==========================================
   // 2. RENDERING FUNCTIES (Tekenen op het scherm)
@@ -1414,7 +1416,7 @@
       const label = isOpschaling ? `Opschaling: ${unit.id}` : unit.id;
       
       incident.units.push(label);
-      if (incident.status === 'Nieuw') incident.status = 'In behandeling';
+      incident.status = isOpschaling ? 'Opschaling' : 'Toegewezen';
       
       unit.status = 'uitgerukt';
       unit.location = incident.location;
@@ -1457,11 +1459,27 @@
     if (!container) return;
     container.innerHTML = '';
 
-    const operationalUnits = units.filter(u => u.status !== 'uitgemeld');
+    let operationalUnits = units.filter(u => u.status !== 'uitgemeld');
     if (operationalUnits.length === 0) {
         container.innerHTML = '<div class="empty-table-msg" style="padding:16px;">Geen operationele eenheden beschikbaar</div>';
         return;
     }
+    
+    // Sorteer op status: Inzetbaar en Retour post bovenaan
+    const statusOrder = {
+        'inzetbaar': 1,
+        'retour post': 2,
+        'op post': 3,
+        'pauze': 4,
+        'uitgerukt': 5
+    };
+    
+    operationalUnits.sort((a, b) => {
+        const orderA = statusOrder[a.status] || 99;
+        const orderB = statusOrder[b.status] || 99;
+        if (orderA !== orderB) return orderA - orderB;
+        return a.id.localeCompare(b.id);
+    });
 
     operationalUnits.forEach((u) => {
         const style = getStatusStyle(u.status);
@@ -1601,9 +1619,9 @@
                     <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
                     <td>
                       <div class="row-actions">
-                        <button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}" disabled style="opacity: 0.5; cursor: not-allowed;" title="Wijs eerst een eenheid toe">Opschalen</button>
                         <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
-                        <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Afloop</button>
+                        <button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}" disabled style="opacity: 0.5; cursor: not-allowed;" title="Wijs eerst een eenheid toe">Opschalen</button>
+                        <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Statusen</button>
                       </div>
                     </td>
                   `;
@@ -1630,9 +1648,9 @@
                 <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
                 <td>
                   <div class="row-actions">
-                    <button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}">Opschalen</button>
                     <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
-                    <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Afloop</button>
+                    <button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}">Opschalen</button>
+                    <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Statusen</button>
                   </div>
                 </td>
               `;
@@ -1663,9 +1681,9 @@
                 <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
                 <td>
                   <div class="row-actions">
-                    ${opschaalBtn}
                     <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
-                    <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Afloop</button>
+                    ${opschaalBtn}
+                    <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Statusen</button>
                   </div>
                 </td>
               `;
@@ -1689,6 +1707,11 @@
                     <td>${inc.event}</td>
                     <td>${inc.reporter}</td>
                     <td><span style="color:var(--text2);">${assignedUnits}</span></td>
+                    <td>
+                      <div class="row-actions">
+                        <button type="button" class="btn btn-outline" data-action="tijdlijn" data-id="${inc.id}">Tijdlijn</button>
+                      </div>
+                    </td>
                   `;
                   loggingTable.appendChild(trHist);
               });
@@ -1776,6 +1799,8 @@
            openAssignModal(incidentId);
       } else if (action === 'afsluiten') {
         openAfloopModal(incidentId);
+      } else if (action === 'tijdlijn') {
+        openTimelineModal(incidentId);
        }
    }
 
@@ -1835,7 +1860,7 @@
              incidentToAssign.units = incidentToAssign.units || [];
              const label = currentEscalationType ? `${currentEscalationType}: ${unit.id}` : unit.id;
              if (!incidentToAssign.units.includes(label)) incidentToAssign.units.push(label);
-             if (incidentToAssign.status === 'Nieuw') incidentToAssign.status = 'In behandeling';
+             incidentToAssign.status = currentEscalationType ? currentEscalationType : 'Toegewezen';
              unit.status = 'uitgerukt';
              unit.statusTimestamp = new Date().toISOString();
              unit.location = incidentToAssign.location;
@@ -1859,6 +1884,43 @@
    function closeAssignModal() {
        document.getElementById('assignModal').classList.remove('show');
        currentAssignIncidentId = null;
+   }
+
+   function openTimelineModal(incidentId) {
+       const incident = incidents.find(i => i.id === incidentId);
+       if (!incident) return;
+       
+       document.getElementById('timelineIncidentId').innerText = incidentId;
+       const content = document.getElementById('timelineContent');
+       
+       if (!incident.auditTrail || incident.auditTrail.length === 0) {
+           content.innerHTML = '<div class="empty-table-msg">Geen tijdlijn gegevens beschikbaar voor deze melding.</div>';
+       } else {
+           let html = '<div class="timeline-container">';
+           incident.auditTrail.forEach(entry => {
+               const userStr = entry.user ? `<div class="timeline-user"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;margin-right:4px;"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>${entry.user}</div>` : '';
+               html += `
+                   <div class="timeline-item">
+                       <div class="timeline-dot"></div>
+                       <div class="timeline-content">
+                           <div class="timeline-time">${entry.time}</div>
+                           <div class="timeline-action">${entry.action}</div>
+                           ${userStr}
+                       </div>
+                   </div>
+               `;
+           });
+           html += '</div>';
+           content.innerHTML = html;
+       }
+       document.getElementById('timelineModal').classList.add('show');
+   }
+
+   const timelineCloseBtn = document.getElementById('timelineCloseBtn');
+   if (timelineCloseBtn) {
+       timelineCloseBtn.addEventListener('click', () => {
+           document.getElementById('timelineModal').classList.remove('show');
+       });
    }
 
    function attachRowActionHandlers() {
@@ -1966,6 +2028,9 @@
         } else {
           incident.units = incident.units || [];
           if (!incident.units.includes(escalationType)) incident.units.push(escalationType);
+          incident.status = escalationType;
+          addIncidentAudit(incident, `Opschaling: ${escalationType}`);
+          addLog('Opschaling', `Opschaling naar: ${escalationType}`, '', incident.id, incident.location);
           setDoc(doc(db, "incidents", incident.id), incident);
           renderTables();
         }
@@ -1989,23 +2054,39 @@
           const incident = incidents.find(i => i.id === currentAfloopIncidentId);
           if (!incident) return;
           
-          const nu = new Date();
-          const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
-          incident.closedAtTime = tijdString;
-          incident.closedAtTimestamp = nu.toISOString();
+          const isClosing = (reason === 'Inzetbaar' || reason === 'Loze melding');
+
+          if (isClosing) {
+              const nu = new Date();
+              const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
+              incident.closedAtTime = tijdString;
+              incident.closedAtTimestamp = nu.toISOString();
+              incident.status = `Afgesloten: ${reason}`;
+              addIncidentAudit(incident, `Melding afgesloten (${reason})`);
+              addLog('Afloop', `Melding afgesloten: ${reason}`, '', incident.id, incident.location);
+          } else {
+              incident.status = reason;
+              addIncidentAudit(incident, `Status gewijzigd naar: ${reason}`);
+              addLog('Status', `Status melding gewijzigd naar: ${reason}`, '', incident.id, incident.location);
+          }
           
-          incident.status = `Afgesloten: ${reason}`;
-          addIncidentAudit(incident, `Melding afgesloten (${reason})`);
           setDoc(doc(db, "incidents", incident.id), incident);
-          addLog('Afloop', `Afloop: ${reason}`, '', incident.id, incident.location);
 
           const upUnits = incident.units || [];
           upUnits.forEach(uidStr => {
               const u = units.find(x => uidStr === x.id || uidStr.endsWith(': ' + x.id));
               if (u) {
-                  u.status = (reason === 'Retour ALS' || reason === 'Retour BLS') ? 'retour post' : 'op post';
-                  setDoc(doc(db, "units", u.id), u);
-                  addLog('Status', `Eenheid ${u.status}`, u.id, incident.id, incident.location);
+                  let oldStatus = u.status;
+                  if (reason === 'Inzetbaar' || reason === 'Loze melding') {
+                      u.status = 'inzetbaar';
+                  } else if (reason === 'Retour ALS' || reason === 'Retour BLS') {
+                      u.status = 'retour post';
+                  }
+                  
+                  if (oldStatus !== u.status) {
+                      setDoc(doc(db, "units", u.id), u);
+                      addLog('Status', `Eenheid ${u.status}`, u.id, incident.id, incident.location);
+                  }
               }
           });
 
@@ -2048,7 +2129,7 @@
 
             incidents.push({
               id: 'M-' + Math.floor(Math.random()*10000),
-              status: assignedUnit && assignedUnit !== '-' ? 'In behandeling' : 'Nieuw',
+              status: assignedUnit && assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
               time: timeStr,
               location: fd.get('location'),
               event: fd.get('description') || 'SBAR melding',
@@ -2102,7 +2183,7 @@
     
           incidents.push({
               id: "M-" + Math.floor(Math.random() * 10000), 
-              status: assignedUnit && assignedUnit !== '-' ? 'In behandeling' : 'Nieuw',
+              status: assignedUnit && assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
               time: tijdString,
               location: formData.get('location'),
               event: formData.get('description'),
@@ -2202,7 +2283,7 @@
 
           incidents.push({
               id: "BW-" + Math.floor(Math.random() * 10000), 
-              status: assignedUnit && assignedUnit !== '-' ? 'In behandeling' : 'Nieuw',
+              status: assignedUnit && assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
               time: tijdString,
               location: formData.get('location'),
               event: formData.get('description'),
@@ -2259,7 +2340,7 @@
 
           incidents.push({
               id: "L-" + Math.floor(Math.random() * 10000), 
-              status: assignedUnit && assignedUnit !== '-' ? 'In behandeling' : 'Nieuw',
+              status: assignedUnit && assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
               time: tijdString,
               location: formData.get('location'),
               event: formData.get('description'),
@@ -2642,6 +2723,7 @@
           // Determine starting numbers for BLS and ALS
           let maxBlsNum = 0;
           let maxAlsNum = 0;
+          let maxBwNum = 0;
           units.forEach(u => {
               if (u.type === 'BLS' && u.id.startsWith('BLS-')) {
                   const num = parseInt(u.id.substring(4));
@@ -2659,7 +2741,7 @@
               maxBlsNum++;
               const newUnitId = `BLS-${String(maxBlsNum).padStart(2, '0')}`;
               if (!units.find(u => u.id === newUnitId)) { // Ensure uniqueness
-                  units.push({
+                  const newUnit = {
                       id: newUnitId,
                       type: 'BLS',
                       location: 'Onbekend',
@@ -2669,7 +2751,9 @@
                       gekoppeldAanPost: '',
                       ondersteunend: false,
                       ipadnr: '', tasnummer: '', radioId: ''
-                  });
+                  };
+                  units.push(newUnit);
+                  setDoc(doc(db, "units", newUnit.id), newUnit); // ✅ FIX: Sla op in Firebase!
                   newUnitsAdded++;
               }
           }
@@ -2678,7 +2762,7 @@
               maxAlsNum++;
               const newUnitId = `ALS-${String(maxAlsNum).padStart(2, '0')}`;
               if (!units.find(u => u.id === newUnitId)) { // Ensure uniqueness
-                  units.push({
+                  const newUnit = {
                       id: newUnitId,
                       type: 'ALS',
                       location: 'Onbekend',
@@ -2688,7 +2772,9 @@
                       gekoppeldAanPost: '',
                       ondersteunend: false,
                       ipadnr: '', tasnummer: '', radioId: ''
-                  });
+                  };
+                  units.push(newUnit);
+                  setDoc(doc(db, "units", newUnit.id), newUnit); // ✅ FIX: Sla op in Firebase!
                   newUnitsAdded++;
               }
           }
@@ -2697,7 +2783,7 @@
               maxBwNum++;
               const newUnitId = `BW-${String(maxBwNum).padStart(2, '0')}`;
               if (!units.find(u => u.id === newUnitId)) { // Ensure uniqueness
-                  units.push({
+                  const newUnit = {
                       id: newUnitId,
                       type: 'Brandwacht',
                       location: 'Onbekend',
@@ -2707,7 +2793,9 @@
                       gekoppeldAanPost: '',
                       ondersteunend: false,
                       ipadnr: '', tasnummer: '', radioId: ''
-                  });
+                  };
+                  units.push(newUnit);
+                  setDoc(doc(db, "units", newUnit.id), newUnit); // ✅ FIX: Sla op in Firebase!
                   newUnitsAdded++;
               }
           }
