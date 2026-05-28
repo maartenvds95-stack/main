@@ -17,7 +17,7 @@
     --red: #e05252; --red-bg: rgba(224,82,82,0.12);
     --amber: #e9a23b; --amber-bg: rgba(233,162,59,0.12);
     --blue: #4a9fe8; --blue-bg: rgba(74,159,232,0.12);
-    --purple: #9b7fe8; --orange: #e8743a;
+    --purple: #9b7fe8; --purple-bg: rgba(155,127,232,0.12); --orange: #e8743a; --orange-bg: rgba(232,116,58,0.12);
     --font: 'Inter', system-ui, sans-serif;
   }
 
@@ -29,7 +29,7 @@
     --red: #d94b4b; --red-bg: rgba(217,75,75,0.12);
     --amber: #d68f2a; --amber-bg: rgba(214,143,42,0.12);
     --blue: #3b7fc7; --blue-bg: rgba(59,127,199,0.12);
-    --purple: #8366d4; --orange: #d45e1d;
+    --purple: #8366d4; --purple-bg: rgba(131,102,212,0.12); --orange: #d45e1d; --orange-bg: rgba(212,94,29,0.12);
   }
 
   html, body { min-height: 100%; background: var(--bg0); color: var(--text1); font-family: var(--font); font-size: 14px; line-height: 1.5; }
@@ -278,6 +278,8 @@
   .assign-modal .empty-assign-msg { color: var(--text3); font-size: 13px; padding: 12px 0; text-align: center; }
 
   /* Inline toast for non-blocking messages */
+  .log-incident-link:hover, .log-unit-link:hover { text-decoration: underline !important; }
+  
   #toastContainer { position: fixed; top: 72px; right: 16px; z-index: 1200; }
   .inline-toast { background: rgba(40,44,52,0.95); color: #fff; padding: 10px 14px; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.5); margin-bottom: 8px; font-weight:600; }
   .inline-toast.error { background: #d94b4b; }
@@ -285,6 +287,10 @@
   /* Klik-om-te-bewerken & Sortering */
   .editable-field { cursor: pointer; border-bottom: 1px dashed var(--text3); padding-bottom: 1px; transition: 0.2s; }
   .editable-field:hover { border-bottom-color: var(--green); color: var(--green); }
+  
+  .editable-incident-field { cursor: pointer; border-bottom: 1px dashed var(--text3); padding-bottom: 1px; transition: 0.2s; display: inline-block; min-width: 30px; min-height: 18px; }
+  .editable-incident-field:hover { border-bottom-color: var(--green); color: var(--green); }
+  
   .sort-header { cursor: pointer; user-select: none; transition: 0.2s; }
   .sort-header:hover { color: var(--text1); }
   .sort-icon { font-size: 10px; opacity: 0.5; margin-left: 4px; }
@@ -293,7 +299,28 @@
   .drag-over td { background: var(--bg3) !important; position: relative; }
   .drag-over td:first-child::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--green); }
   .unit-row[draggable="true"]:active { cursor: grabbing !important; }
+  
+  /* Selected Row (Keyboard Nav) */
+  tr.selected-row td { background-color: var(--bg3) !important; position: relative; }
+  tr.selected-row td:first-child::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--blue); }
 
+  /* Timeline Progress Bar */
+  .progress-bar-container { display: flex; justify-content: space-between; position: relative; margin-bottom: 30px; padding: 0 10px; }
+  .progress-bar-container::before { content: ''; position: absolute; top: 13px; left: 30px; right: 30px; height: 2px; background: var(--border); z-index: 1; }
+  .progress-step { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text3); font-size: 10px; font-weight: 600; text-transform: uppercase; width: 70px; text-align: center; }
+  .progress-step .circle { width: 28px; height: 28px; border-radius: 50%; background: var(--bg2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 12px; }
+  .progress-step.active { color: var(--green); }
+  .progress-step.active .circle { background: var(--green); color: #fff; border-color: var(--green); box-shadow: 0 0 10px rgba(61, 184, 122, 0.4); }
+
+  /* Timeline in Modal */
+  .timeline-container { position: relative; padding-left: 20px; }
+  .timeline-container::before { content: ''; position: absolute; left: 4px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-dot { position: absolute; left: -25px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: var(--blue); border: 2px solid var(--bg1); }
+  .timeline-content { padding-left: 10px; }
+  .timeline-time { font-size: 11px; font-weight: 600; color: var(--text3); margin-bottom: 4px; }
+  .timeline-action { font-size: 14px; color: var(--text1); margin-bottom: 4px; }
+  .timeline-user { font-size: 12px; color: var(--text2); display: flex; align-items: center; }
   /* ── LOGIN SCHERM ── */
   .login-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -319,6 +346,10 @@
 <link rel="stylesheet" href="legacy-custom.css">
 </head>
 <body>
+
+<div id="offlineBanner" style="position: fixed; top: 0; left: 0; right: 0; background: var(--amber); color: #000; text-align: center; font-weight: 600; font-size: 13px; padding: 6px; z-index: 10001; display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+  Verbinding verbroken. Je werkt nu lokaal, data synchroniseert zodra de verbinding is hersteld.
+</div>
 
 <div class="login-overlay" id="loginScreen">
   <div class="login-box">
@@ -364,14 +395,14 @@
       <svg class="theme-icon-dark" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <svg class="theme-icon-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </button>
-    <button id="weatherBtn" title="Lokale Buienradar" style="background: var(--bg2); color: var(--text1); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 500; outline: none; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+    <button id="weatherBtn" title="Lokale Buienradar" style="background: var(--bg2); color: var(--text1); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 500; outline: none; cursor: pointer; display: flex; align-items: center; gap: 6px; min-width: 110px; justify-content: center;">
       <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-      Weer
+      Weer <span id="weatherBtnTemp" style="margin-left: 6px; color: var(--text2); font-weight: 400;"></span>
     </button>
     <div id="digitalClock" style="font-weight: 600; font-size: 13px; color: var(--text1); font-variant-numeric: tabular-nums; background: var(--bg2); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); letter-spacing: 1px;">00:00:00</div>
-    <div style="display:flex;align-items:center;gap:7px;">
-      <span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);"></span>
-      <span style="color:var(--green);font-weight:500;">Live</span>
+    <div id="connectionStatus" style="display:flex;align-items:center;gap:7px;">
+      <span id="connectionDot" style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green); transition: all 0.3s;"></span>
+      <span id="connectionText" style="color:var(--green);font-weight:500; transition: color 0.3s;">Live</span>
     </div>
   </div>
 </div>
@@ -381,6 +412,7 @@
   <button class="nav-btn" data-target="view-meldingen"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg> Meldingen</button>
   <button class="nav-btn" data-target="view-eenheden"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h6m-3-3v6M1 20l4-4m0 0h10a2 2 0 002-2V8"/></svg> Eenheden</button>
   <button class="nav-btn" data-target="view-posten"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h16"/></svg> Posten</button>
+  <button class="nav-btn" data-target="view-actuele-logging"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Live Logboek</button>
   <button class="nav-btn" data-target="view-logging"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h10"/><path d="M18 18V6"/></svg> Logging</button>
   <button class="nav-btn" data-target="view-rapportage"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg> Rapportage</button>
   <button class="nav-btn" data-target="view-account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5.5 20a6.5 6.5 0 0113 0"/></svg> Accountinstellingen</button>
@@ -388,10 +420,10 @@
 </nav>
 
 <div class="actions">
-  <button class="ab ab-g" id="btnQuickMedical"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Snelle medische melding</button>
-  <button id="btnDetailedMedical" class="ab ab-b"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Uitgebreide medische melding</button>
-  <button class="ab ab-o" id="btnBrandwacht"><svg viewBox="0 0 24 24"><path d="M9 3h6a2 2 0 012 2v14a2 2 0 01-2 2H9a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M9 8h6"/></svg> Brandwacht melding</button>
-  <button class="ab ab-p" id="btnLogistiek"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> Logistieke melding</button>
+  <button class="ab ab-g" id="btnQuickMedical" title="Sneltoets: Alt + N"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Snelle medische melding</button>
+  <button id="btnDetailedMedical" class="ab ab-b" title="Sneltoets: Alt + S"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Uitgebreide medische melding</button>
+  <button class="ab ab-o" id="btnBrandwacht" title="Sneltoets: Alt + B"><svg viewBox="0 0 24 24"><path d="M9 3h6a2 2 0 012 2v14a2 2 0 01-2 2H9a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M9 8h6"/></svg> Brandwacht melding</button>
+  <button class="ab ab-p" id="btnLogistiek" title="Sneltoets: Alt + L"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> Logistieke melding</button>
   <button class="ab ab-a"><svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M12 4v16"/></svg> Logging toevoegen</button>
   <button class="ab" id="btnProtocols" style="background: var(--bg3); border-color: var(--border); color: var(--text1); margin-left: auto;">
     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Protocollen
@@ -483,8 +515,28 @@
       </div>
     </div>
 
+    <div class="view" id="view-actuele-logging">
+      <div class="section-hdr"><span class="section-title">Globaal Live Logboek</span></div>
+      <div class="tbl-wrap" id="actueleLoggingWrapper" style="max-height: calc(100vh - 250px); overflow-y: auto;">
+        <table>
+          <thead style="position: sticky; top: 0; z-index: 10;">
+            <tr><th style="width:120px;">Tijd</th><th>Soort</th><th>Melding</th><th>Eenheid</th><th>Actie / Notitie</th><th>Gebruiker</th></tr>
+          </thead>
+          <tbody id="actueleLoggingBody">
+          </tbody>
+        </table>
+        <div id="loadMoreLogsBtn" style="text-align: center; padding: 15px; cursor: pointer; color: var(--blue); font-weight: 600; display: none;">Laad meer logs...</div>
+      </div>
+    </div>
+
     <div class="view" id="view-logging">
       <div class="section-hdr"><span class="section-title">Logging (Afgesloten Meldingen)</span></div>
+      
+      <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+        <input type="text" id="logSearchInput" placeholder="🔍 Zoek op melder, locatie, eenheid of tekst..." style="flex: 1; max-width: 350px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+        <input type="date" id="logDateFilter" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+      </div>
+
       <div class="tbl-wrap">
         <table>
           <thead>
@@ -1010,6 +1062,13 @@
       <button type="button" class="option-btn" data-escalation="Assistentie beveiliging">Assistentie beveiliging</button>
       <button type="button" class="option-btn" data-escalation="Assistentie reddingsbrigade">Assistentie reddingsbrigade</button>
     </div>
+    <div style="padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+      <h4 style="font-size: 13px; color: var(--text1); margin-bottom: 8px;">Externe Hulpdienst (112)</h4>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="externalUnitInput" placeholder="Bijv. Ambulance 09-112 of Politie" style="flex:1; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg1); color: var(--text1); font-size: 13px; outline: none;">
+        <button type="button" class="btn btn-submit" id="externalUnitBtn" style="padding: 8px 12px;">Registreren</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1023,6 +1082,18 @@
       <button class="modal-close" id="assignCloseBtn">&times;</button>
     </div>
     <div class="option-list" id="assignUnitList"></div>
+  </div>
+</div>
+
+<div class="modal-overlay assign-modal" id="mergeModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <h3>Incident Samenvoegen</h3>
+      </div>
+      <button class="modal-close" id="mergeCloseBtn">&times;</button>
+    </div>
+    <div class="option-list" id="mergeOptionList" style="padding-top: 16px;"></div>
   </div>
 </div>
 
@@ -1041,6 +1112,49 @@
       <button type="button" class="option-btn" data-afloop="Dubbele melding">Dubbele melding</button>
       <button type="button" class="option-btn" data-afloop="Brand meester">Brand meester</button>
       <button type="button" class="option-btn" data-afloop="Assistentie Brandweer">Assistentie Brandweer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="freeLogModal">
+  <div class="modal-content" style="width: 450px;">
+    <div class="modal-header">
+      <h3>Log toevoegen aan tijdlijn</h3>
+      <button class="modal-close" id="freeLogCloseBtn">&times;</button>
+    </div>
+    <form id="freeLogForm" class="form-content">
+      <div class="form-group">
+        <label class="group-label">Vrije Tekst / Gespreksverslag</label>
+        <textarea name="logText" required rows="4" placeholder="Typ hier de notitie voor het logboek..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); font-family: var(--font); resize: vertical;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" id="freeLogCancelBtn">Annuleren</button>
+        <button type="submit" class="btn btn-submit">Toevoegen</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="timelineModal">
+  <div class="modal-content" style="width: 500px;">
+    <div class="modal-header">
+      <h3>Tijdlijn voor melding <span id="timelineIncidentId"></span></h3>
+      <button class="modal-close" id="timelineCloseBtn">&times;</button>
+    </div>
+    <div id="timelineContent" style="padding: 24px; max-height: calc(100vh - 120px); overflow-y: auto; background: var(--bg2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; font-size: 14px; line-height: 1.6;">
+      <!-- Content wordt hier dynamisch geladen -->
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="unitTimelineModal">
+  <div class="modal-content" style="width: 500px;">
+    <div class="modal-header">
+      <h3>Tijdlijn voor eenheid <span id="unitTimelineUnitId"></span></h3>
+      <button class="modal-close" id="unitTimelineCloseBtn">&times;</button>
+    </div>
+    <div id="unitTimelineContent" style="padding: 24px; max-height: calc(100vh - 120px); overflow-y: auto; background: var(--bg2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; font-size: 14px; line-height: 1.6;">
+      <!-- Content wordt hier dynamisch geladen -->
     </div>
   </div>
 </div>
@@ -1099,33 +1213,17 @@
       <button class="modal-close closeModalBtn">&times;</button>
     </div>
     <div class="option-list" style="padding-top: 20px;">
-      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol1">
-        <strong>Protocol 1</strong>
-        <span>Korte omschrijving van dit protocol</span>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="reanimatie">
+        <strong>Reanimatie (BLS / AED)</strong>
+        <span>Protocol voor hartstilstand</span>
       </button>
-      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol2">
-        <strong>Protocol 2</strong>
-        <span>Korte omschrijving van dit protocol</span>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="ontruiming">
+        <strong>Ontruiming / Calamiteit</strong>
+        <span>Protocol bij grootschalige ontruiming</span>
       </button>
-      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol3">
-        <strong>Protocol 3</strong>
-        <span>Korte omschrijving van dit protocol</span>
-      </button>
-      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol4">
-        <strong>Protocol 4</strong>
-        <span>Korte omschrijving van dit protocol</span>
-      </button>
-      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol5">
-        <strong>Protocol 5</strong>
-        <span>Korte omschrijving van dit protocol</span>
-      </button>
-      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol6">
-        <strong>Protocol 6</strong>
-        <span>Korte omschrijving van dit protocol</span>
-      </button>
-      <button type="button" class="option-btn protocol-select-btn" data-protocol="protocol7">
-        <strong>Protocol 7</strong>
-        <span>Korte omschrijving van dit protocol</span>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="agressie">
+        <strong>Agressie / Vechtpartij</strong>
+        <span>Protocol bij escalatie of geweld</span>
       </button>
     </div>
   </div>
@@ -1147,7 +1245,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-  import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBJ3guHYxUIGQ0VkN_W7S8eGLtZhdpkjYk",
@@ -1165,14 +1263,25 @@
   const db = getFirestore(app);
 
   function addLog(type, message, unitId, incidentId, location) {
-      const logEntry = { id: 'LOG-' + Date.now(), timestamp: new Date().toISOString(), type, message, unitId, incidentId, location };
+      const user = auth.currentUser ? auth.currentUser.email.split('@')[0] : 'Systeem';
+      const logEntry = { id: 'LOG-' + Date.now() + '-' + Math.floor(Math.random()*1000), timestamp: new Date().toISOString(), type, message, unitId, incidentId, location, user };
       setDoc(doc(db, "logs", logEntry.id), logEntry).catch(e => console.warn(e));
   }
   
-  function addIncidentAudit(incident, action) {
+  function addIncidentAudit(incident, action, unitId = '') {
       const timeStr = new Date().getHours().toString().padStart(2,'0')+':'+new Date().getMinutes().toString().padStart(2,'0');
       incident.auditTrail = incident.auditTrail || [];
-      incident.auditTrail.push({ time: timeStr, action });
+      const user = auth.currentUser ? auth.currentUser.email.split('@')[0] : 'Systeem';
+      incident.auditTrail.push({ time: timeStr, action, user: user });
+      
+      let type = 'Notitie';
+      const lowerAction = action.toLowerCase();
+      if (lowerAction.includes('aangemaakt') || lowerAction.includes('toegevoegd')) type = 'Toegevoegd';
+      else if (lowerAction.includes('gewijzigd') || lowerAction.includes('samengevoegd')) type = 'Wijziging';
+      else if (lowerAction.includes('toegewezen') || lowerAction.includes('opschaling') || lowerAction.includes('status') || lowerAction.includes('uitgerukt')) type = 'Status';
+      else if (lowerAction.includes('afgesloten')) type = 'Afloop';
+      
+      addLog(type, action, unitId, incident.id, incident.location);
   }
 
   // ==========================================
@@ -1183,7 +1292,9 @@
   const loginUsername = document.getElementById('loginUsername');
   const loginPassword = document.getElementById('loginPassword');
   
-  let unsubIncidents, unsubUnits, unsubPosts;
+  let unsubIncidents, unsubUnits, unsubPosts, unsubLogs;
+  let globalLogs = [];
+  let logLimit = 50;
 
   // Check realtime of de gebruiker is ingelogd
   onAuthStateChanged(auth, (user) => {
@@ -1209,11 +1320,18 @@
               snapshot.forEach(doc => posts.push(doc.data()));
               if (typeof sortPosts === 'function') sortPosts(currentPostSort.col, true);
           });
+          
+          unsubLogs = onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(logLimit)), (snapshot) => {
+              globalLogs = [];
+              snapshot.forEach(doc => globalLogs.push(doc.data()));
+              if (typeof renderGlobalLogs === 'function') renderGlobalLogs();
+          });
       } else {
           loginScreen.style.display = 'flex';
           if (unsubIncidents) unsubIncidents();
           if (unsubUnits) unsubUnits();
           if (unsubPosts) unsubPosts();
+          if (unsubLogs) unsubLogs();
       }
   });
 
@@ -1369,7 +1487,118 @@
   // Eenheden array - start leeg
   let units = [];
   let posts = [];
-  let logs = [];
+
+  // ==========================================
+  // 1B. GLOBAAL LIVE LOGBOEK & TIJDLIJN PER EENHEID
+  // ==========================================
+
+  function getLogTypeStyle(type) {
+      type = (type || '').toLowerCase();
+      if (type.includes('status') || type.includes('uitgerukt')) return { bg: 'var(--blue-bg)', color: 'var(--blue)' };
+      if (type.includes('wijziging')) return { bg: 'var(--amber-bg)', color: 'var(--amber)' };
+      if (type.includes('toegevoegd') || type.includes('nieuw')) return { bg: 'var(--green-bg)', color: 'var(--green)' };
+      if (type.includes('afloop')) return { bg: 'var(--bg3)', color: 'var(--text3)' };
+      return { bg: 'var(--purple-bg)', color: 'var(--purple)' };
+  }
+
+  function renderGlobalLogs() {
+      const tbody = document.getElementById('actueleLoggingBody');
+      if (!tbody) return;
+      if (globalLogs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">Nog geen logs beschikbaar.</td></tr>';
+          return;
+      }
+      tbody.innerHTML = globalLogs.map(log => {
+          const d = new Date(log.timestamp);
+          const timeStr = d.toLocaleDateString('nl-NL', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+          const style = getLogTypeStyle(log.type);
+          const typePill = `<span class="pill" style="background:${style.bg}; color:${style.color}; border:1px solid ${style.color};">${log.type || 'Systeem'}</span>`;
+          
+          const incidentLink = log.incidentId ? `<a href="#" class="log-incident-link" data-id="${log.incidentId}" style="color:var(--blue); font-weight:600; text-decoration:none;">${log.incidentId}</a>` : '-';
+          const unitLink = log.unitId ? `<a href="#" class="log-unit-link" data-id="${log.unitId}" style="color:var(--text1); font-weight:600; text-decoration:none;">${log.unitId}</a>` : '-';
+
+          return `
+              <tr>
+                  <td style="color:var(--text3); font-size:11px;">${timeStr}</td>
+                  <td>${typePill}</td>
+                  <td>${incidentLink}</td>
+                  <td>${unitLink}</td>
+                  <td style="white-space:normal;">${log.message}</td>
+                  <td><span style="color:var(--text2); font-size:12px;">${log.user || 'Systeem'}</span></td>
+              </tr>
+          `;
+      }).join('');
+
+      const loadMoreBtn = document.getElementById('loadMoreLogsBtn');
+      if (loadMoreBtn) {
+          if (globalLogs.length < logLimit) loadMoreBtn.style.display = 'none';
+          else { loadMoreBtn.style.display = 'block'; loadMoreBtn.innerText = 'Laad meer logs...'; }
+      }
+  }
+
+  function loadMoreLogs() {
+      if (unsubLogs) unsubLogs();
+      unsubLogs = null;
+      logLimit += 50;
+      unsubLogs = onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(logLimit)), (snapshot) => {
+          globalLogs = [];
+          snapshot.forEach(doc => globalLogs.push(doc.data()));
+          if (typeof renderGlobalLogs === 'function') renderGlobalLogs();
+      });
+  }
+
+  const wrapper = document.getElementById('actueleLoggingWrapper');
+  if (wrapper) {
+      wrapper.addEventListener('scroll', () => {
+          if (wrapper.scrollTop + wrapper.clientHeight >= wrapper.scrollHeight - 10) {
+              const loadBtn = document.getElementById('loadMoreLogsBtn');
+              if (loadBtn && loadBtn.style.display !== 'none' && loadBtn.innerText !== 'Laden...') {
+                  loadBtn.innerText = 'Laden...';
+                  loadMoreLogs();
+              }
+          }
+      });
+  }
+
+  document.getElementById('loadMoreLogsBtn')?.addEventListener('click', loadMoreLogs);
+
+  document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('log-incident-link')) {
+          e.preventDefault();
+          openTimelineModal(e.target.getAttribute('data-id'));
+      }
+      if (e.target.classList.contains('log-unit-link')) {
+          e.preventDefault();
+          openUnitTimelineModal(e.target.getAttribute('data-id'));
+      }
+  });
+
+  async function openUnitTimelineModal(unitId) {
+      document.getElementById('unitTimelineUnitId').innerText = unitId;
+      const content = document.getElementById('unitTimelineContent');
+      content.innerHTML = '<div style="text-align:center; color:var(--text3); padding: 20px;">Gegevens laden uit Firebase...</div>';
+      document.getElementById('unitTimelineModal').classList.add('show');
+      try {
+          const q = query(collection(db, "logs"), where("unitId", "==", unitId), orderBy("timestamp", "desc"));
+          const snap = await getDocs(q);
+          const unitLogs = [];
+          snap.forEach(d => unitLogs.push(d.data()));
+          if (unitLogs.length === 0) { content.innerHTML = '<div class="empty-table-msg">Geen tijdlijn gegevens beschikbaar voor deze eenheid.</div>'; return; }
+          let html = '<div class="timeline-container">';
+          unitLogs.forEach(entry => {
+              const d = new Date(entry.timestamp);
+              const timeStr = d.toLocaleDateString('nl-NL', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'});
+              const userStr = entry.user ? `<div class="timeline-user"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;margin-right:4px;"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>${entry.user}</div>` : '';
+              const incStr = entry.incidentId ? `<div style="font-size:11px; color:var(--blue); margin-bottom:2px;">Melding: ${entry.incidentId}</div>` : '';
+              html += `<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-time">${timeStr}</div>${incStr}<div class="timeline-action">${entry.message}</div>${userStr}</div></div>`;
+          });
+          html += '</div>';
+          content.innerHTML = html;
+      } catch(e) {
+          content.innerHTML = '<div class="empty-table-msg" style="color:var(--amber);">⚠️ Firebase index ontbreekt. Ga naar de Firebase Console → Firestore → Indexen en maak een samengestelde index aan op <strong>logs</strong>: unitId (ASC) + timestamp (DESC).</div>';
+      }
+  }
+  document.getElementById('unitTimelineCloseBtn')?.addEventListener('click', () => document.getElementById('unitTimelineModal').classList.remove('show'));
 
   // ==========================================
   // 2. RENDERING FUNCTIES (Tekenen op het scherm)
@@ -1420,6 +1649,8 @@
       
       unit.status = 'uitgerukt';
       unit.location = incident.location;
+      
+      addIncidentAudit(incident, `Eenheid toegewezen: ${label}`, unit.id);
       
       setDoc(doc(db, "units", unit.id), unit);
       setDoc(doc(db, "incidents", incident.id), incident);
@@ -1498,7 +1729,7 @@
                 <span class="unit-dot ${style.dot}"></span>
                 <div>
                     <div>
-                        <span class="unit-name">${u.id}</span>
+                        <a href="#" class="unit-name log-unit-link" data-id="${u.id}" style="text-decoration:none; cursor:pointer;">${u.id}</a>
                         <span class="unit-type">${u.type}</span>
                     </div>
                     <div class="unit-loc">Locatie: ${u.location}</div>
@@ -1518,12 +1749,18 @@
         row.querySelector('.unit-status-select').addEventListener('change', (e) => {
             const unitIndex = units.findIndex(x => x.id === u.id);
             if (unitIndex !== -1) {
-                units[unitIndex].status = e.target.value;
+                const newStatus = e.target.value;
+                units[unitIndex].status = newStatus;
+                
+                // Update locatie naar gekoppelde post bij 'retour post' of 'op post'
+                if ((newStatus === 'retour post' || newStatus === 'op post') && units[unitIndex].gekoppeldAanPost) {
+                    units[unitIndex].location = units[unitIndex].gekoppeldAanPost;
+                }
+                
                 setDoc(doc(db, "units", u.id), units[unitIndex]);
             }
             // ✅ FIX 1: renderUnits wordt maar 1x aangeroepen
             renderUnits();
-            if (typeof renderUnitsTable === 'function') renderUnitsTable();
             renderTables();
             if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
         });
@@ -1550,19 +1787,16 @@
       }
       posts.forEach((p) => {
           const style = getPostStatusStyle(p.status);
-          const rowHTML = `
-            <div class="unit-row">
-              <div class="unit-left"><span class="unit-dot ${style.dot}"></span><div><div class="unit-name">${p.naam}</div><div class="unit-loc">Locatie: ${p.locatie || '-'}</div></div></div>
-              <select class="status-dropdown-base post-status-select ${style.bg}" data-id="${p.id}">
-                <option value="open" ${p.status === 'open' ? 'selected' : ''}>open</option>
-                <option value="gesloten" ${p.status === 'gesloten' ? 'selected' : ''}>gesloten</option>
-              </select>
-            </div>
+          const row = document.createElement('div');
+          row.className = 'unit-row';
+          row.innerHTML = `
+            <div class="unit-left"><span class="unit-dot ${style.dot}"></span><div><div class="unit-name">${p.naam}</div><div class="unit-loc">Locatie: ${p.locatie || '-'}</div></div></div>
+            <select class="status-dropdown-base post-status-select ${style.bg}" data-id="${p.id}">
+              <option value="open" ${p.status === 'open' ? 'selected' : ''}>open</option>
+              <option value="gesloten" ${p.status === 'gesloten' ? 'selected' : ''}>gesloten</option>
+            </select>
           `;
-          container.innerHTML += rowHTML;
-      });
-      document.querySelectorAll('.post-status-select').forEach(dropdown => {
-          dropdown.addEventListener('change', (e) => {
+          row.querySelector('.post-status-select').addEventListener('change', (e) => {
               const postId = e.target.getAttribute('data-id');
               const postIndex = posts.findIndex(x => x.id === postId);
               if (postIndex !== -1) {
@@ -1572,6 +1806,7 @@
                   if (typeof renderDetailedPostsTable === 'function') renderDetailedPostsTable();
               }
           });
+          container.appendChild(row);
       });
   }
 
@@ -1595,7 +1830,7 @@
       if (loggingTable) loggingTable.innerHTML = '';
 
       const activeIncidents = incidents.filter(inc => !inc.status.startsWith('Afgesloten'));
-      const closedIncidents = incidents.filter(inc => inc.status.startsWith('Afgesloten'));
+      let closedIncidents = incidents.filter(inc => inc.status.startsWith('Afgesloten'));
       
       const newIncidents = activeIncidents.filter(inc => !inc.units || inc.units.length === 0);
       const assignedIncidents = activeIncidents.filter(inc => inc.units && inc.units.length > 0);
@@ -1612,8 +1847,8 @@
                   trNew.innerHTML = `
                     <td><span class="pill pill-on">${inc.status}</span></td>
                     <td class="col-time" style="color:var(--text3);font-size:11px">${inc.time}</td>
-                    <td>${inc.location}</td>
-                    <td>${inc.event}</td>
+                    <td><span class="editable-incident-field" data-id="${inc.id}" data-field="location" title="Klik om te bewerken">${inc.location || '<i>Onbekend</i>'}</span></td>
+                    <td><span class="editable-incident-field" data-id="${inc.id}" data-field="event" title="Klik om te bewerken">${inc.event || '<i>Onbekend</i>'}</span></td>
                     <td>${inc.reporter}</td>
                     <td><span style="color:var(--amber);font-weight:600;">${inc.urgency}</span></td>
                     <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
@@ -1621,6 +1856,8 @@
                       <div class="row-actions">
                         <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
                         <button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}" disabled style="opacity: 0.5; cursor: not-allowed;" title="Wijs eerst een eenheid toe">Opschalen</button>
+                        <button type="button" class="btn btn-outline" data-action="log" data-id="${inc.id}">Log</button>
+                        <button type="button" class="btn btn-outline" data-action="samenvoegen" data-id="${inc.id}">Samenvoegen</button>
                         <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Statusen</button>
                       </div>
                     </td>
@@ -1641,8 +1878,8 @@
               trHome.innerHTML = `
                 <td><span class="pill pill-on">${inc.status}</span></td>
                 <td class="col-time" style="color:var(--text3);font-size:11px">${inc.time}</td>
-                <td>${inc.location}</td>
-                <td>${inc.event}</td>
+                <td><span class="editable-incident-field" data-id="${inc.id}" data-field="location" title="Klik om te bewerken">${inc.location || '<i>Onbekend</i>'}</span></td>
+                <td><span class="editable-incident-field" data-id="${inc.id}" data-field="event" title="Klik om te bewerken">${inc.event || '<i>Onbekend</i>'}</span></td>
                 <td>${inc.reporter}</td>
                 <td><span style="color:var(--amber);font-weight:600;">${inc.urgency}</span></td>
                 <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
@@ -1650,6 +1887,8 @@
                   <div class="row-actions">
                     <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
                     <button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}">Opschalen</button>
+                    <button type="button" class="btn btn-outline" data-action="log" data-id="${inc.id}">Log</button>
+                    <button type="button" class="btn btn-outline" data-action="samenvoegen" data-id="${inc.id}">Samenvoegen</button>
                     <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Statusen</button>
                   </div>
                 </td>
@@ -1675,19 +1914,41 @@
               trAll.innerHTML = `
                 <td><span class="pill pill-on">${inc.status}</span></td>
                 <td class="col-time">${inc.time}</td>
-                <td>${inc.location}</td>
-                <td>${inc.event}</td>
+                <td><span class="editable-incident-field" data-id="${inc.id}" data-field="location" title="Klik om te bewerken">${inc.location || '<i>Onbekend</i>'}</span></td>
+                <td><span class="editable-incident-field" data-id="${inc.id}" data-field="event" title="Klik om te bewerken">${inc.event || '<i>Onbekend</i>'}</span></td>
                 <td>${inc.reporter}</td>
                 <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
                 <td>
                   <div class="row-actions">
                     <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
                     ${opschaalBtn}
+                    <button type="button" class="btn btn-outline" data-action="log" data-id="${inc.id}">Log</button>
+                    <button type="button" class="btn btn-outline" data-action="samenvoegen" data-id="${inc.id}">Samenvoegen</button>
                     <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Statusen</button>
                   </div>
                 </td>
               `;
               allTable.appendChild(trAll);
+          });
+      }
+
+      // Filter logica voor de logging tabel
+      const sq = (document.getElementById('logSearchInput')?.value || '').toLowerCase();
+      const dq = document.getElementById('logDateFilter')?.value;
+
+      if (sq) {
+          closedIncidents = closedIncidents.filter(inc =>
+              (inc.location || '').toLowerCase().includes(sq) ||
+              (inc.reporter || '').toLowerCase().includes(sq) ||
+              (inc.event || '').toLowerCase().includes(sq) ||
+              (inc.units && inc.units.join(' ').toLowerCase().includes(sq)) ||
+              (inc.status || '').toLowerCase().includes(sq)
+          );
+      }
+      if (dq) {
+          closedIncidents = closedIncidents.filter(inc => {
+              if (!inc.closedAtTimestamp) return false;
+              return inc.closedAtTimestamp.startsWith(dq);
           });
       }
 
@@ -1736,6 +1997,12 @@
 
       attachRowActionHandlers();
   }
+
+  // Filter Event Listeners
+  const logSearchInput = document.getElementById('logSearchInput');
+  const logDateFilter = document.getElementById('logDateFilter');
+  if (logSearchInput) logSearchInput.addEventListener('input', renderTables);
+  if (logDateFilter) logDateFilter.addEventListener('change', renderTables);
 
   // Helperfunctie om het verschil in minuten te berekenen tussen twee 'HH:MM' tijden (zelfs over middernacht)
   function getDiffInMinutes(startStr, endStr) {
@@ -1788,6 +2055,8 @@
    let currentAssignIncidentId = null;
    let currentEscalationType = null;
   let currentAfloopIncidentId = null;
+  let currentMergeIncidentId = null;
+  let currentLogIncidentId = null;
 
    function handleIncidentAction(action, incidentId) {
        const incident = incidents.find(i => i.id === incidentId);
@@ -1797,6 +2066,11 @@
            document.getElementById('escalationModal').classList.add('show');
        } else if (action === 'toewijzen') {
            openAssignModal(incidentId);
+       } else if (action === 'log') {
+           currentLogIncidentId = incidentId;
+           document.getElementById('freeLogModal').classList.add('show');
+       } else if (action === 'samenvoegen') {
+           openMergeModal(incidentId);
       } else if (action === 'afsluiten') {
         openAfloopModal(incidentId);
       } else if (action === 'tijdlijn') {
@@ -1864,10 +2138,9 @@
              unit.status = 'uitgerukt';
              unit.statusTimestamp = new Date().toISOString();
              unit.location = incidentToAssign.location;
-             addIncidentAudit(incidentToAssign, `Eenheid toegewezen: ${label}`);
+             addIncidentAudit(incidentToAssign, `Eenheid toegewezen: ${label}`, unit.id);
              setDoc(doc(db, "units", unit.id), unit);
              setDoc(doc(db, "incidents", incidentToAssign.id), incidentToAssign);
-             addLog('Status', 'Eenheid uitgerukt', unit.id, incidentToAssign.id, incidentToAssign.location);
              renderTables();
              renderUnits();
                  renderDetailedUnitsTable();
@@ -1893,10 +2166,43 @@
        document.getElementById('timelineIncidentId').innerText = incidentId;
        const content = document.getElementById('timelineContent');
        
+       // Visual Timeline Logic
+       let hasMelding = true; // Altijd waar als hij in het systeem staat
+       let hasToegewezen = (incident.units && incident.units.length > 0);
+       let hasTerPlaatse = false;
+       let hasRetour = false;
+       let hasAfgesloten = incident.status.startsWith('Afgesloten');
+       
+       if (incident.auditTrail) {
+           incident.auditTrail.forEach(entry => {
+               const act = entry.action.toLowerCase();
+               if (act.includes('toegewezen') || act.includes('opschaling')) hasToegewezen = true;
+               if (act.includes('ter plaatse')) hasTerPlaatse = true;
+               if (act.includes('retour')) hasRetour = true;
+           });
+       }
+
+       const getStep = (name, active, stepNum) => `
+           <div class="progress-step ${active ? 'active' : ''}">
+               <div class="circle">${active ? '&#10004;' : stepNum}</div>
+               <span>${name}</span>
+           </div>
+       `;
+
+       const progressBarHtml = `
+           <div class="progress-bar-container">
+               ${getStep('Melding', hasMelding, '1')}
+               ${getStep('Toegewezen', hasToegewezen, '2')}
+               ${getStep('Ter Plaatse', hasTerPlaatse, '3')}
+               ${getStep('Retour', hasRetour, '4')}
+               ${getStep('Afgesloten', hasAfgesloten, '5')}
+           </div>
+       `;
+
        if (!incident.auditTrail || incident.auditTrail.length === 0) {
            content.innerHTML = '<div class="empty-table-msg">Geen tijdlijn gegevens beschikbaar voor deze melding.</div>';
        } else {
-           let html = '<div class="timeline-container">';
+           let html = progressBarHtml + '<div class="timeline-container">';
            incident.auditTrail.forEach(entry => {
                const userStr = entry.user ? `<div class="timeline-user"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;margin-right:4px;"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>${entry.user}</div>` : '';
                html += `
@@ -1922,14 +2228,165 @@
            document.getElementById('timelineModal').classList.remove('show');
        });
    }
+   
+   function openMergeModal(incidentId) {
+       currentMergeIncidentId = incidentId;
+       const list = document.getElementById('mergeOptionList');
+       const activeIncidents = incidents.filter(i => i.id !== incidentId && !i.status.startsWith('Afgesloten'));
+       
+       if (activeIncidents.length === 0) {
+           list.innerHTML = '<div class="empty-assign-msg">Geen andere actieve meldingen om mee samen te voegen.</div>';
+       } else {
+           list.innerHTML = activeIncidents.map(inc => `
+               <button type="button" class="option-btn" data-merge-target="${inc.id}">
+                   <strong>${inc.id} - ${inc.location}</strong>
+                   <span>${inc.event} (Melder: ${inc.reporter})</span>
+               </button>
+           `).join('');
+           
+           list.querySelectorAll('.option-btn').forEach(btn => {
+               btn.addEventListener('click', () => {
+                   const targetId = btn.getAttribute('data-merge-target');
+                   performMerge(currentMergeIncidentId, targetId);
+               });
+           });
+       }
+       document.getElementById('mergeModal').classList.add('show');
+   }
+   
+   function performMerge(sourceId, targetId) {
+       const source = incidents.find(i => i.id === sourceId);
+       const target = incidents.find(i => i.id === targetId);
+       if (!source || !target) return;
+       
+       if (source.units && source.units.length > 0) {
+           target.units = target.units || [];
+           source.units.forEach(u => {
+               if (!target.units.includes(u)) {
+                   target.units.push(u);
+               }
+               const unitName = u.includes(':') ? u.split(':')[1].trim() : u;
+               const unitObj = units.find(unit => unit.id === unitName);
+               if (unitObj) {
+                   unitObj.location = target.location;
+                   setDoc(doc(db, "units", unitObj.id), unitObj);
+               }
+           });
+       }
+       
+       target.event += ` | [Samenvoeging uit ${source.id}]: ${source.event} (Melder: ${source.reporter})`;
+       addIncidentAudit(target, `Melding ${source.id} is hierin samengevoegd.`);
+       setDoc(doc(db, "incidents", target.id), target);
+
+       const nu = new Date();
+       const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
+       source.closedAtTime = tijdString;
+       source.closedAtTimestamp = nu.toISOString();
+       source.status = 'Afgesloten: Dubbele melding';
+       addIncidentAudit(source, `Samengevoegd in melding ${target.id}`);
+       setDoc(doc(db, "incidents", source.id), source);
+       
+       document.getElementById('mergeModal').classList.remove('show');
+       currentMergeIncidentId = null;
+       renderTables();
+       renderUnits();
+       renderDetailedUnitsTable();
+       showToast(`Melding ${source.id} samengevoegd in ${target.id}`);
+   }
+   
+   document.getElementById('mergeCloseBtn').addEventListener('click', () => {
+       document.getElementById('mergeModal').classList.remove('show');
+       currentMergeIncidentId = null;
+   });
 
    function attachRowActionHandlers() {
+       document.querySelectorAll('.row-actions button').forEach(btn => {
+           const clone = btn.cloneNode(true);
+           btn.parentNode.replaceChild(clone, btn);
+       });
        document.querySelectorAll('.row-actions button').forEach(btn => {
            btn.addEventListener('click', () => {
                handleIncidentAction(btn.getAttribute('data-action'), btn.getAttribute('data-id'));
            });
        });
    }
+
+   // Wijzigingsgeschiedenis (Inline editing in tabellen)
+   $(document).off("click", ".editable-incident-field");
+   $(document).on("click", ".editable-incident-field", function(e) {
+       e.stopPropagation();
+       var $span = $(this);
+       if ($span.find("input").length > 0) return; // already editing
+       
+       var currentText = $span.text().trim();
+       if (currentText === 'Onbekend') currentText = '';
+       
+       var incId = $span.data("id");
+       var field = $span.data("field");
+
+       var $input = $("<input>", { 
+           type: "text", 
+           value: currentText, 
+           class: "edit-field-input", 
+           style: "width: 100%; min-width: 150px; font-size: 13px; padding: 4px; border: 1px solid var(--green); border-radius: 4px; background: var(--bg0); color: var(--text1); outline: none;" 
+       });
+       
+       var $saveBtn = $("<button>", { html: '&#10004;', style: "margin-left:6px; cursor:pointer; background:var(--green); color:#fff; border:none; border-radius:4px; padding:3px 8px; font-size:12px;" });
+       var $cancelBtn = $("<button>", { html: '&#10006;', style: "margin-left:4px; cursor:pointer; background:var(--red); color:#fff; border:none; border-radius:4px; padding:3px 8px; font-size:12px;" });
+
+       $span.empty().append($input).append($saveBtn).append($cancelBtn);
+       $input.focus().select();
+
+       var restore = function() { 
+           $span.html(currentText || '<i>Onbekend</i>'); 
+       };
+       
+       var save = function() {
+           var newVal = $input.val().trim();
+           if (newVal !== currentText) {
+               const incIndex = incidents.findIndex(x => x.id === incId);
+               if (incIndex !== -1) {
+                   incidents[incIndex][field] = newVal;
+                   const fieldNameNL = field === 'location' ? 'Locatie' : 'Gebeurtenis/Omschrijving';
+                   
+                   addIncidentAudit(incidents[incIndex], `${fieldNameNL} gewijzigd van "${currentText || 'LEEG'}" naar "${newVal}"`);
+                   setDoc(doc(db, "incidents", incidents[incIndex].id), incidents[incIndex]);
+                   showToast(`${fieldNameNL} bijgewerkt.`);
+               }
+           }
+           $span.html(newVal || '<i>Onbekend</i>');
+           // renderTables() wordt door Firebase Snapshot vanzelf aangeroepen, 
+           // maar we roepen hem hier ook expliciet aan voor onmiddellijke feedback
+           renderTables();
+       };
+       
+       $saveBtn.click(function(e) { e.stopPropagation(); save(); });
+       $cancelBtn.click(function(e) { e.stopPropagation(); restore(); });
+       $input.keypress(function(e) { if (e.which == 13) { e.preventDefault(); save(); } });
+       $input.click(function(e) { e.stopPropagation(); });
+   });
+
+   // Free Text Log Modal Logic
+   const freeLogModal = document.getElementById('freeLogModal');
+   const freeLogForm = document.getElementById('freeLogForm');
+   
+   if (freeLogForm) {
+       freeLogForm.addEventListener('submit', (e) => {
+           e.preventDefault();
+           const text = new FormData(freeLogForm).get('logText').trim();
+           const inc = incidents.find(i => i.id === currentLogIncidentId);
+           if (inc && text) {
+               addIncidentAudit(inc, `Lognotitie: ${text}`);
+               setDoc(doc(db, "incidents", inc.id), inc);
+               showToast('Log succesvol toegevoegd aan incident.');
+               freeLogModal.classList.remove('show');
+               freeLogForm.reset();
+           }
+       });
+   }
+   
+   document.getElementById('freeLogCloseBtn')?.addEventListener('click', () => { freeLogModal.classList.remove('show'); });
+   document.getElementById('freeLogCancelBtn')?.addEventListener('click', () => { freeLogModal.classList.remove('show'); freeLogForm.reset(); });
 
   const navButtons = document.querySelectorAll('.nav-btn');
   const views = document.querySelectorAll('.view');
@@ -2007,12 +2464,36 @@
       });
   });
 
+  const helpBtn = document.getElementById('helpBtn');
+  const helpModal = document.getElementById('helpModal');
+  if (helpBtn && helpModal) {
+      helpBtn.addEventListener('click', () => helpModal.classList.add('show'));
+  }
+
   document.getElementById('assignCloseBtn').addEventListener('click', () => {
       closeAssignModal();
   });
 
   document.getElementById('escalationCloseBtn').addEventListener('click', () => {
       closeEscalationModal();
+  });
+
+  // Externe eenheid (112) toevoegen in Escalatiescherm
+  document.getElementById('externalUnitBtn')?.addEventListener('click', () => {
+      const input = document.getElementById('externalUnitInput');
+      const val = input.value.trim();
+      if (!val) return;
+      
+      const inc = incidents.find(i => i.id === currentEscalationIncidentId);
+      if (inc) {
+          addIncidentAudit(inc, `Externe Hulpdienst (112) gealarmeerd/ter plaatse: ${val}`);
+          inc.units = inc.units || [];
+          if (!inc.units.includes(val)) inc.units.push(`[112] ${val}`);
+          setDoc(doc(db, "incidents", inc.id), inc);
+          showToast('Externe eenheid geregistreerd.');
+          input.value = '';
+          closeEscalationModal();
+      }
   });
 
   document.querySelectorAll('#escalationModal .option-btn').forEach(btn => {
@@ -2030,7 +2511,6 @@
           if (!incident.units.includes(escalationType)) incident.units.push(escalationType);
           incident.status = escalationType;
           addIncidentAudit(incident, `Opschaling: ${escalationType}`);
-          addLog('Opschaling', `Opschaling naar: ${escalationType}`, '', incident.id, incident.location);
           setDoc(doc(db, "incidents", incident.id), incident);
           renderTables();
         }
@@ -2054,7 +2534,8 @@
           const incident = incidents.find(i => i.id === currentAfloopIncidentId);
           if (!incident) return;
           
-          const isClosing = (reason === 'Inzetbaar' || reason === 'Loze melding');
+          const closingReasons = ['Inzetbaar', 'Loze melding', 'Zorg ter plaatse', 'Retour BLS', 'Retour ALS', 'Dubbele melding', 'Brand meester', 'Assistentie Brandweer'];
+          const isClosing = closingReasons.includes(reason);
 
           if (isClosing) {
               const nu = new Date();
@@ -2063,11 +2544,9 @@
               incident.closedAtTimestamp = nu.toISOString();
               incident.status = `Afgesloten: ${reason}`;
               addIncidentAudit(incident, `Melding afgesloten (${reason})`);
-              addLog('Afloop', `Melding afgesloten: ${reason}`, '', incident.id, incident.location);
           } else {
               incident.status = reason;
               addIncidentAudit(incident, `Status gewijzigd naar: ${reason}`);
-              addLog('Status', `Status melding gewijzigd naar: ${reason}`, '', incident.id, incident.location);
           }
           
           setDoc(doc(db, "incidents", incident.id), incident);
@@ -2081,6 +2560,9 @@
                       u.status = 'inzetbaar';
                   } else if (reason === 'Retour ALS' || reason === 'Retour BLS') {
                       u.status = 'retour post';
+                      if (u.gekoppeldAanPost) {
+                          u.location = u.gekoppeldAanPost;
+                      }
                   }
                   
                   if (oldStatus !== u.status) {
@@ -2128,7 +2610,7 @@
             detailedForm.querySelectorAll('input[name="rec"]:checked').forEach(cb => recommendations.push(cb.value));
 
             incidents.push({
-              id: 'M-' + Math.floor(Math.random()*10000),
+              id: 'M-' + Date.now() + '-' + Math.floor(Math.random() * 999),
               status: assignedUnit && assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
               time: timeStr,
               location: fd.get('location'),
@@ -2182,7 +2664,7 @@
           const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
     
           incidents.push({
-              id: "M-" + Math.floor(Math.random() * 10000), 
+              id: "M-" + Date.now() + "-" + Math.floor(Math.random() * 999), 
               status: assignedUnit && assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
               time: tijdString,
               location: formData.get('location'),
@@ -2194,7 +2676,6 @@
           addIncidentAudit(incidents[incidents.length - 1], `Aangemaakt - ${formData.get('urgency')}`);
     
           setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
-          addLog('Toegevoegd', `Medische melding aangemaakt`, '', incidents[incidents.length-1].id, formData.get('location'));
           renderTables();
           renderUnits();
           renderDetailedUnitsTable();
@@ -2282,7 +2763,7 @@
           const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
 
           incidents.push({
-              id: "BW-" + Math.floor(Math.random() * 10000), 
+              id: "BW-" + Date.now() + "-" + Math.floor(Math.random() * 999), 
               status: assignedUnit && assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
               time: tijdString,
               location: formData.get('location'),
@@ -2339,7 +2820,7 @@
           const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
 
           incidents.push({
-              id: "L-" + Math.floor(Math.random() * 10000), 
+              id: "L-" + Date.now() + "-" + Math.floor(Math.random() * 999), 
               status: assignedUnit && assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
               time: tijdString,
               location: formData.get('location'),
@@ -2468,52 +2949,6 @@
       });
   }
 
-  // Render tabel met geregistreerde eenheden
-  function renderUnitsTable() {
-      const tbody = document.getElementById('unitsTableBody');
-      if (!tbody) return;
-      
-      if (units.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" class="empty-table-msg">Geen eenheden geregistreerd</td></tr>';
-          return;
-      }
-
-      tbody.innerHTML = units.map((u, index) => `
-          <tr>
-              <td>${u.id}</td>
-              <td>${u.type}</td>
-              <td>${u.location}</td>
-              <td>${u.naam1 || ''}</td>
-              <td>${u.naam2 || ''}</td>
-              <td>${u.naam3 || ''}</td>
-              <td>${u.telefoonnummer || ''}</td>
-              <td><span style="color:var(--text2);">${u.status}</span></td>
-              <td>${u.gekoppeldAanPost || ''}</td>
-              <td>${u.ondersteunend ? 'Ja' : 'Nee'}</td>
-              <td>${u.ipadnr || ''}</td>
-              <td>${u.tasnummer || ''}</td>
-              <td>${u.radioId || ''}</td>
-              <td>
-                  <button type="button" class="btn btn-outline" data-delete-unit="${u.id}" style="padding:6px 12px;font-size:12px;">Verwijderen</button>
-              </td>
-          </tr>
-      `).join('');
-
-      // Event listeners voor delete buttons
-      tbody.querySelectorAll('[data-delete-unit]').forEach(btn => {
-          btn.addEventListener('click', () => {
-              const unitId = btn.getAttribute('data-delete-unit');
-              const idx = units.findIndex(u => u.id === unitId);
-              if(idx !== -1) units.splice(idx, 1);
-              deleteDoc(doc(db, "units", unitId));
-              renderUnitsTable();
-              renderUnits();
-              renderTables();
-                  renderDetailedUnitsTable();
-          });
-      });
-  }
-
   // Handle formulier inzending
   if (addUnitForm) {
       addUnitForm.addEventListener('submit', (e) => {
@@ -2552,7 +2987,6 @@
           setDoc(doc(db, "units", newUnit.id), newUnit);
           
           // Update UI
-          renderUnitsTable();
           renderUnits();
           renderTables();
           renderDetailedUnitsTable();
@@ -2600,7 +3034,7 @@
           return `
               <tr>
                   <td>${statusIcon}</td>
-                  <td>${u.id}</td>
+                  <td><a href="#" class="log-unit-link" data-id="${u.id}" style="color:var(--text1); font-weight:600; text-decoration:none;">${u.id}</a></td>
                   <td>${getEditableSpan('type', u.type)}</td>
                   <td>${getEditableSpan('location', u.location)}</td>
                   <td>${getEditableSpan('naam1', u.naam1)}</td>
@@ -2628,10 +3062,15 @@
               const unitIndex = units.findIndex(u => u.id === unitId);
               if (unitIndex !== -1) {
                   units[unitIndex].status = newStatus;
+                  
+                  // Update locatie naar gekoppelde post bij 'retour post' of 'op post'
+                  if ((newStatus === 'retour post' || newStatus === 'op post') && units[unitIndex].gekoppeldAanPost) {
+                      units[unitIndex].location = units[unitIndex].gekoppeldAanPost;
+                  }
+                  
                   setDoc(doc(db, "units", units[unitIndex].id), units[unitIndex]);
-                  addLog('Status', `Status gewijzigd naar: ${e.target.value}`, units[unitIndex].id, '', '');
+                  addLog('Status', `Status gewijzigd naar: ${newStatus}`, units[unitIndex].id, '', '');
                   renderUnits();
-                  renderUnitsTable();
                   renderDetailedUnitsTable(); // Herlaad tabel om kleuren bij te werken
               }
           });
@@ -2644,29 +3083,53 @@
       $(document).on("click", ".editable-field", function(e) {
           e.stopPropagation();
           var $span = $(this);
-          if ($span.find("input").length > 0) return; // already editing
+          if ($span.find("input").length > 0 || $span.find("select").length > 0) return; // already editing
 
           var currentText = $span.attr("data-value") || "";
           var unitId = $span.data("id");
           var field = $span.data("field");
 
-          var $input = $("<input>", {
-              type: "text",
-              value: currentText,
-              class: "edit-field-input",
-              style: "width: 100px; font-size: 13px; padding: 4px; border: 1px solid var(--green); border-radius: 4px; background: var(--bg0); color: var(--text1); outline: none;"
-          });
+          var $input;
+          if (field === 'location' || field === 'gekoppeldAanPost') {
+              $input = $("<select>", {
+                  class: "edit-field-input",
+                  style: "width: 140px; font-size: 13px; padding: 4px; border: 1px solid var(--green); border-radius: 4px; background: var(--bg0); color: var(--text1); outline: none;"
+              });
+              
+              let foundCurrent = false;
+              $input.append($("<option>", { value: '', text: '-- Selecteer post --' }));
+              
+              posts.forEach(p => {
+                  let isSelected = (p.naam === currentText);
+                  if (isSelected) foundCurrent = true;
+                  $input.append($("<option>", { value: p.naam, text: p.naam, selected: isSelected }));
+              });
+              
+              if (!foundCurrent && currentText && currentText.trim() !== '' && currentText !== 'Onbekend') {
+                  $input.prepend($("<option>", { value: currentText, text: currentText + ' (Huidig)', selected: true }));
+              }
+          } else {
+              $input = $("<input>", {
+                  type: "text",
+                  value: currentText,
+                  class: "edit-field-input",
+                  style: "width: 100px; font-size: 13px; padding: 4px; border: 1px solid var(--green); border-radius: 4px; background: var(--bg0); color: var(--text1); outline: none;"
+              });
 
-          // Voor kleinere cellen zoals iPadnr, Tasnummer of Radio ID
-          if (field === 'radioId' || field === 'tasnummer' || field === 'ipadnr') { 
-               $input.css("width", "60px");
+              // Voor kleinere cellen zoals iPadnr, Tasnummer of Radio ID
+              if (field === 'radioId' || field === 'tasnummer' || field === 'ipadnr') { 
+                   $input.css("width", "60px");
+              }
           }
 
           var $saveBtn = $("<button>", { html: '&#10004;', style: "margin-left:6px; cursor:pointer; background:var(--green); color:#fff; border:none; border-radius:4px; padding:3px 8px; font-size:12px;" });
           var $cancelBtn = $("<button>", { html: '&#10006;', style: "margin-left:4px; cursor:pointer; background:var(--red); color:#fff; border:none; border-radius:4px; padding:3px 8px; font-size:12px;" });
 
           $span.empty().append($input).append($saveBtn).append($cancelBtn);
-          $input.focus().select();
+          $input.focus();
+          if ($input.is("input")) {
+              $input.select();
+          }
 
           var restore = function() {
                var val = $span.attr("data-value");
@@ -2847,7 +3310,6 @@
       });
 
       renderDetailedUnitsTable();
-      renderUnitsTable();
       renderUnits();
       
       // Update pijltjes in de kolomkoppen
@@ -2898,7 +3360,7 @@
           e.preventDefault();
           const fd = new FormData(addPostForm);
           const newPost = {
-              id: 'P-' + Math.floor(Math.random() * 10000),
+              id: 'P-' + Date.now() + '-' + Math.floor(Math.random() * 999),
               naam: fd.get('naam').trim(),
               locatie: fd.get('locatie').trim(),
               postcoordinator: fd.get('postcoordinator') ? fd.get('postcoordinator').trim() : '',
@@ -2934,7 +3396,7 @@
           const linkedUnitsHTML = linkedUnitsList ? `<ul style="margin:0; padding-left:16px;">${linkedUnitsList}</ul>` : '-';
 
           return `
-            <tr>
+            <tr data-post-name="${p.naam}">
               <td>${statusIcon}</td>
               <td>${getEditableSpan('naam', p.naam)}</td>
               <td>${getEditableSpan('locatie', p.locatie)}</td>
@@ -2983,6 +3445,29 @@
               const postId = btn.getAttribute('data-delete-post');
               const idx = posts.findIndex(x => x.id === postId);
               if (idx !== -1) { posts.splice(idx, 1); deleteDoc(doc(db, "posts", postId)); renderPosts(); renderDetailedPostsTable(); }
+          });
+      });
+
+      // Drag & Drop eenheden naar Posten (Tabel)
+      document.querySelectorAll('#detailedPostsTableBody tr[data-post-name]').forEach(tr => {
+          const postName = tr.getAttribute('data-post-name');
+          tr.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; tr.classList.add('drag-over'); });
+          tr.addEventListener('dragleave', (e) => { tr.classList.remove('drag-over'); });
+          tr.addEventListener('drop', (e) => {
+              e.preventDefault();
+              tr.classList.remove('drag-over');
+              const unitId = e.dataTransfer.getData('text/plain');
+              if (unitId) {
+                  const unit = units.find(u => u.id === unitId);
+                  if (unit) {
+                      unit.gekoppeldAanPost = postName;
+                      setDoc(doc(db, "units", unit.id), unit);
+                      showToast(`Eenheid ${unitId} direct gekoppeld aan post ${postName}`);
+                      renderDetailedPostsTable();
+                      renderUnits();
+                      if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+                  }
+              }
           });
       });
   }
@@ -3064,7 +3549,6 @@
           }
       });
   }
-  setInterval(updateTimers, 1000);
 
   // ==========================================
   // BUIENRADAR / WEER MODAL
@@ -3117,6 +3601,36 @@
       } catch (error) {
           console.error("Fout bij ophalen weer:", error);
           locInfo.innerHTML = 'Fout bij ophalen weergegevens.';
+      }
+  }
+
+  async function updateWeatherButton(lat, lon) {
+      const weatherBtnTemp = document.getElementById('weatherBtnTemp');
+      if (!weatherBtnTemp) return;
+
+      try {
+          const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&timezone=Europe%2FAmsterdam`);
+          const wData = await weatherRes.json();
+          
+          if (wData && wData.current) {
+              const temp = Math.round(wData.current.temperature_2m);
+              weatherBtnTemp.textContent = `${temp}°C`;
+          }
+      } catch (error) {
+          console.warn("Kon temperatuur voor knop niet ophalen:", error);
+      }
+  }
+
+  function initializeWeather() {
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+              (position) => {
+                  updateWeatherButton(position.coords.latitude, position.coords.longitude);
+              },
+              () => { updateWeatherButton(52.09, 5.12); } // Fallback on error
+          );
+      } else {
+          updateWeatherButton(52.09, 5.12); // Fallback if no geolocation
       }
   }
 
@@ -3181,6 +3695,90 @@
           }
       });
   });
+
+  // Offline / Online detectie
+  window.addEventListener('offline', () => {
+      document.getElementById('offlineBanner').style.display = 'block';
+      const dot = document.getElementById('connectionDot');
+      const text = document.getElementById('connectionText');
+      if (dot && text) {
+          dot.style.background = 'var(--amber)';
+          dot.style.boxShadow = '0 0 8px var(--amber)';
+          text.style.color = 'var(--amber)';
+          text.textContent = 'Offline';
+      }
+  });
+  window.addEventListener('online', () => {
+      document.getElementById('offlineBanner').style.display = 'none';
+      const dot = document.getElementById('connectionDot');
+      const text = document.getElementById('connectionText');
+      if (dot && text) {
+          dot.style.background = 'var(--green)';
+          dot.style.boxShadow = '0 0 8px var(--green)';
+          text.style.color = 'var(--green)';
+          text.textContent = 'Live';
+      }
+      showToast('Verbinding hersteld, data is gesynchroniseerd.');
+  });
+
+  // Sneltoetsen (Keyboard Shortcuts)
+  // Sneltoetsen (Keyboard Shortcuts & Navigatie)
+  document.addEventListener('keydown', (e) => {
+      if (e.altKey) {
+          if (e.key.toLowerCase() === 'n') {
+              e.preventDefault();
+              document.getElementById('btnQuickMedical').click();
+          } else if (e.key.toLowerCase() === 's') {
+              e.preventDefault();
+              document.getElementById('btnDetailedMedical').click();
+          } else if (e.key.toLowerCase() === 'b') {
+              e.preventDefault();
+              document.getElementById('btnBrandwacht').click();
+          } else if (e.key.toLowerCase() === 'l') {
+              e.preventDefault();
+              document.getElementById('btnLogistiek').click();
+          }
+      }
+
+      // Negeer pijltjestoetsen als je in een input typt of als er een modal open staat
+      if (document.querySelector('.modal-overlay.show') || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          
+          const activeView = document.querySelector('.view.active');
+          if (!activeView) return;
+          
+          const tables = activeView.querySelectorAll('tbody');
+          let allRows = [];
+          tables.forEach(tbody => {
+              const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-table-msg)'));
+              allRows = allRows.concat(rows);
+          });
+
+          if (allRows.length === 0) return;
+
+          const currentSelected = activeView.querySelector('.selected-row');
+          let selectedIndex = currentSelected ? allRows.indexOf(currentSelected) : -1;
+
+          if (currentSelected) currentSelected.classList.remove('selected-row');
+
+          if (e.key === 'ArrowDown') {
+              selectedIndex = (selectedIndex + 1) % allRows.length;
+          } else if (e.key === 'ArrowUp') {
+              selectedIndex = (selectedIndex - 1 + allRows.length) % allRows.length;
+          }
+
+          const newSelected = allRows[selectedIndex];
+          if (newSelected) {
+              newSelected.classList.add('selected-row');
+              newSelected.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
+      }
+  });
+
+  // Roep de functie aan die de temperatuur in de weer-knop laadt
+  initializeWeather();
 
 </script>
 <!-- Link to user's legacy stylesheet to preserve layout; can be refined or trimmed as needed -->

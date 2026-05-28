@@ -19,6 +19,15 @@
             --danger: #f7768e;
             --success: #9ece6a;
         }
+        
+        :root.light-mode {
+            --bg-dark: #f0f2f5;
+            --sidebar-bg: #ffffff;
+            --panel-bg: #e4e7ec;
+            --text-main: #333333;
+            --text-light: #111111;
+            --border-color: #cccccc;
+        }
 
         * {
             box-sizing: border-box;
@@ -228,6 +237,23 @@
         .modal-content {
             background: var(--sidebar-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 8px; width: 400px;
         }
+        
+        /* Context Menu */
+        .context-menu {
+            position: absolute; background: var(--sidebar-bg); border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius: 4px; z-index: 1000;
+            display: none; flex-direction: column; padding: 5px 0; min-width: 150px;
+        }
+        .context-menu button {
+            background: transparent; border: none; border-radius: 0; padding: 8px 15px;
+            text-align: left; justify-content: flex-start; color: var(--text-light);
+        }
+        .context-menu button:hover {
+            background: var(--panel-bg);
+        }
+        .context-menu button.danger-btn {
+            color: var(--danger);
+        }
     </style>
 </head>
 <body>
@@ -235,6 +261,7 @@
 <header>
     <h1>Technische Bouwtekening & Installatie Editor (CAD Light)</h1>
     <div class="file-actions">
+        <button id="themeToggleBtn" style="background-color: var(--panel-bg);">🌗 Thema</button>
         <button id="helpBtn" style="background-color: var(--panel-bg);">❓ Help</button>
         <label style="font-size:0.85rem;" for="fileLoader">Inladen: </label>
         <input type="file" id="fileLoader" accept="image/*,.json" style="width: auto; max-width: 200px;">
@@ -242,6 +269,7 @@
         <button id="undoBtn" style="background-color: var(--panel-bg);">↩ Undo</button>
         <button id="clearCanvas" class="danger-btn">Wis Alles</button>
         <button id="exportImage" style="background-color: var(--success); color: #11111b; font-weight: bold;">Afbeelding</button>
+        <button id="exportSvgBtn" style="background-color: var(--success); color: #11111b; font-weight: bold;">SVG</button>
         <button id="exportPdfBtn" style="background-color: var(--success); color: #11111b; font-weight: bold;">PDF</button>
     </div>
 </header>
@@ -255,8 +283,11 @@
                 <button id="tool-pan" onclick="switchTool('pan')">Pan / Versleep</button>
                 <button id="tool-line" onclick="switchTool('line')">Rechte Lijn</button>
                 <button id="tool-curve" onclick="switchTool('curve')">〰️ Flexibele Buis</button>
+                <button id="tool-rect" onclick="switchTool('rect')">🟩 Rechthoek</button>
+                <button id="tool-circle" onclick="switchTool('circle')">⭕ Cirkel</button>
                 <button id="tool-freehand" onclick="switchTool('freehand')">Vrije Hand</button>
                 <button id="tool-measure" onclick="switchTool('measure')">📏 Maatlijn</button>
+                <button id="tool-calibrate" onclick="switchTool('calibrate')">📐 Kalibreer Schaal</button>
                 <button id="tool-area" onclick="switchTool('area')">📐 m² Oppervlakte</button>
                 <button id="tool-text" onclick="switchTool('text')">Tekst</button>
                 <button id="resetViewBtn" class="btn-full" onclick="resetView()">🔍 Reset Zoom / Pan</button>
@@ -271,19 +302,31 @@
                 <button class="pipe-btn" data-pipe="warmwater" onclick="switchTool('pipe-warmwater')">🔥 Warm Water (Rood)</button>
                 <button class="pipe-btn" data-pipe="vloerverwarming" onclick="switchTool('pipe-vloerverwarming')">🌀 Vloerverwarming (Oranje)</button>
                 <button class="pipe-btn" data-pipe="afvoer" onclick="switchTool('pipe-afvoer')">🕳️ Vuilwaterafvoer (Grijs)</button>
+                <button class="pipe-btn" data-pipe="kabelgoot" onclick="switchTool('pipe-kabelgoot')" style="border-left: 4px solid #888888;">🛤️ Kabelgoot (Breed)</button>
             </div>
         </div>
 
         <div class="panel-section">
             <div class="panel-title">Raster (Grid)</div>
             <button id="toggleGridBtn" onclick="toggleGrid()" style="width: 100%;"># Raster Aan / Uit</button>
+            <div class="input-group" style="margin-top: 10px;">
+                <label for="gridSizeInput">Rastergrootte (<span id="gridVal">25</span>px):</label>
+                <input type="range" id="gridSizeInput" min="10" max="100" value="25" oninput="document.getElementById('gridVal').innerText=this.value; updateGridSize(this.value)">
+            </div>
+            <div class="input-group">
+                <label for="bgOpacity">Achtergrond dekking (<span id="bgOpVal">100</span>%):</label>
+                <input type="range" id="bgOpacity" min="0" max="100" value="100" oninput="document.getElementById('bgOpVal').innerText=this.value; updateBgOpacity(this.value)">
+            </div>
         </div>
 
         <div class="panel-section">
             <div class="panel-title">Eigenschappen & Schaal</div>
             <div class="input-group">
                 <label for="customColor">Kleur:</label>
-                <input type="color" id="customColor" value="#ff0000">
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <input type="color" id="customColor" value="#ff0000" style="flex:1;">
+                    <button onclick="pickColor()" style="padding:6px 10px;" title="Pipet Tool (Kleur overnemen)">💧</button>
+                </div>
             </div>
             <div class="input-group">
                 <label for="customWidth">Lijndikte (<span id="widthVal">4</span>px):</label>
@@ -323,6 +366,11 @@
     </div>
 
     <div class="sidebar right-sidebar">
+        <div class="input-group" style="background: var(--panel-bg); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 10px;">
+            <label for="symbolScale">Symbool Grootte (<span id="symScaleVal">100</span>%):</label>
+            <input type="range" id="symbolScale" min="50" max="200" value="100" oninput="document.getElementById('symScaleVal').innerText=this.value">
+        </div>
+
         <div class="panel-section">
             <div class="panel-title">Componenten: Elektra</div>
             <div style="display:flex; flex-direction:column; gap:6px;">
@@ -342,22 +390,66 @@
                 <button class="stamp-btn" onclick="addSymbol('warmtepomp')">📦 Warmtepomp / CV</button>
             </div>
         </div>
+        
+        <div class="panel-section">
+            <div class="panel-title">Bouwkundig & Data</div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <button class="stamp-btn" onclick="addSymbol('deur')">🚪 Deur</button>
+                <button class="stamp-btn" onclick="addSymbol('raam')">🪟 Raam</button>
+                <button class="stamp-btn" onclick="addSymbol('trap')">🪜 Trap</button>
+                <button class="stamp-btn" onclick="addSymbol('rj45')">🌐 Data (RJ45)</button>
+                <button class="stamp-btn" onclick="addSymbol('wifi')">📡 WiFi Access Point</button>
+                <button class="stamp-btn" onclick="addSymbol('serverkast')">🗄️ Serverkast / IT</button>
+                <button class="stamp-btn" onclick="addSymbol('toilet')">🚽🚽🚽 Toilet</button>
+            </div>
+        </div>
+        
+        <div class="panel-section">
+            <div class="panel-title">Meubilair & Inrichting</div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <button class="stamp-btn" onclick="addSymbol('bed')">🛏️ Bed</button>
+                <button class="stamp-btn" onclick="addSymbol('bureau')">🪑 Bureau / Tafel</button>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-title">Uitlijnen (Meerdere objecten)</div>
+            <div class="btn-grid">
+                <button onclick="alignSelected('left')">⬅️ Links</button>
+                <button onclick="alignSelected('center')">↔️ Midden</button>
+                <button onclick="alignSelected('right')">➡️ Rechts</button>
+                <button onclick="alignSelected('top')">⬆️ Boven</button>
+                <button onclick="alignSelected('middle')">↕️ Midden</button>
+                <button onclick="alignSelected('bottom')">⬇️ Onder</button>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-title">Eigen Stempels</div>
+            <button class="btn-full" onclick="saveCustomStamp()" style="margin-bottom: 8px;">➕ Selectie opslaan als stempel</button>
+            <div id="customStampsContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
+        </div>
 
         <div class="panel-section">
             <div class="panel-title">Geselecteerd Object</div>
             <div style="display:flex; flex-direction:column; gap:8px;">
                 <button onclick="changeOrder('front')">Breng naar Voren</button>
                 <button onclick="changeOrder('back')">Breng naar Achteren</button>
+                <button onclick="toggleLock()" style="background-color: #a9b1d6; color: #1a1b26;">🔏 Vastzetten / Losmaken</button>
                 <button id="deleteObject" class="danger-btn">🗑️ Verwijder Selectie</button>
             </div>
             <div style="font-size: 0.75rem; margin-top: 10px; color: var(--text-main); text-align: center;">
-                Tip: Druk op <b>Delete</b> of <b>Backspace</b> om een geselecteerd element direct te wissen.
+                Tip: Gebruik de <b>Rechtermuisknop</b> op een object voor het snelle actiemenu.
             </div>
         </div>
         
         <div class="panel-section">
             <div class="panel-title">Hulpmiddelen</div>
             <button class="btn-full" onclick="generateLegend()">📝 Genereer Legenda</button>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button style="flex:1;" onclick="generateBOM()">📋 Toon BOM</button>
+                <button style="flex:1; background-color: var(--success); color: #111;" onclick="exportBOMCSV()">💾 CSV</button>
+            </div>
         </div>
     </div>
 </div>
@@ -380,13 +472,22 @@
     </div>
 </div>
 
+<div id="contextMenu" class="context-menu">
+    <button onclick="contextAction('front')">Naar Voren</button>
+    <button onclick="contextAction('back')">Naar Achteren</button>
+    <button onclick="contextAction('lock')">🔏 Vastzetten/Losmaken</button>
+    <button onclick="contextAction('clone')">Kopiëren</button>
+    <button onclick="contextAction('delete')" class="danger-btn">Verwijderen</button>
+</div>
+
 <script>
     // Initialiseer Fabric Canvas
     const canvas = new fabric.Canvas('cadCanvas', {
         width: 1000,
         height: 750,
         preserveObjectStacking: true,
-        fireMiddleClick: true
+        fireMiddleClick: true,
+        stopContextMenu: true
     });
 
     // ==========================
@@ -431,6 +532,61 @@
         }
     }
 
+    // Omschakelen naar Licht/Donker thema
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        document.documentElement.classList.toggle('light-mode');
+    });
+
+    // Pipet tool voor kleur selectie
+    async function pickColor() {
+        if (!window.EyeDropper) { alert('Pipet tool wordt niet ondersteund in deze browser.'); return; }
+        const eyeDropper = new EyeDropper();
+        try {
+            const result = await eyeDropper.open();
+            document.getElementById('customColor').value = result.sRGBHex;
+        } catch(e) {}
+    }
+
+    // Uitlijngereedschap
+    function alignSelected(direction) {
+        let activeObj = canvas.getActiveObject();
+        if (!activeObj || activeObj.type !== 'activeSelection') { alert('Selecteer eerst meerdere objecten (houd Shift ingedrukt).'); return; }
+        
+        let aWidth = activeObj.width;
+        let aHeight = activeObj.height;
+        
+        activeObj.forEachObject(obj => {
+            let objW = obj.width * obj.scaleX;
+            let objH = obj.height * obj.scaleY;
+            if (direction === 'left') obj.set({ left: -(aWidth/2) + (objW/2) });
+            if (direction === 'right') obj.set({ left: (aWidth/2) - (objW/2) });
+            if (direction === 'center') obj.set({ left: 0 });
+            if (direction === 'top') obj.set({ top: -(aHeight/2) + (objH/2) });
+            if (direction === 'bottom') obj.set({ top: (aHeight/2) - (objH/2) });
+            if (direction === 'middle') obj.set({ top: 0 });
+        });
+        activeObj.setCoords();
+        canvas.requestRenderAll();
+        saveState();
+    }
+
+    // Objecten vastzetten (Locking)
+    function toggleLock() {
+        let activeObj = canvas.getActiveObject();
+        if (!activeObj) return;
+        let isLocked = activeObj.lockMovementX;
+        activeObj.set({
+            lockMovementX: !isLocked,
+            lockMovementY: !isLocked,
+            lockRotation: !isLocked,
+            lockScalingX: !isLocked,
+            lockScalingY: !isLocked,
+            borderColor: !isLocked ? 'red' : 'rgba(102,153,255,0.75)',
+            cornerColor: !isLocked ? 'red' : 'rgba(102,153,255,0.5)'
+        });
+        canvas.requestRenderAll();
+    }
+
     function setupAutoSave() {
         canvas.on('object:added', saveState);
         canvas.on('object:modified', saveState);
@@ -472,7 +628,7 @@
     let isPanning = false;
     let activeMeasureText = null;
     let gridEnabled = false;
-    const gridSize = 25;
+    let gridSize = 25;
     let gridLines = [];
     let lastPosX, lastPosY;
     
@@ -509,6 +665,11 @@
     });
 
     // Raster (Grid) logica
+    function updateGridSize(val) {
+        gridSize = parseInt(val);
+        if (gridEnabled) updateVisualGrid();
+    }
+
     function toggleGrid() {
         gridEnabled = !gridEnabled;
         const btn = document.getElementById('toggleGridBtn');
@@ -534,6 +695,13 @@
             isUndoing = false;
         }
         canvas.renderAll();
+    }
+    
+    function updateBgOpacity(val) {
+        if (canvas.backgroundImage) {
+            canvas.backgroundImage.opacity = parseInt(val) / 100;
+            canvas.requestRenderAll();
+        }
     }
 
     // Detecteer spatiebalk voor tijdelijk pannen
@@ -614,6 +782,12 @@
             if(currentTool !== 'pan') canvas.setCursor('default');
         }
     });
+    
+    window.addEventListener('click', function(e) {
+        if (!e.target.closest('.context-menu') && e.button !== 2) {
+            document.getElementById('contextMenu').style.display = 'none';
+        }
+    });
 
     // Snappen naar het raster tijdens het verplaatsen van objecten
     canvas.on('object:moving', function(options) {
@@ -640,8 +814,46 @@
         saveState();
     });
 
+    // Rechtermuisknop Context Menu
+    let contextTarget = null;
+    
+    function contextAction(action) {
+        if (!contextTarget) return;
+        if (action === 'front') canvas.bringToFront(contextTarget);
+        if (action === 'back') canvas.sendToBack(contextTarget);
+        if (action === 'delete') canvas.remove(contextTarget);
+        if (action === 'lock') { canvas.setActiveObject(contextTarget); toggleLock(); }
+        if (action === 'clone') {
+            contextTarget.clone(function(cloned) {
+                cloned.set({ left: cloned.left + 20, top: cloned.top + 20, evented: true });
+                canvas.add(cloned);
+                canvas.setActiveObject(cloned);
+            });
+        }
+        canvas.requestRenderAll();
+        document.getElementById('contextMenu').style.display = 'none';
+        saveState();
+    }
+
     // Muis Interacties voor Tekenen en Verslepen van Viewport
     canvas.on('mouse:down', function(o) {
+        if (o.e.button === 2) { // Rechtermuisknop
+            let target = canvas.findTarget(o.e);
+            if (target) {
+                canvas.setActiveObject(target);
+                contextTarget = target;
+                let menu = document.getElementById('contextMenu');
+                menu.style.display = 'flex';
+                menu.style.left = o.e.clientX + 'px';
+                menu.style.top = o.e.clientY + 'px';
+            } else {
+                document.getElementById('contextMenu').style.display = 'none';
+            }
+            return;
+        } else {
+            document.getElementById('contextMenu').style.display = 'none';
+        }
+
         let pointer = canvas.getPointer(o.e);
 
         // PAN MODUS (of als spatiebalk is ingedrukt of middelste muisknop)
@@ -651,6 +863,16 @@
             lastPosX = o.e.clientX;
             lastPosY = o.e.clientY;
             canvas.setCursor('grabbing');
+            return;
+        }
+
+        // KALIBREER MODUS
+        if (currentTool === 'calibrate') {
+            isDrawingLine = true;
+            let startX = pointer.x;
+            let startY = pointer.y;
+            activeLine = new fabric.Line([startX, startY, startX, startY], { strokeWidth: 3, stroke: '#9ece6a', originX: 'center', originY: 'center', strokeDashArray: [5,5], selectable: false, evented: false });
+            canvas.add(activeLine);
             return;
         }
 
@@ -677,6 +899,33 @@
             canvas.add(activeLine);
             return;
         }
+        
+        // RECHTHOEK & CIRKEL MODUS
+        if (currentTool === 'rect' || currentTool === 'circle') {
+            isDrawingLine = true;
+            let startX = gridEnabled ? Math.round(pointer.x / gridSize) * gridSize : pointer.x;
+            let startY = gridEnabled ? Math.round(pointer.y / gridSize) * gridSize : pointer.y;
+
+            if (currentTool === 'rect') {
+                activeLine = new fabric.Rect({
+                    left: startX, top: startY, width: 0, height: 0, originX: 'left', originY: 'top',
+                    fill: 'transparent', stroke: customColor.value, strokeWidth: parseInt(customWidth.value),
+                    selectable: false, evented: false, cadType: 'shape'
+                });
+            } else {
+                activeLine = new fabric.Circle({
+                    left: startX, top: startY, radius: 0, originX: 'center', originY: 'center',
+                    fill: 'transparent', stroke: customColor.value, strokeWidth: parseInt(customWidth.value),
+                    selectable: false, evented: false, cadType: 'shape'
+                });
+            }
+            isUndoing = true;
+            canvas.add(activeLine);
+            isUndoing = false;
+            activeLine.startX = startX;
+            activeLine.startY = startY;
+            return;
+        }
 
         // RECHTE LIJNEN, LEIDINGEN & MAATLIJN MODUS
         if (currentTool === 'line' || currentTool.startsWith('pipe-') || currentTool === 'measure') {
@@ -689,6 +938,7 @@
             let strokeColor = customColor.value;
             let strokeWidth = parseInt(customWidth.value);
             let strokeDash = null;
+            let lineOpacity = 1;
 
             // Definieer specifieke eigenschappen per leidingtype
             if (currentTool === 'measure') { strokeColor = '#9ece6a'; strokeWidth = 2; strokeDash = [5, 5]; }
@@ -697,11 +947,13 @@
             else if (currentTool === 'pipe-warmwater') { strokeColor = '#ff3333'; strokeWidth = 4; }
             else if (currentTool === 'pipe-vloerverwarming') { strokeColor = '#ff7700'; strokeWidth = 3; }
             else if (currentTool === 'pipe-afvoer') { strokeColor = '#777777'; strokeWidth = 8; }
+            else if (currentTool === 'pipe-kabelgoot') { strokeColor = '#888888'; strokeWidth = 20; lineOpacity = 0.5; }
 
             activeLine = new fabric.Line(points, {
                 strokeWidth: strokeWidth,
                 fill: strokeColor,
                 stroke: strokeColor,
+                opacity: lineOpacity,
                 originX: 'center',
                 originY: 'center',
                 selectable: currentTool !== 'measure', // Maatlijn wordt gegroepeerd en dán pas selecteerbaar
@@ -742,6 +994,25 @@
             canvas.requestRenderAll();
             lastPosX = e.clientX;
             lastPosY = e.clientY;
+            return;
+        }
+        
+        // Vormen updaten tijdens slepen
+        if (isDrawingLine && activeLine && (currentTool === 'rect' || currentTool === 'circle')) {
+            let pointer = canvas.getPointer(o.e);
+            let targetX = gridEnabled ? Math.round(pointer.x / gridSize) * gridSize : pointer.x;
+            let targetY = gridEnabled ? Math.round(pointer.y / gridSize) * gridSize : pointer.y;
+            
+            if (currentTool === 'rect') {
+                let w = Math.abs(targetX - activeLine.startX);
+                let h = Math.abs(targetY - activeLine.startY);
+                activeLine.set({ width: w, height: h });
+                activeLine.set({ left: Math.min(targetX, activeLine.startX), top: Math.min(targetY, activeLine.startY) });
+            } else if (currentTool === 'circle') {
+                let radius = Math.sqrt(Math.pow(targetX - activeLine.startX, 2) + Math.pow(targetY - activeLine.startY, 2));
+                activeLine.set({ radius: radius });
+            }
+            canvas.renderAll();
             return;
         }
 
@@ -807,18 +1078,57 @@
             return; // Gebruiker moet op Enter drukken om vlak te sluiten
         }
 
+        if (currentTool === 'calibrate' && activeLine) {
+            isDrawingLine = false;
+            let dx = activeLine.x2 - activeLine.x1;
+            let dy = activeLine.y2 - activeLine.y1;
+            let distPx = Math.sqrt(dx*dx + dy*dy);
+            
+            canvas.remove(activeLine);
+            activeLine = null;
+            
+            if (distPx > 10) {
+                let meters = prompt("Hoeveel meter is deze getrokken lijn in werkelijkheid?", "1.0");
+                if (meters && !isNaN(parseFloat(meters))) {
+                    let pxPerMeter = distPx / parseFloat(meters);
+                    document.getElementById('scaleInput').value = Math.round(pxPerMeter);
+                    alert(`Schaal succesvol gekalibreerd en ingesteld op ${Math.round(pxPerMeter)} pixels per meter.`);
+                }
+            }
+            switchTool('select');
+            return;
+        }
+
         if (isDrawingLine) {
             isDrawingLine = false;
+            if (activeLine && (currentTool === 'rect' || currentTool === 'circle')) {
+                activeLine.set({ selectable: true, evented: true });
+            }
             if(activeLine) {
                 activeLine.setCoords();
             }
             
             // Groepeer de lijn en de tekst samen tot één maatlijn-object
             if (currentTool === 'measure' && activeLine && activeMeasureText) {
+                let dx = activeLine.x2 - activeLine.x1;
+                let dy = activeLine.y2 - activeLine.y1;
+                let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+                let arrow1 = new fabric.Triangle({
+                    width: 12, height: 12, fill: activeLine.stroke,
+                    left: activeLine.x1, top: activeLine.y1,
+                    originX: 'center', originY: 'center', angle: angle - 90
+                });
+                let arrow2 = new fabric.Triangle({
+                    width: 12, height: 12, fill: activeLine.stroke,
+                    left: activeLine.x2, top: activeLine.y2,
+                    originX: 'center', originY: 'center', angle: angle + 90
+                });
+
                 activeLine.set({ selectable: true, evented: true });
                 activeMeasureText.set({ selectable: true, evented: true });
                 
-                let group = new fabric.Group([activeLine, activeMeasureText], {
+                let group = new fabric.Group([activeLine, arrow1, arrow2, activeMeasureText], {
                     selectable: true,
                     hasControls: true,
                     cadType: 'text'
@@ -999,14 +1309,46 @@
         }
     }
 
+    // Eigen stempels functionaliteit
+    let customStamps = [];
+    function saveCustomStamp() {
+        let activeObj = canvas.getActiveObject();
+        if (!activeObj) { alert("Selecteer eerst een object of groep om als stempel op te slaan."); return; }
+        let stampName = prompt("Geef de nieuwe stempel een naam:", "Eigen Stempel");
+        if (!stampName) return;
+        
+        activeObj.clone(function(cloned) {
+            cloned.set({ left: 0, top: 0, cadType: 'symbol', symbolType: stampName });
+            customStamps.push(cloned);
+            let idx = customStamps.length - 1;
+            let btn = document.createElement('button');
+            btn.className = 'stamp-btn';
+            btn.innerHTML = `⭐ ${stampName}`;
+            btn.onclick = () => placeCustomStamp(idx);
+            document.getElementById('customStampsContainer').appendChild(btn);
+        });
+    }
+    function placeCustomStamp(idx) {
+        switchTool('select');
+        let stamp = customStamps[idx];
+        stamp.clone(function(cloned) {
+            let center = canvas.getCenter(); let zoom = canvas.getZoom(); let vpt = canvas.viewportTransform;
+            cloned.set({ left: (center.left - vpt[4]) / zoom, top: (center.top - vpt[5]) / zoom, originX: 'center', originY: 'center', evented: true, selectable: true });
+            canvas.add(cloned); canvas.setActiveObject(cloned); canvas.requestRenderAll(); saveState();
+        });
+    }
+
     // Vrije Tekst tool handler
     document.getElementById('tool-text').addEventListener('click', () => {
+        let textInput = prompt("Voer de tekst in:", "Label");
+        if (textInput === null || textInput.trim() === "") { switchTool('select'); return; }
+
         let center = canvas.getCenter();
         let zoom = canvas.getZoom();
         let vpt = canvas.viewportTransform;
         let fontSize = parseInt(document.getElementById('fontSize').value) || 20;
         
-        let textNode = new fabric.IText('Label', {
+        let textNode = new fabric.IText(textInput, {
             left: (center.left - vpt[4]) / zoom,
             top: (center.top - vpt[5]) / zoom,
             fontFamily: 'Segoe UI',
@@ -1167,6 +1509,18 @@
         doc.save('technisch_ontwerp.pdf');
     });
 
+    document.getElementById('exportSvgBtn').addEventListener('click', () => {
+        canvas.discardActiveObject();
+        canvas.renderAll();
+        let svg = canvas.toSVG();
+        const blob = new Blob([svg], {type: "image/svg+xml"});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'technisch_ontwerp.svg';
+        link.click();
+    });
+
     function generateLegend() {
         let items = {};
         canvas.getObjects().forEach(obj => {
@@ -1189,6 +1543,43 @@
         }
         canvas.add(new fabric.Group(legendElements, { left: 50, top: 50, cadType: 'text' }));
         saveState();
+    }
+    
+    function generateBOM() {
+        let counts = {};
+        canvas.getObjects().forEach(obj => {
+            if (obj.cadType === 'symbol' && obj.symbolType) {
+                counts[obj.symbolType] = (counts[obj.symbolType] || 0) + 1;
+            }
+        });
+        
+        let bomText = "Materiaallijst (Stuks):\n\n";
+        if (Object.keys(counts).length === 0) {
+            bomText += "Er zijn nog geen geregistreerde symbolen op de tekening geplaatst.";
+        } else {
+            for (const [type, count] of Object.entries(counts)) {
+                bomText += `- ${type.toUpperCase()}: ${count}x\n`;
+            }
+        }
+        alert(bomText);
+    }
+    
+    function exportBOMCSV() {
+        let counts = {};
+        canvas.getObjects().forEach(obj => {
+            if (obj.cadType === 'symbol' && obj.symbolType) {
+                counts[obj.symbolType] = (counts[obj.symbolType] || 0) + 1;
+            }
+        });
+        let csv = "Onderdeel,Aantal\n";
+        for (const [type, count] of Object.entries(counts)) {
+            csv += `"${type.toUpperCase()}",${count}\n`;
+        }
+        const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'materiaallijst.csv';
+        link.click();
     }
 
     // 6. Exporteren van het samengestelde CAD-ontwerp
