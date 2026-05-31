@@ -1419,15 +1419,27 @@
                     // The item.timestamp is the END time.
                     const endDateTime = new Date(item.timestamp);
                     
-                    // Extract duration from subtitle "HH:MM, HH:MM:SS geslapen - notes"
+                    // Extract duration from subtitle "HH:MM, HH:MM:SS geslapen", "01:30 uur geslapen", or "45 min geslapen"
                     const subtitle = item.subtitle || '';
-                    const durationMatch = subtitle.match(/(\d{2}):(\d{2}):(\d{2})/);
+                    const durationMatch3 = subtitle.match(/(\d{2}):(\d{2}):(\d{2})/);
+                    const durationMatch2 = subtitle.match(/(\d{2}):(\d{2})\s*uur/);
+                    const durationMatchMin = subtitle.match(/(\d+)\s*min/);
+                    
                     let startDateTime = endDateTime; // fallback
-                    if (durationMatch) {
-                        const hours = parseInt(durationMatch[1], 10);
-                        const minutes = parseInt(durationMatch[2], 10);
-                        const seconds = parseInt(durationMatch[3], 10);
+                    if (durationMatch3) {
+                        const hours = parseInt(durationMatch3[1], 10);
+                        const minutes = parseInt(durationMatch3[2], 10);
+                        const seconds = parseInt(durationMatch3[3], 10);
                         const durationMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
+                        startDateTime = new Date(endDateTime.getTime() - durationMs);
+                    } else if (durationMatch2) {
+                        const hours = parseInt(durationMatch2[1], 10);
+                        const minutes = parseInt(durationMatch2[2], 10);
+                        const durationMs = (hours * 3600 + minutes * 60) * 1000;
+                        startDateTime = new Date(endDateTime.getTime() - durationMs);
+                    } else if (durationMatchMin) {
+                        const minutes = parseInt(durationMatchMin[1], 10);
+                        const durationMs = minutes * 60 * 1000;
                         startDateTime = new Date(endDateTime.getTime() - durationMs);
                     }
             
@@ -1605,14 +1617,85 @@
         const timerBtn = document.querySelector('.sleep-action-btn');
 
         function updateTimerDisplay() {
-            const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
-            const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
-            const s = String(timerSeconds % 60).padStart(2, '0');
-            if (isTimerRunning) {
-                timerDisplay.innerHTML = `${h}:${m}:${s} <i class="fa-solid fa-circle fa-fade" style="color: var(--icon-purple); font-size: 16px; vertical-align: middle; margin-left: 8px;"></i>`;
-            } else {
-                timerDisplay.innerHTML = `${h}:${m}:${s}`;
+            const h = Math.floor(timerSeconds / 3600);
+            const m = Math.floor((timerSeconds % 3600) / 60);
+            const display = h > 0 
+                ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`
+                : `${String(m).padStart(2,'0')} min`;
+            timerDisplay.textContent = display;
+        }
+
+        function updateSleepBanner() {
+            const timeline = document.querySelector('.timeline');
+            let banner = document.getElementById('sleepLiveBanner');
+            
+            if (!isTimerRunning && timerSeconds === 0) {
+                if (banner) banner.remove();
+                return;
             }
+
+            const h = Math.floor(timerSeconds / 3600);
+            const m = Math.floor((timerSeconds % 3600) / 60);
+            const timeText = h > 0
+                ? `${h} uur en ${m} min`
+                : `${m} min`;
+
+            const startVal = document.getElementById('sleepStart').value;
+            const startText = startVal ? `Gestart om ${startVal}` : 'Bezig...';
+
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'sleepLiveBanner';
+                banner.style.cssText = `
+                    background: linear-gradient(135deg, #f1e6f7, #e8d5f5);
+                    border-radius: 30px;
+                    padding: 14px 20px;
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 12px;
+                    border: 2px solid #d4b8f0;
+                    cursor: pointer;
+                `;
+                banner.innerHTML = `
+                    <div style="width:40px;height:40px;border-radius:50%;background:#f1e6f7;display:flex;align-items:center;justify-content:center;margin-right:15px;font-size:18px;color:var(--icon-purple);">
+                        <i class="fa-solid fa-bed"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-weight:600;font-size:15px;color:var(--text-dark);">Aan het slapen</div>
+                        <div id="sleepBannerSubtitle" style="font-size:13px;color:var(--text-light);margin-top:2px;"></div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                        <div id="sleepBannerTimer" style="font-size:22px;font-weight:300;color:var(--icon-purple);"></div>
+                        <div style="display:flex;gap:4px;">
+                            <div style="width:8px;height:8px;border-radius:50%;background:var(--icon-purple);animation:pulse 1.5s infinite;"></div>
+                        </div>
+                    </div>
+                `;
+
+                // Pulserend stipje animatie
+                if (!document.getElementById('pulseCss')) {
+                    const style = document.createElement('style');
+                    style.id = 'pulseCss';
+                    style.textContent = `
+                        @keyframes pulse {
+                            0%, 100% { opacity: 1; transform: scale(1); }
+                            50% { opacity: 0.4; transform: scale(0.8); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                // Voeg bovenaan de tijdlijn in
+                timeline.insertBefore(banner, timeline.firstChild);
+
+                // Maak de balk klikbaar om de slaap pop-up te openen
+                banner.addEventListener('click', () => {
+                    document.getElementById('openSleepModalBtn').click();
+                });
+            }
+
+            document.getElementById('sleepBannerTimer').textContent = timeText;
+            document.getElementById('sleepBannerSubtitle').textContent = startText;
         }
 
         if (isTimerRunning && sleepTimerStartTime) {
@@ -1627,13 +1710,16 @@
             timerInterval = setInterval(() => {
                 timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
                 updateTimerDisplay();
+                updateSleepBanner();
             }, 1000);
+            updateSleepBanner(); // Direct tonen bij laden
         } else if (timerSeconds > 0) {
             timerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat timer';
             if (document.getElementById('resetTimerBtn')) {
                 document.getElementById('resetTimerBtn').style.display = 'block';
             }
             updateTimerDisplay();
+            updateSleepBanner();
         }
 
         timerBtn.addEventListener('click', () => {
@@ -1644,6 +1730,7 @@
                 localStorage.setItem('sleepTimerSeconds', timerSeconds.toString());
                 timerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat timer';
                 updateTimerDisplay();
+                updateSleepBanner();
             } else {
                 if (timerSeconds === 0) {
                     const nowISO = getCurrentDateTime();
@@ -1662,9 +1749,11 @@
                 timerBtn.innerHTML = '<i class="fa-solid fa-stop"></i> Wakker geworden';
                 resetTimerBtn.style.display = 'block';
                 updateTimerDisplay();
+                updateSleepBanner();
                 timerInterval = setInterval(() => {
                     timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
                     updateTimerDisplay();
+                    updateSleepBanner();
                 }, 1000);
             }
         });
@@ -1680,6 +1769,7 @@
             localStorage.removeItem('sleepTimerDate');
             localStorage.removeItem('sleepTimerStartValue');
             updateTimerDisplay();
+            updateSleepBanner(); // Verwijdert de banner
             timerBtn.innerHTML = '<i class="fa-solid fa-stopwatch"></i> In slaap gevallen';
             if (document.getElementById('resetTimerBtn')) {
                 document.getElementById('resetTimerBtn').style.display = 'none';
@@ -1696,6 +1786,29 @@
                 document.getElementById('sleepStart').value = nowISO.slice(11, 16);
                 document.getElementById('sleepEnd').value = nowISO.slice(11, 16);
             }
+        });
+
+        document.getElementById('sleepStart').addEventListener('change', () => {
+            if (!isTimerRunning && timerSeconds === 0) return; // Timer is niet gestart, niks doen
+            
+            const newStartVal = document.getElementById('sleepStart').value;
+            const storedDate = sleepModal.dataset.date;
+            if (!newStartVal || !storedDate) return;
+            
+            // Bereken nieuwe starttijd
+            const newStartTime = new Date(`${storedDate}T${newStartVal}`).getTime();
+            
+            // Als de nieuwe starttijd in de toekomst ligt, negeer
+            if (newStartTime > Date.now()) return;
+            
+            // Pas de starttijd aan zodat de timer klopt
+            sleepTimerStartTime = newStartTime;
+            localStorage.setItem('sleepTimerStart', sleepTimerStartTime.toString());
+            
+            // Update direct de weergave
+            timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
+            updateTimerDisplay();
+            updateSleepBanner();
         });
 
         // --- Dashboard Knoppen (Pop-ups) ---
@@ -1718,6 +1831,10 @@
             if (isTimerRunning || timerSeconds > 0) {
                 const savedStartVal = localStorage.getItem('sleepTimerStartValue');
                 if (savedStartVal) document.getElementById('sleepStart').value = savedStartVal;
+                
+                // Zet de eindtijd standaard op NU, zodat je deze direct kunt aanpassen en opslaan
+                const nowISO = getCurrentDateTime();
+                document.getElementById('sleepEnd').value = nowISO.slice(11, 16);
             }
             document.getElementById('sleepNotes').value = '';
         });
@@ -1765,10 +1882,11 @@
             }
 
             const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
-            const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-            const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-            const s = String(totalSeconds % 60).padStart(2, '0');
-            const durationText = `${h}:${m}:${s}`;
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const durationText = h > 0 
+                ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} uur`
+                : `${m} min`;
             
             const timeString = format24Hour(endDateTime);
             
@@ -2229,9 +2347,11 @@
         let pumpRightStart = parseInt(localStorage.getItem('pumpRightStart')) || 0;
 
         function formatPumpTime(sec) {
-            const m = String(Math.floor(sec / 60)).padStart(2, '0');
-            const s = String(sec % 60).padStart(2, '0');
-            return `${m}:${s}`;
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            return h > 0 
+                ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+                : `${String(m).padStart(2, '0')} min`;
         }
 
         if (isPumpLeftRunning && pumpLeftStart) {
@@ -2340,8 +2460,8 @@
             localStorage.removeItem('pumpRightStart');
             localStorage.removeItem('pumpRightRunning');
             localStorage.removeItem('pumpRightSeconds');
-            document.getElementById('pumpLeftTimerDisplay').textContent = '00:00';
-            document.getElementById('pumpRightTimerDisplay').textContent = '00:00';
+            document.getElementById('pumpLeftTimerDisplay').textContent = '00 min';
+            document.getElementById('pumpRightTimerDisplay').textContent = '00 min';
             pumpLeftTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Start';
             pumpRightTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Start';
         };
@@ -2373,8 +2493,13 @@
             }
 
             let sideText = [];
-            if (pumpLeftSeconds > 0) sideText.push(`L: ${Math.max(1, Math.round(pumpLeftSeconds/60))}m`);
-            if (pumpRightSeconds > 0) sideText.push(`R: ${Math.max(1, Math.round(pumpRightSeconds/60))}m`);
+            const formatDuration = (sec) => {
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                return h > 0 ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} uur` : `${Math.max(1, m)} min`;
+            };
+            if (pumpLeftSeconds > 0) sideText.push(`L: ${formatDuration(pumpLeftSeconds)}`);
+            if (pumpRightSeconds > 0) sideText.push(`R: ${formatDuration(pumpRightSeconds)}`);
             
             let durationText = sideText.length > 0 ? sideText.join(', ') : (oldDuration || 'handmatig');
             if (amountVal) durationText += `, ${amountVal} ml`;
