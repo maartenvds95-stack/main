@@ -823,6 +823,12 @@
                 </button>
             </div>
 
+            <div style="text-align: center; margin-top: 8px;">
+                <button id="resetTimerBtn" style="background: transparent; border: none; color: var(--text-light); font-size: 13px; cursor: pointer; display: none;">
+                    <i class="fa-solid fa-rotate-left"></i> Timer resetten
+                </button>
+            </div>
+
             <div class="input-group">
                 <label class="input-label">Opmerkingen</label>
                 <textarea class="input-field" id="sleepNotes" placeholder="Uw opmerkingen"></textarea>
@@ -1602,17 +1608,31 @@
             const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
             const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
             const s = String(timerSeconds % 60).padStart(2, '0');
-            timerDisplay.textContent = `${h}:${m}:${s}`;
+            if (isTimerRunning) {
+                timerDisplay.innerHTML = `${h}:${m}:${s} <i class="fa-solid fa-circle fa-fade" style="color: var(--icon-purple); font-size: 16px; vertical-align: middle; margin-left: 8px;"></i>`;
+            } else {
+                timerDisplay.innerHTML = `${h}:${m}:${s}`;
+            }
         }
 
         if (isTimerRunning && sleepTimerStartTime) {
+            const savedDate = localStorage.getItem('sleepTimerDate');
+            const savedStartVal = localStorage.getItem('sleepTimerStartValue');
+            if (savedDate) sleepModal.dataset.date = savedDate;
+            
             timerBtn.innerHTML = '<i class="fa-solid fa-stop"></i> Wakker geworden';
+            if (document.getElementById('resetTimerBtn')) {
+                document.getElementById('resetTimerBtn').style.display = 'block';
+            }
             timerInterval = setInterval(() => {
                 timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
                 updateTimerDisplay();
             }, 1000);
         } else if (timerSeconds > 0) {
             timerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat timer';
+            if (document.getElementById('resetTimerBtn')) {
+                document.getElementById('resetTimerBtn').style.display = 'block';
+            }
             updateTimerDisplay();
         }
 
@@ -1623,6 +1643,7 @@
                 localStorage.setItem('sleepTimerRunning', 'false');
                 localStorage.setItem('sleepTimerSeconds', timerSeconds.toString());
                 timerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat timer';
+                updateTimerDisplay();
             } else {
                 if (timerSeconds === 0) {
                     const nowISO = getCurrentDateTime();
@@ -1630,6 +1651,8 @@
                     document.getElementById('sleepStart').value = nowISO.slice(11, 16);
                     document.getElementById('sleepEnd').value = '';
                     sleepTimerStartTime = Date.now();
+                    localStorage.setItem('sleepTimerDate', nowISO.slice(0, 10));
+                    localStorage.setItem('sleepTimerStartValue', nowISO.slice(11, 16));
                 } else {
                     sleepTimerStartTime = Date.now() - (timerSeconds * 1000);
                 }
@@ -1637,6 +1660,8 @@
                 localStorage.setItem('sleepTimerRunning', 'true');
                 isTimerRunning = true;
                 timerBtn.innerHTML = '<i class="fa-solid fa-stop"></i> Wakker geworden';
+                resetTimerBtn.style.display = 'block';
+                updateTimerDisplay();
                 timerInterval = setInterval(() => {
                     timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
                     updateTimerDisplay();
@@ -1652,10 +1677,27 @@
             localStorage.removeItem('sleepTimerStart');
             localStorage.removeItem('sleepTimerRunning');
             localStorage.removeItem('sleepTimerSeconds');
+            localStorage.removeItem('sleepTimerDate');
+            localStorage.removeItem('sleepTimerStartValue');
             updateTimerDisplay();
             timerBtn.innerHTML = '<i class="fa-solid fa-stopwatch"></i> In slaap gevallen';
+            if (document.getElementById('resetTimerBtn')) {
+                document.getElementById('resetTimerBtn').style.display = 'none';
+            }
         }
         
+        const resetTimerBtn = document.getElementById('resetTimerBtn');
+        resetTimerBtn.addEventListener('click', () => {
+            if (confirm('Weet je zeker dat je de timer wilt resetten?')) {
+                resetTimer();
+                resetTimerBtn.style.display = 'none';
+                const nowISO = getCurrentDateTime();
+                sleepModal.dataset.date = nowISO.slice(0, 10);
+                document.getElementById('sleepStart').value = nowISO.slice(11, 16);
+                document.getElementById('sleepEnd').value = nowISO.slice(11, 16);
+            }
+        });
+
         // --- Dashboard Knoppen (Pop-ups) ---
 
         // Open Pop-up
@@ -1672,8 +1714,12 @@
                 sleepModal.dataset.date = nowISO.slice(0, 10);
                 document.getElementById('sleepStart').value = nowISO.slice(11, 16);
                 document.getElementById('sleepEnd').value = nowISO.slice(11, 16);
-                document.getElementById('sleepNotes').value = '';
             }
+            if (isTimerRunning || timerSeconds > 0) {
+                const savedStartVal = localStorage.getItem('sleepTimerStartValue');
+                if (savedStartVal) document.getElementById('sleepStart').value = savedStartVal;
+            }
+            document.getElementById('sleepNotes').value = '';
         });
 
         // Sluit Pop-up
@@ -1812,7 +1858,8 @@
 
         // Opslaan Verschonen
         saveDiaperBtn.addEventListener('click', async () => {
-            const activeTab = document.querySelector('#diaperTypeControl .segment-btn.active').textContent.trim();
+            const activeTab = document.querySelector('#diaperTypeControl .segment-btn.active')
+                .textContent.replace(/\s+/g, ' ').trim();
             const timeVal = document.getElementById('diaperTime').value;
             const notesVal = document.getElementById('diaperNotes').value.trim();
             const storedDate = diaperModal.dataset.date;
