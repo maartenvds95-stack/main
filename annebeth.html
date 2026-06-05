@@ -1640,7 +1640,8 @@
                 ? `${h} uur en ${m} min`
                 : `${m} min`;
 
-            const startVal = document.getElementById('sleepStart').value;
+            const savedStartVal = localStorage.getItem('sleepTimerStartValue');
+            const startVal = document.getElementById('sleepStart').value || savedStartVal;
             const startText = startVal ? `Gestart om ${startVal}` : 'Bezig...';
 
             if (!banner) {
@@ -1734,12 +1735,28 @@
             } else {
                 if (timerSeconds === 0) {
                     const nowISO = getCurrentDateTime();
-                    sleepModal.dataset.date = nowISO.slice(0, 10);
-                    document.getElementById('sleepStart').value = nowISO.slice(11, 16);
+                    const storedDate = sleepModal.dataset.date || nowISO.slice(0, 10);
+                    let userStartVal = document.getElementById('sleepStart').value;
+                    
+                    if (!userStartVal) {
+                        userStartVal = nowISO.slice(11, 16);
+                    }
+                    
+                    const userStartTime = new Date(`${storedDate}T${userStartVal}`).getTime();
+                    
+                    if (userStartTime <= Date.now()) {
+                        sleepTimerStartTime = userStartTime;
+                    } else {
+                        sleepTimerStartTime = Date.now();
+                        userStartVal = nowISO.slice(11, 16);
+                    }
+                    
+                    sleepModal.dataset.date = storedDate;
+                    document.getElementById('sleepStart').value = userStartVal;
                     document.getElementById('sleepEnd').value = '';
-                    sleepTimerStartTime = Date.now();
-                    localStorage.setItem('sleepTimerDate', nowISO.slice(0, 10));
-                    localStorage.setItem('sleepTimerStartValue', nowISO.slice(11, 16));
+                    
+                    localStorage.setItem('sleepTimerDate', storedDate);
+                    localStorage.setItem('sleepTimerStartValue', userStartVal);
                 } else {
                     sleepTimerStartTime = Date.now() - (timerSeconds * 1000);
                 }
@@ -1784,31 +1801,70 @@
                 const nowISO = getCurrentDateTime();
                 sleepModal.dataset.date = nowISO.slice(0, 10);
                 document.getElementById('sleepStart').value = nowISO.slice(11, 16);
-                document.getElementById('sleepEnd').value = nowISO.slice(11, 16);
+                document.getElementById('sleepEnd').value = '';
             }
         });
 
-        document.getElementById('sleepStart').addEventListener('change', () => {
-            if (!isTimerRunning && timerSeconds === 0) return; // Timer is niet gestart, niks doen
+        function calculateAndDisplaySleepDuration() {
+            if (isTimerRunning) return; // Laat live timer met rust
             
-            const newStartVal = document.getElementById('sleepStart').value;
+            const startVal = document.getElementById('sleepStart').value;
+            const endVal = document.getElementById('sleepEnd').value;
             const storedDate = sleepModal.dataset.date;
-            if (!newStartVal || !storedDate) return;
             
-            // Bereken nieuwe starttijd
-            const newStartTime = new Date(`${storedDate}T${newStartVal}`).getTime();
-            
-            // Als de nieuwe starttijd in de toekomst ligt, negeer
-            if (newStartTime > Date.now()) return;
-            
-            // Pas de starttijd aan zodat de timer klopt
-            sleepTimerStartTime = newStartTime;
-            localStorage.setItem('sleepTimerStart', sleepTimerStartTime.toString());
-            
-            // Update direct de weergave
-            timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
-            updateTimerDisplay();
-            updateSleepBanner();
+            if (startVal && endVal && storedDate) {
+                const startDateTime = new Date(`${storedDate}T${startVal}`);
+                let endDateTime = new Date(`${storedDate}T${endVal}`);
+                
+                if (endDateTime < startDateTime) {
+                    endDateTime.setDate(endDateTime.getDate() + 1);
+                }
+                
+                const durationMs = endDateTime - startDateTime;
+                const totalSec = Math.max(0, Math.floor(durationMs / 1000));
+                
+                const h = Math.floor(totalSec / 3600);
+                const m = Math.floor((totalSec % 3600) / 60);
+                const display = h > 0 
+                    ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`
+                    : `${String(m).padStart(2,'0')} min`;
+                    
+                document.querySelector('#sleepModal .timer-display').textContent = display;
+                document.querySelector('#sleepModal .sleep-action-btn').innerHTML = '<i class="fa-solid fa-check"></i> Tijdsduur berekend';
+            } else {
+                if (timerSeconds > 0) {
+                    updateTimerDisplay();
+                    document.querySelector('#sleepModal .sleep-action-btn').innerHTML = '<i class="fa-solid fa-play"></i> Hervat timer';
+                } else {
+                    document.querySelector('#sleepModal .timer-display').textContent = '00:00:00';
+                    document.querySelector('#sleepModal .sleep-action-btn').innerHTML = '<i class="fa-solid fa-stopwatch"></i> In slaap gevallen';
+                }
+            }
+        }
+
+        document.getElementById('sleepStart').addEventListener('input', () => {
+            if (isTimerRunning || (!isTimerRunning && timerSeconds > 0 && !document.getElementById('sleepEnd').value)) {
+                const newStartVal = document.getElementById('sleepStart').value;
+                const storedDate = sleepModal.dataset.date;
+                if (!newStartVal || !storedDate) return;
+                
+                const newStartTime = new Date(`${storedDate}T${newStartVal}`).getTime();
+                if (newStartTime > Date.now()) return;
+                
+                sleepTimerStartTime = newStartTime;
+                localStorage.setItem('sleepTimerStart', sleepTimerStartTime.toString());
+                localStorage.setItem('sleepTimerStartValue', newStartVal);
+                
+                timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
+                updateTimerDisplay();
+                updateSleepBanner();
+            } else {
+                calculateAndDisplaySleepDuration();
+            }
+        });
+
+        document.getElementById('sleepEnd').addEventListener('input', () => {
+            calculateAndDisplaySleepDuration();
         });
 
         // --- Dashboard Knoppen (Pop-ups) ---
