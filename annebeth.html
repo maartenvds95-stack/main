@@ -882,7 +882,7 @@
             <div class="segmented-control" id="diaperTypeControl" style="background-color: #fcefd0;">
                 <button class="segment-btn active" style="color: var(--icon-yellow);"><i class="fa-solid fa-droplet"></i> Plas</button>
                 <button class="segment-btn" style="color: var(--icon-yellow);"><i class="fa-solid fa-poop"></i> Poep</button>
-                <button class="segment-btn" style="color: var(--icon-yellow);"><i class="fa-solid fa-asterisk"></i> Beide</button>
+                <button class="segment-btn" style="color: var(--icon-yellow);"><i class="fa-solid fa-droplet" style="font-size: 0.9em;"></i><i class="fa-solid fa-poop" style="margin-left: 2px; font-size: 0.9em;"></i> Beide</button>
             </div>
 
             <div class="input-group">
@@ -2402,7 +2402,8 @@
             // Icoon dynamisch bepalen afhankelijk van het type luier
             let diaperIcon = 'fa-baby';
             if (activeTab === 'Plas') diaperIcon = 'fa-droplet';
-            if (activeTab === 'Poep' || activeTab === 'Beide') diaperIcon = 'fa-poop';
+            if (activeTab === 'Poep') diaperIcon = 'fa-poop';
+            if (activeTab === 'Beide') diaperIcon = 'fa-droplet" style="font-size: 0.85em;"></i><i class="fa-solid fa-poop" style="margin-left: 2px; font-size: 0.85em;';
 
             const itemTimestamp = timeObj.toISOString();
 
