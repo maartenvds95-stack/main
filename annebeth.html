@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#f7f5ef" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
+    
+    <!-- PWA / App instellingen (Voor opslaan op startscherm) -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Annebeth">
+    
+    <!-- App Icoontje -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23f2e3d5%22/><text y=%22.85em%22 x=%2212%22 font-size=%2275%22>👶</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23f2e3d5%22/><text y=%22.85em%22 x=%2212%22 font-size=%2275%22>👶</text></svg>">
+
     <title>Het dagboek van Annebeth</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -1233,6 +1244,16 @@
                     alert('Inloggen mislukt. Controleer je e-mailadres en wachtwoord.');
                     console.error("Fout bij inloggen:", error);
                 }
+                if (!activeBreastTimerUnsubscribe) {
+                    activeBreastTimerUnsubscribe = onSnapshot(doc(db, "active_state", "breastTimer"), (docSnap) => {
+                        if (docSnap.exists() && typeof syncBreastTimerFromFirebase === 'function') syncBreastTimerFromFirebase(docSnap.data());
+                    });
+                }
+                if (!activePumpTimerUnsubscribe) {
+                    activePumpTimerUnsubscribe = onSnapshot(doc(db, "active_state", "pumpTimer"), (docSnap) => {
+                        if (docSnap.exists() && typeof syncPumpTimerFromFirebase === 'function') syncPumpTimerFromFirebase(docSnap.data());
+                    });
+                }
             } else {
                 alert('Vul alsjeblieft een e-mailadres en wachtwoord in.');
             }
@@ -1519,6 +1540,14 @@
                     document.getElementById('noteModal').classList.add('active');
                     document.body.style.overflow = 'hidden';
                 }
+                if (activeBreastTimerUnsubscribe) {
+                    activeBreastTimerUnsubscribe();
+                    activeBreastTimerUnsubscribe = null;
+                }
+                if (activePumpTimerUnsubscribe) {
+                    activePumpTimerUnsubscribe();
+                    activePumpTimerUnsubscribe = null;
+                }
             }
         });
 
@@ -1732,6 +1761,7 @@
                 timerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat timer';
                 updateTimerDisplay();
                 updateSleepBanner();
+                updateFirebaseSleepTimer({ isRunning: false, seconds: timerSeconds });
             } else {
                 if (timerSeconds === 0) {
                     const nowISO = getCurrentDateTime();
@@ -1772,6 +1802,14 @@
                     updateTimerDisplay();
                     updateSleepBanner();
                 }, 1000);
+
+                updateFirebaseSleepTimer({
+                    isRunning: true,
+                    startTime: sleepTimerStartTime,
+                    seconds: timerSeconds,
+                    startDate: sleepModal.dataset.date || localStorage.getItem('sleepTimerDate'),
+                    startValue: document.getElementById('sleepStart').value || localStorage.getItem('sleepTimerStartValue')
+                });
             }
         });
 
@@ -1791,6 +1829,7 @@
             if (document.getElementById('resetTimerBtn')) {
                 document.getElementById('resetTimerBtn').style.display = 'none';
             }
+            updateFirebaseSleepTimer({ isRunning: false, startTime: 0, seconds: 0, startDate: '', startValue: '' });
         }
         
         const resetTimerBtn = document.getElementById('resetTimerBtn');
@@ -1858,6 +1897,11 @@
                 timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
                 updateTimerDisplay();
                 updateSleepBanner();
+                
+                updateFirebaseSleepTimer({
+                    startTime: sleepTimerStartTime,
+                    startValue: newStartVal
+                });
             } else {
                 calculateAndDisplaySleepDuration();
             }
@@ -2223,6 +2267,7 @@
             document.getElementById('rightTimerDisplay').textContent = '00:00';
             leftTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Start';
             rightTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Start';
+            updateFirebaseBreastTimer({ isLeftRunning: false, isRightRunning: false, leftStart: 0, rightStart: 0, leftSeconds: 0, rightSeconds: 0, startDate: '', startValue: '' });
         };
 
         closeBreastModalBtn.addEventListener('click', closeBreastModal);
@@ -2798,9 +2843,7 @@
 
             let timeObj = new Date();
             if (timeVal && storedDate) {
-                const combinedDateTime = `${storedDate}T${timeVal}`;
-                const parsedDate = new Date(combinedDateTime);
-                if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
+                timeObj = parseAndAdjustTime(storedDate, timeVal);
             }
 
             try {
