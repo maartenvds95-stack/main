@@ -1426,6 +1426,21 @@
                         console.error("Fout bij ophalen groeidata:", error);
                     });
                 }
+                if (!activeSleepTimerUnsubscribe) {
+                    activeSleepTimerUnsubscribe = onSnapshot(doc(db, "active_state", "sleepTimer"), (docSnap) => {
+                        if (docSnap.exists() && typeof syncSleepTimerFromFirebase === 'function') syncSleepTimerFromFirebase(docSnap.data());
+                    });
+                }
+                if (!activeBreastTimerUnsubscribe) {
+                    activeBreastTimerUnsubscribe = onSnapshot(doc(db, "active_state", "breastTimer"), (docSnap) => {
+                        if (docSnap.exists() && typeof syncBreastTimerFromFirebase === 'function') syncBreastTimerFromFirebase(docSnap.data());
+                    });
+                }
+                if (!activePumpTimerUnsubscribe) {
+                    activePumpTimerUnsubscribe = onSnapshot(doc(db, "active_state", "pumpTimer"), (docSnap) => {
+                        if (docSnap.exists() && typeof syncPumpTimerFromFirebase === 'function') syncPumpTimerFromFirebase(docSnap.data());
+                    });
+                }
             } else {
                 currentUser = null;
                 loginScreen.style.display = 'block';
@@ -1439,6 +1454,18 @@
                 if (growthUnsubscribe) {
                     growthUnsubscribe();
                     growthUnsubscribe = null;
+                }
+                if (activeSleepTimerUnsubscribe) {
+                    activeSleepTimerUnsubscribe();
+                    activeSleepTimerUnsubscribe = null;
+                }
+                if (activeBreastTimerUnsubscribe) {
+                    activeBreastTimerUnsubscribe();
+                    activeBreastTimerUnsubscribe = null;
+                }
+                if (activePumpTimerUnsubscribe) {
+                    activePumpTimerUnsubscribe();
+                    activePumpTimerUnsubscribe = null;
                 }
             }
         });
