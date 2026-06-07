@@ -16,6 +16,9 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23f2e3d5%22/><text y=%22.85em%22 x=%2212%22 font-size=%2275%22>👶</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23f2e3d5%22/><text y=%22.85em%22 x=%2212%22 font-size=%2275%22>👶</text></svg>">
 
+    <!-- Manifest voor Google Chrome (Android / Desktop app tegel) -->
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Annebeth%22%2C%22short_name%22%3A%22Annebeth%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f7f5ef%22%2C%22theme_color%22%3A%22%237b52de%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D%2522http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%2522%20viewBox%3D%25220%200%20100%20100%2522%3E%3Crect%20width%3D%2522100%2522%20height%3D%2522100%2522%20rx%3D%252220%2522%20fill%3D%2522%2523f2e3d5%2522%2F%3E%3Ctext%20y%3D%2522.85em%2522%20x%3D%252212%2522%20font-size%3D%252275%2522%3E%F0%9F%91%B6%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
+
     <title>Het dagboek van Annebeth</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -155,6 +158,16 @@
             right: -5px;
             color: white;
             font-size: 20px;
+        }
+        
+        /* Kleur het wolkje groen bij actieve verbinding */
+        .profile-center .stat-circle.is-online::after {
+            color: var(--icon-green);
+        }
+
+        /* Kleur het wolkje rood bij verbroken verbinding */
+        .profile-center .stat-circle.is-offline::after {
+            color: #ff3b30;
         }
 
         .profile-center .stat-value {
@@ -1134,6 +1147,23 @@
             if (dateObj.toDateString() === yesterday.toDateString()) return 'Gisteren';
             return getDutchDateLong(dateObj);
         }
+
+        // --- Connectie status wolkje (Groen = online) ---
+        function updateConnectionCloud() {
+            const babyCircle = document.querySelector('.profile-center .stat-circle');
+            if (babyCircle) {
+                if (navigator.onLine) {
+                    babyCircle.classList.add('is-online');
+                    babyCircle.classList.remove('is-offline');
+                } else {
+                    babyCircle.classList.remove('is-online');
+                    babyCircle.classList.add('is-offline');
+                }
+            }
+        }
+        window.addEventListener('online', updateConnectionCloud);
+        window.addEventListener('offline', updateConnectionCloud);
+        updateConnectionCloud(); // Direct checken bij het laden
 
         // ==========================================
         // --- FIREBASE INITIALISATIE ---
@@ -3088,7 +3118,9 @@
 
             let timeObj = new Date();
             if (timeVal && storedDate) {
-                timeObj = parseAndAdjustTime(storedDate, timeVal);
+                const combinedDateTime = `${storedDate}T${timeVal}`;
+                const parsedDate = new Date(combinedDateTime);
+                if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
             }
 
             try {

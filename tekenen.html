@@ -1290,6 +1290,14 @@
             let txt = new fabric.Text('WP', { fontSize: 14, fill: '#9ece6a', originX: 'center', originY: 'center', fontWeight: 'bold' });
             elements = [box, txt];
         }
+        else {
+            // Fallback voor nog niet geïmplementeerde symbolen (zoals deur, serverkast, etc.)
+            let box = new fabric.Rect({ width: 40, height: 40, fill: '#2f354f', stroke: '#7aa2f7', strokeWidth: 2, originX: 'center', originY: 'center' });
+            let txt = new fabric.Text(type.substring(0,3).toUpperCase(), { fontSize: 12, fill: '#7aa2f7', originX: 'center', originY: 'center', fontWeight: 'bold' });
+            elements = [box, txt];
+            
+            statusBar.innerText = `Symbool '${type}' gebruikt momenteel een tijdelijke standaardvorm.`;
+        }
 
         // Groepeer alle getekende sub-vormen tot één verplaatsbaar CAD-symbool
         if (elements.length > 0) {
