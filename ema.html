@@ -339,6 +339,11 @@
   .login-box label { font-size: 12px; color: var(--text2); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 6px; }
   .login-box input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); font-size: 14px; }
   html:not(.light-mode) .login-logo { filter: brightness(0) invert(1); }
+
+  /* Weer module scrollbar voor uurlijkse voorspelling */
+  #hourlyForecastContainer { scroll-behavior: smooth; }
+  #hourlyForecastContainer::-webkit-scrollbar { height: 6px; }
+  #hourlyForecastContainer::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
   
   html:not(.light-mode) .login-logo, html:not(.light-mode) .logo-img { filter: brightness(0) invert(1); }
 </style>
@@ -632,6 +637,7 @@
               <button type="button" class="btn btn-outline unit-type-btn" data-value="ALS vervoer">ALS vervoer</button>
               <button type="button" class="btn btn-outline unit-type-btn" data-value="Reddingsbrigade">Reddingsbrigade</button>
               <button type="button" class="btn btn-outline unit-type-btn" data-value="Brandwacht">Brandwacht</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="Ondersteunend">Ondersteunend</button>
             </div>
             <input type="hidden" name="soort" required>
           </div>
@@ -652,10 +658,6 @@
             <input type="text" name="naam3" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
           </div>
           <div>
-            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Telefoonnummer</label>
-            <input type="text" name="telefoonnummer" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
-          </div>
-          <div>
             <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Status *</label>
             <select name="status" required style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
               <option value="inzetbaar">inzetbaar</option>
@@ -669,10 +671,6 @@
             <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Gekoppeld aan post</label>
             <input type="text" name="gekoppeldAanPost" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
           </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;flex:1;margin-bottom:0;">Ondersteunend</label>
-            <input type="checkbox" name="ondersteunend" value="true" style="width:18px;height:18px;">
-          </div>
           <div>
             <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">iPadnr</label>
             <input type="text" name="ipadnr" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
@@ -682,7 +680,7 @@
             <input type="text" name="tasnummer" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
           </div>
           <div>
-            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Radio ID</label>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Portofoon nummer</label>
             <input type="text" name="radioId" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
           </div>
                     <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
@@ -743,13 +741,12 @@
               <th>Medewerker 1</th>
               <th>Medewerker 2</th>
               <th>Medewerker 3</th>
-              <th>Telefoon</th>
               <th class="sort-header" data-sort="gekoppeldAanPost">Gekoppeld aan post <span class="sort-icon">↕</span></th>
               <th>Ondersteunend</th>
               <th class="sort-header" data-sort="status">Status <span class="sort-icon">↕</span></th>
               <th class="col-editable-cell">iPadnr</th>
               <th class="col-editable-cell">Tasnummer</th>
-              <th class="col-editable-cell">Radio ID</th>
+              <th class="col-editable-cell">Portofoon nummer</th>
             </tr>
           </thead>
           <tbody id="detailedUnitsTableBody">
@@ -1160,47 +1157,90 @@
 </div>
 
 <div class="modal-overlay" id="weatherModal">
-  <div class="modal-content" style="width: 800px; max-width: 95vw;">
+  <div class="modal-content" style="width: 900px; max-width: 95vw;">
     <div class="modal-header">
       <h3>Lokaal Weer & Neerslagradar</h3>
       <button class="modal-close" id="weatherCloseBtn">&times;</button>
     </div>
-    <div style="background: var(--bg2); padding: 24px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+    <div style="background: var(--bg2); padding: 24px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; max-height: calc(100vh - 80px); overflow-y: auto;">
       
-      <div style="display: flex; gap: 24px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 250px; background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+      <!-- ALERTS BANNER -->
+      <div id="weatherAlertsContainer" style="display: none; margin-bottom: 20px;"></div>
+      
+      <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px;">
+        <div style="flex: 1; min-width: 300px; background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
            <h4 style="margin-bottom: 16px; color: var(--text1); font-size: 15px; font-weight: 600;">Actuele Weergegevens</h4>
-           <div id="weatherLocationInfo" style="font-size: 13px; color: var(--text2); margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
+           <div id="weatherLocationInfo" style="font-size: 13px; color: var(--text2); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
              <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
              <span>Locatie aan het ophalen...</span>
            </div>
            
-           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-              <div style="background: var(--bg2); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
-                 <div style="font-size: 24px; font-weight: 600; color: var(--blue);" id="weatherTemp">-- °C</div>
-                 <div style="font-size: 11px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Temperatuur</div>
+           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <!-- Basis -->
+              <div style="background: var(--bg2); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 20px; font-weight: 600; color: var(--blue);" id="weatherTemp">-- °C</div>
+                 <div style="font-size: 10px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Temperatuur</div>
               </div>
-              <div style="background: var(--bg2); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
-                 <div style="font-size: 24px; font-weight: 600; color: var(--amber);" id="weatherWind">-- Bft</div>
-                 <div style="font-size: 11px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;" id="weatherWindDir">Windrichting</div>
+              <div style="background: var(--bg2); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 20px; font-weight: 600; color: var(--amber);" id="weatherWind">-- Bft</div>
+                 <div style="font-size: 10px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;" id="weatherWindDir">Windrichting</div>
               </div>
-              <div style="background: var(--bg2); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
-                 <div style="font-size: 24px; font-weight: 600; color: var(--green);" id="weatherRain">-- mm</div>
-                 <div style="font-size: 11px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Neerslag</div>
+              <div style="background: var(--bg2); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 20px; font-weight: 600; color: var(--green);" id="weatherRain">-- mm</div>
+                 <div style="font-size: 10px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Neerslag</div>
               </div>
-              <div style="background: var(--bg2); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
-                 <div style="font-size: 24px; font-weight: 600; color: var(--purple);" id="weatherGusts">-- km/u</div>
-                 <div style="font-size: 11px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Windstoten</div>
+              <div style="background: var(--bg2); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 20px; font-weight: 600; color: var(--purple);" id="weatherGusts">-- km/u</div>
+                 <div style="font-size: 10px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Windstoten</div>
               </div>
            </div>
+
+           <!-- Extra Gegevens (EHBO / Logistiek) -->
+           <h4 style="margin-top: 20px; margin-bottom: 12px; color: var(--text1); font-size: 13px; font-weight: 600;">Gezondheid & Logistiek</h4>
+           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div style="background: var(--bg2); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                 <span style="font-size: 11px; color: var(--text3);">Gevoelstemp.</span>
+                 <strong style="color: var(--text1); font-size: 13px;" id="weatherApparentTemp">-- °C</strong>
+              </div>
+              <div style="background: var(--bg2); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                 <span style="font-size: 11px; color: var(--text3);">Luchtvocht.</span>
+                 <strong style="color: var(--text1); font-size: 13px;" id="weatherHumidity">-- %</strong>
+              </div>
+              <div style="background: var(--bg2); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                 <span style="font-size: 11px; color: var(--text3);">UV-Index</span>
+                 <strong style="color: var(--text1); font-size: 13px;" id="weatherUV">--</strong>
+              </div>
+              <div style="background: var(--bg2); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                 <span style="font-size: 11px; color: var(--text3);">Zon (op/onder)</span>
+                 <strong style="color: var(--text1); font-size: 13px;" id="weatherSun">--:-- / --:--</strong>
+              </div>
+           </div>
+
         </div>
 
-        <div style="flex: 1; min-width: 330px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
            <iframe id="buienradarIframe" src="about:blank" scrolling="no" width="330" height="330" frameborder="no" style="border: 1px solid var(--border); border-radius: 12px; background: var(--bg2); max-width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></iframe>
            <div style="font-size: 11px; color: var(--text3); margin-top: 12px; text-align: center;">Bron radar: Buienradar. Bron weerdata: Open-Meteo.</div>
         </div>
       </div>
       
+      <!-- 5-MINUTEN REGENGRAFIEK -->
+      <div style="background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+        <h4 style="margin-bottom: 16px; color: var(--text1); font-size: 15px; font-weight: 600;">Regenverwachting (Komende 2 uur, per 5 minuten)</h4>
+        <div id="rainChartContainer" style="display: flex; align-items: flex-end; height: 100px; gap: 2px; border-bottom: 1px solid var(--border); padding-bottom: 5px;">
+            <div style="color: var(--text3); font-size: 13px;">Regengrafiek laden...</div>
+        </div>
+        <div id="rainChartLabels" style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); margin-top: 5px;"></div>
+      </div>
+
+      <!-- UURLIJKSE VOORSPELLING -->
+      <div style="background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+        <h4 style="margin-bottom: 16px; color: var(--text1); font-size: 15px; font-weight: 600;">Verwachting (Komende 12 uur)</h4>
+        <div id="hourlyForecastContainer" style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px;">
+            <div style="color: var(--text3); font-size: 13px;">Voorspelling laden...</div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -2962,10 +3002,9 @@
               naam1: fd.get('naam1').trim() || '',
               naam2: fd.get('naam2').trim() || '',
               naam3: fd.get('naam3').trim() || '',
-              telefoonnummer: fd.get('telefoonnummer').trim() || '',
               status: fd.get('status'),
               gekoppeldAanPost: fd.get('gekoppeldAanPost').trim() || '',
-              ondersteunend: fd.get('ondersteunend') === 'true',
+              ondersteunend: fd.get('soort') === 'Ondersteunend',
               ipadnr: fd.get('ipadnr').trim() || '',
               tasnummer: fd.get('tasnummer').trim() || '',
               radioId: fd.get('radioId').trim() || ''
@@ -3040,7 +3079,6 @@
                   <td>${getEditableSpan('naam1', u.naam1)}</td>
                   <td>${getEditableSpan('naam2', u.naam2)}</td>
                   <td>${getEditableSpan('naam3', u.naam3)}</td>
-                  <td>${getEditableSpan('telefoonnummer', u.telefoonnummer)}</td>
                   <td>${getEditableSpan('gekoppeldAanPost', u.gekoppeldAanPost)}</td>
                   <td>${u.ondersteunend ? 'Ja' : 'Nee'}</td>
                   <td>${statusDropdown}</td>
@@ -3143,7 +3181,7 @@
           var save = function() {
               var newVal = $input.val();
               if (field === 'radioId' && newVal && !/^\d+$/.test(newVal)) {
-                  showToast("Radio ID moet een getal zijn.", true);
+                  showToast("Portofoon nummer moet een getal zijn.", true);
                   restore();
                   return;
               }
@@ -3209,7 +3247,6 @@
                       type: 'BLS',
                       location: 'Onbekend',
                       naam1: '', naam2: '', naam3: '',
-                      telefoonnummer: '',
                       status: 'inzetbaar',
                       gekoppeldAanPost: '',
                       ondersteunend: false,
@@ -3230,7 +3267,6 @@
                       type: 'ALS',
                       location: 'Onbekend',
                       naam1: '', naam2: '', naam3: '',
-                      telefoonnummer: '',
                       status: 'inzetbaar',
                       gekoppeldAanPost: '',
                       ondersteunend: false,
@@ -3251,7 +3287,6 @@
                       type: 'Brandwacht',
                       location: 'Onbekend',
                       naam1: '', naam2: '', naam3: '',
-                      telefoonnummer: '',
                       status: 'inzetbaar',
                       gekoppeldAanPost: '',
                       ondersteunend: false,
@@ -3565,10 +3600,64 @@
       const wWindDir = document.getElementById('weatherWindDir');
       const wRain = document.getElementById('weatherRain');
       const wGusts = document.getElementById('weatherGusts');
+      const wApparent = document.getElementById('weatherApparentTemp');
+      const wHumidity = document.getElementById('weatherHumidity');
+      const wUV = document.getElementById('weatherUV');
+      const wSun = document.getElementById('weatherSun');
+      const hourlyContainer = document.getElementById('hourlyForecastContainer');
+      const alertsContainer = document.getElementById('weatherAlertsContainer');
       
-      buienradarIframe.src = `https://gadgets.buienradar.nl/gadget/zoommap/?lat=${lat}&lng=${lon}&overname=2&zoom=8&size=3&v=0`;
+      buienradarIframe.src = `https://gadgets.buienradar.nl/gadget/zoommap/?lat=${lat}&lng=${lon}&overname=2&zoom=11&size=3&v=0`;
       
       locInfo.innerHTML = 'Locatiegegevens laden...';
+
+      // Ophalen van de 5-minuten data via Buienradar API
+      try {
+          const brRes = await fetch(`https://gpsgadget.buienradar.nl/data/raintext?lat=${lat}&lon=${lon}`);
+          const brText = await brRes.text();
+          const lines = brText.trim().split('\n');
+          
+          const chartContainer = document.getElementById('rainChartContainer');
+          const labelsContainer = document.getElementById('rainChartLabels');
+          let chartHtml = '';
+          let labelsHtml = '';
+          
+          if (lines.length > 0 && lines[0] !== '') {
+              lines.forEach((line, index) => {
+                  const parts = line.split('|');
+                  if (parts.length === 2) {
+                      const val = parseInt(parts[0], 10);
+                      const time = parts[1];
+                      
+                      // Hoogte berekenen (max 255 in theorie)
+                      let h = (val / 255) * 100;
+                      if (val > 0 && h < 4) h = 4; // Zorg dat ook een klein beetje regen zichtbaar is
+                      
+                      let category = 'Droog';
+                      let color = 'transparent';
+                      if (val > 0) {
+                         if (val < 77) { category = 'Lichte regen'; color = 'var(--blue)'; }
+                         else if (val < 130) { category = 'Matige regen'; color = 'var(--purple)'; }
+                         else { category = 'Zware regen'; color = 'var(--red)'; }
+                      }
+                      
+                      chartHtml += `<div title="${time} - ${category}" style="flex: 1; height: 100%; display: flex; align-items: flex-end; cursor: pointer;">
+                          <div style="width: 100%; background-color: ${color}; height: ${h}%; border-radius: 2px 2px 0 0; transition: height 0.3s; opacity: 0.85;"></div>
+                      </div>`;
+                      
+                      // Een label per 30 minuten (elke 6e indexing)
+                      if (index % 6 === 0) labelsHtml += `<span style="flex: 1; text-align: ${index === 0 ? 'left' : (index >= 24 ? 'right' : 'center')};">${time}</span>`;
+                  }
+              });
+              chartContainer.innerHTML = chartHtml;
+              labelsContainer.innerHTML = labelsHtml;
+          } else {
+              chartContainer.innerHTML = '<div style="color: var(--text3); font-size: 13px;">Geen regen verwacht.</div>';
+          }
+      } catch (e) {
+          console.error("Fout bij laden 5-minuten regen:", e);
+          document.getElementById('rainChartContainer').innerHTML = '<div style="color: var(--text3); font-size: 13px;">Regengrafiek kon niet geladen worden.</div>';
+      }
 
       try {
           const nomRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
@@ -3583,7 +3672,7 @@
               locInfo.innerHTML = `Huidige locatie: <strong style="color:var(--text1);">${locationName}</strong>`;
           }
 
-          const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=Europe%2FAmsterdam`);
+          const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_gusts_10m&daily=sunrise,sunset&timezone=Europe%2FAmsterdam&forecast_days=2`);
           const wData = await weatherRes.json();
           
           if (wData && wData.current) {
@@ -3597,6 +3686,106 @@
               wWindDir.textContent = 'Windrichting: ' + dirs[Math.floor((deg / 22.5) + 0.5) % 16];
               wRain.textContent = wData.current.precipitation + ' mm';
               wGusts.textContent = wData.current.wind_gusts_10m + ' km/u';
+
+              wApparent.textContent = wData.current.apparent_temperature + ' °C';
+              wHumidity.textContent = wData.current.relative_humidity_2m + ' %';
+              wUV.textContent = wData.current.uv_index;
+
+              // Zonsopkomst & -ondergang
+              if (wData.daily && wData.daily.sunrise && wData.daily.sunset) {
+                  const sr = new Date(wData.daily.sunrise[0]).toLocaleTimeString('nl-NL', {hour: '2-digit', minute: '2-digit'});
+                  const ss = new Date(wData.daily.sunset[0]).toLocaleTimeString('nl-NL', {hour: '2-digit', minute: '2-digit'});
+                  wSun.textContent = `${sr} / ${ss}`;
+              }
+
+              // Alerts genereren o.b.v. data
+              let alerts = [];
+              if (wData.current.temperature_2m >= 30 || wData.current.apparent_temperature >= 32) {
+                  alerts.push({ level: 'Oranje', msg: 'Hitte: Gevaar voor hittestress en uitdroging.' });
+              } else if (wData.current.temperature_2m >= 27) {
+                  alerts.push({ level: 'Geel', msg: 'Hitte: Zeer warme omstandigheden.' });
+              }
+              
+              if (wData.current.wind_gusts_10m >= 100) {
+                  alerts.push({ level: 'Rood', msg: 'Zeer zware windstoten (> 100 km/u). Overweeg ontruimingsprotocol.' });
+              } else if (wData.current.wind_gusts_10m >= 75) {
+                  alerts.push({ level: 'Oranje', msg: 'Zware windstoten (> 75 km/u). Let op losse objecten en tenten.' });
+              } else if (wData.current.wind_gusts_10m >= 50 || bft >= 6) {
+                  alerts.push({ level: 'Geel', msg: 'Stevige windstoten. Beveilig lichte materialen en hekken.' });
+              }
+              
+              if (wData.current.uv_index >= 7) {
+                  alerts.push({ level: 'Geel', msg: 'Hoge UV-Index. Let op voldoende zonbescherming/schaduw voor bezoekers.' });
+              }
+              
+              // Actuele en verwachte regen alerts
+              if (wData.current.precipitation >= 10) {
+                  alerts.push({ level: 'Rood', msg: 'Zware regenval actueel! Kans op wateroverlast op het terrein.' });
+              } else if (wData.current.precipitation >= 3) {
+                  alerts.push({ level: 'Oranje', msg: 'Stevige buien actueel. Houd afvoer en tenten in de gaten.' });
+              }
+              
+              // Onweer alerts (WMO weather codes: 95 = onweer, 96/99 = zwaar onweer met hagel)
+              if (wData.current.weather_code === 96 || wData.current.weather_code === 99) {
+                  alerts.push({ level: 'Rood', msg: 'Zwaar onweer (met hagel) actueel! Zoek veilige schuilplaatsen.' });
+              } else if (wData.current.weather_code === 95) {
+                  alerts.push({ level: 'Oranje', msg: 'Onweer/Blikseminslag actueel! Houd de lucht en radar in de gaten.' });
+              }
+
+              if (wData.hourly && wData.hourly.time) {
+                  const nowTime = new Date();
+                  let maxRainNext3Hours = 0;
+                  let expectThunder = false;
+                  let checkedHours = 0;
+                  for (let i = 0; i < wData.hourly.time.length; i++) {
+                      const tDate = new Date(wData.hourly.time[i]);
+                      if (tDate >= nowTime && checkedHours < 3) {
+                          if (wData.hourly.precipitation[i] > maxRainNext3Hours) maxRainNext3Hours = wData.hourly.precipitation[i];
+                          if (wData.hourly.weather_code && wData.hourly.weather_code[i] >= 95) expectThunder = true;
+                          checkedHours++;
+                      }
+                  }
+                  if (maxRainNext3Hours >= 5 && wData.current.precipitation < 3) {
+                      alerts.push({ level: 'Geel', msg: 'Let op: Er worden binnenkort zware buien verwacht (> 5 mm/u).' });
+                  }
+                  if (expectThunder && wData.current.weather_code < 95) {
+                      alerts.push({ level: 'Geel', msg: 'Let op: Er wordt onweer verwacht in de komende 3 uur.' });
+                  }
+              }
+
+              if (alerts.length > 0) {
+                  alertsContainer.style.display = 'flex';
+                  alertsContainer.style.flexDirection = 'column';
+                  alertsContainer.style.gap = '8px';
+                  alertsContainer.innerHTML = alerts.map(a => {
+                      const bg = a.level === 'Rood' ? 'var(--red-bg)' : (a.level === 'Oranje' ? 'var(--orange-bg)' : 'var(--amber-bg)');
+                      const color = a.level === 'Rood' ? 'var(--red)' : (a.level === 'Oranje' ? 'var(--orange)' : 'var(--amber)');
+                      return `<div style="background: ${bg}; color: ${color}; padding: 12px 16px; border-radius: 8px; border: 1px solid ${color}; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                          Code ${a.level}: ${a.msg}
+                      </div>`;
+                  }).join('');
+              } else {
+                  alertsContainer.style.display = 'none';
+                  alertsContainer.innerHTML = '';
+              }
+
+              // Uurlijkse Voorspelling (Komende 12 uur)
+              if (wData.hourly && wData.hourly.time) {
+                  const now = new Date();
+                  now.setMinutes(0, 0, 0); // Rond af naar hudige uur
+                  let hourlyHtml = '';
+                  let count = 0;
+                  for (let i = 0; i < wData.hourly.time.length; i++) {
+                      const tDate = new Date(wData.hourly.time[i]);
+                      if (tDate >= now && count < 12) {
+                          const timeStr = tDate.toLocaleTimeString('nl-NL', {hour: '2-digit', minute: '2-digit'});
+                          hourlyHtml += `<div style="flex: 0 0 auto; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; width: 95px;"><div style="font-size: 11px; font-weight: 600; color: var(--text3); margin-bottom: 6px;">${timeStr}</div><div style="font-size: 15px; font-weight: 700; color: var(--text1); margin-bottom: 4px;">${Math.round(wData.hourly.temperature_2m[i])}°C</div><div style="font-size: 11px; color: var(--blue);" title="Kans op neerslag">🌧️ ${wData.hourly.precipitation_probability[i]}%</div><div style="font-size: 10px; color: var(--blue); margin-bottom: 2px;" title="Verwachte hoeveelheid">💧 ${wData.hourly.precipitation[i]} mm</div><div style="font-size: 11px; color: var(--purple);" title="Windstoten in km/u">💨 ${Math.round(wData.hourly.wind_gusts_10m[i])}</div></div>`;
+                          count++;
+                      }
+                  }
+                  hourlyContainer.innerHTML = hourlyHtml;
+              }
           }
       } catch (error) {
           console.error("Fout bij ophalen weer:", error);
