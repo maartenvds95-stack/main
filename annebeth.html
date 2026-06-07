@@ -2486,6 +2486,7 @@
                 localStorage.setItem('pumpLeftRunning', 'false');
                 localStorage.setItem('pumpLeftSeconds', pumpLeftSeconds);
                 pumpLeftTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
+                updateFirebasePumpTimer({ isPumpLeftRunning: false, pumpLeftSeconds: pumpLeftSeconds });
             } else {
                 if (pumpLeftSeconds === 0) {
                     pumpLeftStart = Date.now();
@@ -2500,6 +2501,7 @@
                     pumpLeftSeconds = Math.floor((Date.now() - pumpLeftStart) / 1000);
                     document.getElementById('pumpLeftTimerDisplay').textContent = formatPumpTime(pumpLeftSeconds);
                 }, 1000);
+                updateFirebasePumpTimer({ isPumpLeftRunning: true, pumpLeftStart: pumpLeftStart });
             }
         });
 
@@ -2512,6 +2514,7 @@
                 localStorage.setItem('pumpRightRunning', 'false');
                 localStorage.setItem('pumpRightSeconds', pumpRightSeconds);
                 pumpRightTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
+                updateFirebasePumpTimer({ isPumpRightRunning: false, pumpRightSeconds: pumpRightSeconds });
             } else {
                 if (pumpRightSeconds === 0) {
                     pumpRightStart = Date.now();
@@ -2526,6 +2529,7 @@
                     pumpRightSeconds = Math.floor((Date.now() - pumpRightStart) / 1000);
                     document.getElementById('pumpRightTimerDisplay').textContent = formatPumpTime(pumpRightSeconds);
                 }, 1000);
+                updateFirebasePumpTimer({ isPumpRightRunning: true, pumpRightStart: pumpRightStart });
             }
         });
 
