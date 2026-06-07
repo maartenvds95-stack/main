@@ -1527,6 +1527,30 @@
             }
         });
 
+        // Actie bij klikken op "Wachtwoord vergeten?"
+        const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+        if (forgotPasswordBtn) {
+            forgotPasswordBtn.addEventListener('click', async () => {
+                const email = loginUsername.value.trim();
+                if (!email) {
+                    alert('Vul eerst je e-mailadres in en klik dan op "Wachtwoord vergeten?".');
+                    return;
+                }
+                
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    alert(`We hebben een e-mail gestuurd naar ${email} met een link om je wachtwoord te resetten.`);
+                } catch (error) {
+                    console.error("Fout bij wachtwoord reset:", error);
+                    if (error.code === 'auth/invalid-email') {
+                        alert('Dit e-mailadres is ongeldig.');
+                    } else {
+                        alert('Er is geen account gevonden of er ging iets mis. Controleer het e-mailadres.');
+                    }
+                }
+            });
+        }
+
         // Actie bij klikken op "Uitloggen"
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {

@@ -3667,6 +3667,29 @@
       zoomSelect.addEventListener('change', (e) => applyZoom(e.target.value));
   }
 
+  const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+  if (forgotPasswordBtn) {
+      forgotPasswordBtn.addEventListener('click', async () => {
+          const email = loginUsername.value.trim();
+          if (!email) {
+              showToast('Vul eerst je e-mailadres in en klik dan op "Wachtwoord vergeten?".', true);
+              return;
+          }
+          
+          try {
+              await sendPasswordResetEmail(auth, email);
+              showToast(`Reset e-mail verstuurd naar ${email}.`);
+          } catch (error) {
+              console.error("Fout bij wachtwoord reset:", error);
+              if (error.code === 'auth/invalid-email') {
+                  showToast('Dit e-mailadres is ongeldig.', true);
+              } else {
+                  showToast('Er is geen account gevonden of er ging iets mis.', true);
+              }
+          }
+      });
+  }
+
   // ==========================================
   // PROTOCOLLEN LOGICA
   // ==========================================
