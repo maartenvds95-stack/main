@@ -1154,6 +1154,217 @@
         let currentEditItem = null;
         let currentUser = null;
 
+        let activeBreastTimerUnsubscribe = null;
+        let activePumpTimerUnsubscribe = null;
+        let activeSleepTimerUnsubscribe = null;
+        let isSyncingFromFirebase = false; // Voorkomt feedback loops
+
+        // ==========================================
+        // --- FIREBASE TIMER SYNC FUNCTIES ---
+        // ==========================================
+
+        async function updateFirebaseSleepTimer(data) {
+            if (isSyncingFromFirebase) return;
+            try {
+                await setDoc(doc(db, "active_state", "sleepTimer"), data, { merge: true });
+            } catch (e) { console.warn("Sleep timer sync mislukt:", e); }
+        }
+
+        async function updateFirebaseBreastTimer(data) {
+            if (isSyncingFromFirebase) return;
+            try {
+                await setDoc(doc(db, "active_state", "breastTimer"), data, { merge: true });
+            } catch (e) { console.warn("Breast timer sync mislukt:", e); }
+        }
+
+        async function updateFirebasePumpTimer(data) {
+            if (isSyncingFromFirebase) return;
+            try {
+                await setDoc(doc(db, "active_state", "pumpTimer"), data, { merge: true });
+            } catch (e) { console.warn("Pump timer sync mislukt:", e); }
+        }
+
+        function syncSleepTimerFromFirebase(data) {
+            if (!data) return;
+            isSyncingFromFirebase = true;
+
+            const wasRunning = isTimerRunning;
+
+            // Stop lokale timer zodat we hem opnieuw kunnen instellen
+            clearInterval(timerInterval);
+
+            if (data.isRunning && data.startTime) {
+                sleepTimerStartTime = data.startTime;
+                isTimerRunning = true;
+                
+                timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
+
+                localStorage.setItem('sleepTimerRunning', 'true');
+                localStorage.setItem('sleepTimerStart', data.startTime.toString());
+                if (data.startDate) {
+                    localStorage.setItem('sleepTimerDate', data.startDate);
+                    sleepModal.dataset.date = data.startDate;
+                }
+                if (data.startValue) {
+                    localStorage.setItem('sleepTimerStartValue', data.startValue);
+                    const sleepStartInput = document.getElementById('sleepStart');
+                    if (sleepStartInput) sleepStartInput.value = data.startValue;
+                }
+
+                timerBtn.innerHTML = '<i class="fa-solid fa-stop"></i> Wakker geworden';
+                if (document.getElementById('resetTimerBtn')) {
+                    document.getElementById('resetTimerBtn').style.display = 'block';
+                }
+
+                timerInterval = setInterval(() => {
+                    timerSeconds = Math.floor((Date.now() - sleepTimerStartTime) / 1000);
+                    updateTimerDisplay();
+                    updateSleepBanner();
+                }, 1000);
+
+                updateTimerDisplay();
+                updateSleepBanner();
+
+            } else if (!data.isRunning && data.seconds === 0) {
+                // Timer gereset op ander apparaat
+                isTimerRunning = false;
+                timerSeconds = 0;
+                sleepTimerStartTime = 0;
+                localStorage.removeItem('sleepTimerStart');
+                localStorage.removeItem('sleepTimerRunning');
+                localStorage.removeItem('sleepTimerSeconds');
+                localStorage.removeItem('sleepTimerDate');
+                localStorage.removeItem('sleepTimerStartValue');
+                updateTimerDisplay();
+                updateSleepBanner();
+                timerBtn.innerHTML = '<i class="fa-solid fa-stopwatch"></i> In slaap gevallen';
+                if (document.getElementById('resetTimerBtn')) {
+                    document.getElementById('resetTimerBtn').style.display = 'none';
+                }
+            } else if (!data.isRunning && data.seconds > 0) {
+                // Timer gepauzeerd op ander apparaat
+                isTimerRunning = false;
+                timerSeconds = data.seconds;
+                localStorage.setItem('sleepTimerRunning', 'false');
+                localStorage.setItem('sleepTimerSeconds', data.seconds.toString());
+                updateTimerDisplay();
+                updateSleepBanner();
+                timerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat timer';
+                if (document.getElementById('resetTimerBtn')) {
+                    document.getElementById('resetTimerBtn').style.display = 'block';
+                }
+            }
+
+            isSyncingFromFirebase = false;
+        }
+
+        function syncBreastTimerFromFirebase(data) {
+            if (!data) return;
+            isSyncingFromFirebase = true;
+
+            clearInterval(leftInterval);
+            clearInterval(rightInterval);
+
+            if (data.isLeftRunning && data.leftStart) {
+                breastLeftStart = data.leftStart;
+                isLeftRunning = true;
+                localStorage.setItem('breastLeftRunning', 'true');
+                localStorage.setItem('breastLeftStart', data.leftStart.toString());
+                document.getElementById('leftTimerBtn').innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
+                leftInterval = setInterval(() => {
+                    leftSeconds = Math.floor((Date.now() - breastLeftStart) / 1000);
+                    document.getElementById('leftTimerDisplay').textContent = formatBreastTime(leftSeconds);
+                }, 1000);
+            } else if (!data.isLeftRunning) {
+                isLeftRunning = false;
+                leftSeconds = data.leftSeconds || 0;
+                localStorage.setItem('breastLeftRunning', 'false');
+                localStorage.setItem('breastLeftSeconds', leftSeconds.toString());
+                document.getElementById('leftTimerDisplay').textContent = formatBreastTime(leftSeconds);
+                document.getElementById('leftTimerBtn').innerHTML = leftSeconds > 0
+                    ? '<i class="fa-solid fa-play"></i> Hervat'
+                    : '<i class="fa-solid fa-play"></i> Start';
+            }
+
+            if (data.isRightRunning && data.rightStart) {
+                breastRightStart = data.rightStart;
+                isRightRunning = true;
+                localStorage.setItem('breastRightRunning', 'true');
+                localStorage.setItem('breastRightStart', data.rightStart.toString());
+                document.getElementById('rightTimerBtn').innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
+                rightInterval = setInterval(() => {
+                    rightSeconds = Math.floor((Date.now() - breastRightStart) / 1000);
+                    document.getElementById('rightTimerDisplay').textContent = formatBreastTime(rightSeconds);
+                }, 1000);
+            } else if (!data.isRightRunning) {
+                isRightRunning = false;
+                rightSeconds = data.rightSeconds || 0;
+                localStorage.setItem('breastRightRunning', 'false');
+                localStorage.setItem('breastRightSeconds', rightSeconds.toString());
+                document.getElementById('rightTimerDisplay').textContent = formatBreastTime(rightSeconds);
+                document.getElementById('rightTimerBtn').innerHTML = rightSeconds > 0
+                    ? '<i class="fa-solid fa-play"></i> Hervat'
+                    : '<i class="fa-solid fa-play"></i> Start';
+            }
+
+            if (data.startDate) breastModal.dataset.date = data.startDate;
+            if (data.startValue) document.getElementById('breastTime').value = data.startValue;
+
+            isSyncingFromFirebase = false;
+        }
+
+        function syncPumpTimerFromFirebase(data) {
+            if (!data) return;
+            isSyncingFromFirebase = true;
+
+            clearInterval(pumpLeftInterval);
+            clearInterval(pumpRightInterval);
+
+            if (data.isPumpLeftRunning && data.pumpLeftStart) {
+                pumpLeftStart = data.pumpLeftStart;
+                isPumpLeftRunning = true;
+                localStorage.setItem('pumpLeftRunning', 'true');
+                localStorage.setItem('pumpLeftStart', data.pumpLeftStart.toString());
+                document.getElementById('pumpLeftTimerBtn').innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
+                pumpLeftInterval = setInterval(() => {
+                    pumpLeftSeconds = Math.floor((Date.now() - pumpLeftStart) / 1000);
+                    document.getElementById('pumpLeftTimerDisplay').textContent = formatPumpTime(pumpLeftSeconds);
+                }, 1000);
+            } else if (!data.isPumpLeftRunning) {
+                isPumpLeftRunning = false;
+                pumpLeftSeconds = data.pumpLeftSeconds || 0;
+                localStorage.setItem('pumpLeftRunning', 'false');
+                localStorage.setItem('pumpLeftSeconds', pumpLeftSeconds.toString());
+                document.getElementById('pumpLeftTimerDisplay').textContent = formatPumpTime(pumpLeftSeconds);
+                document.getElementById('pumpLeftTimerBtn').innerHTML = pumpLeftSeconds > 0
+                    ? '<i class="fa-solid fa-play"></i> Hervat'
+                    : '<i class="fa-solid fa-play"></i> Start';
+            }
+
+            if (data.isPumpRightRunning && data.pumpRightStart) {
+                pumpRightStart = data.pumpRightStart;
+                isPumpRightRunning = true;
+                localStorage.setItem('pumpRightRunning', 'true');
+                localStorage.setItem('pumpRightStart', data.pumpRightStart.toString());
+                document.getElementById('pumpRightTimerBtn').innerHTML = '<i class="fa-solid fa-pause"></i> Pauze';
+                pumpRightInterval = setInterval(() => {
+                    pumpRightSeconds = Math.floor((Date.now() - pumpRightStart) / 1000);
+                    document.getElementById('pumpRightTimerDisplay').textContent = formatPumpTime(pumpRightSeconds);
+                }, 1000);
+            } else if (!data.isPumpRightRunning) {
+                isPumpRightRunning = false;
+                pumpRightSeconds = data.pumpRightSeconds || 0;
+                localStorage.setItem('pumpRightRunning', 'false');
+                localStorage.setItem('pumpRightSeconds', pumpRightSeconds.toString());
+                document.getElementById('pumpRightTimerDisplay').textContent = formatPumpTime(pumpRightSeconds);
+                document.getElementById('pumpRightTimerBtn').innerHTML = pumpRightSeconds > 0
+                    ? '<i class="fa-solid fa-play"></i> Hervat'
+                    : '<i class="fa-solid fa-play"></i> Start';
+            }
+
+            isSyncingFromFirebase = false;
+        }
+
         // Generieke verwijder functie voor pop-up menu's
         async function handleDeleteItem(btnElement, itemId, closeFn) {
             if (itemId && confirm('Weet je zeker dat je deze activiteit wilt verwijderen?')) {
@@ -1347,14 +1558,21 @@
             }
             const timeline = document.querySelector('.timeline');
             
+            // Bewaar de actieve banner zodat deze niet verdwijnt bij het updaten van de lijst
+            const sleepBanner = document.getElementById('sleepLiveBanner');
+
             timeline.innerHTML = ''; 
 
+            // Plaats de banner direct weer terug als hij er was
+            if (sleepBanner) {
+                timeline.appendChild(sleepBanner);
+            }
+
             if (savedItems.length === 0) {
-                timeline.innerHTML = `
-                    <div class="timeline-header">
-                        <span class="timeline-date">Vandaag</span>
-                    </div>
-                `;
+                const emptyHeader = document.createElement('div');
+                emptyHeader.className = 'timeline-header';
+                emptyHeader.innerHTML = '<span class="timeline-date">Vandaag</span>';
+                timeline.appendChild(emptyHeader);
                 return;
             }
 
@@ -2486,7 +2704,6 @@
                 localStorage.setItem('pumpLeftRunning', 'false');
                 localStorage.setItem('pumpLeftSeconds', pumpLeftSeconds);
                 pumpLeftTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
-                updateFirebasePumpTimer({ isPumpLeftRunning: false, pumpLeftSeconds: pumpLeftSeconds });
             } else {
                 if (pumpLeftSeconds === 0) {
                     pumpLeftStart = Date.now();
@@ -2501,7 +2718,6 @@
                     pumpLeftSeconds = Math.floor((Date.now() - pumpLeftStart) / 1000);
                     document.getElementById('pumpLeftTimerDisplay').textContent = formatPumpTime(pumpLeftSeconds);
                 }, 1000);
-                updateFirebasePumpTimer({ isPumpLeftRunning: true, pumpLeftStart: pumpLeftStart });
             }
         });
 
@@ -2514,7 +2730,6 @@
                 localStorage.setItem('pumpRightRunning', 'false');
                 localStorage.setItem('pumpRightSeconds', pumpRightSeconds);
                 pumpRightTimerBtn.innerHTML = '<i class="fa-solid fa-play"></i> Hervat';
-                updateFirebasePumpTimer({ isPumpRightRunning: false, pumpRightSeconds: pumpRightSeconds });
             } else {
                 if (pumpRightSeconds === 0) {
                     pumpRightStart = Date.now();
@@ -2529,7 +2744,6 @@
                     pumpRightSeconds = Math.floor((Date.now() - pumpRightStart) / 1000);
                     document.getElementById('pumpRightTimerDisplay').textContent = formatPumpTime(pumpRightSeconds);
                 }, 1000);
-                updateFirebasePumpTimer({ isPumpRightRunning: true, pumpRightStart: pumpRightStart });
             }
         });
 
