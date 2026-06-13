@@ -2183,9 +2183,19 @@
         document.getElementById('sleepStart').addEventListener('input', () => {
             if (isTimerRunning || (!isTimerRunning && timerSeconds > 0 && !document.getElementById('sleepEnd').value)) {
                 const newStartVal = document.getElementById('sleepStart').value;
+                let storedDate = sleepModal.dataset.date;
                 const storedDate = sleepModal.dataset.date;
                 if (!newStartVal || !storedDate) return;
                 
+                let newStartTime = new Date(`${storedDate}T${newStartVal}`).getTime();
+                if (newStartTime > Date.now()) {
+                    newStartTime -= 24 * 60 * 60 * 1000;
+                    const prevDate = new Date(newStartTime);
+                    prevDate.setMinutes(prevDate.getMinutes() - prevDate.getTimezoneOffset());
+                    storedDate = prevDate.toISOString().slice(0, 10);
+                    sleepModal.dataset.date = storedDate;
+                    localStorage.setItem('sleepTimerDate', storedDate);
+                }
                 const newStartTime = new Date(`${storedDate}T${newStartVal}`).getTime();
                 if (newStartTime > Date.now()) return;
                 
@@ -2199,6 +2209,8 @@
                 
                 updateFirebaseSleepTimer({
                     startTime: sleepTimerStartTime,
+                    startValue: newStartVal,
+                    startDate: storedDate
                     startValue: newStartVal
                 });
             } else {
@@ -3146,6 +3158,12 @@
                 const combinedDateTime = `${storedDate}T${timeVal}`;
                 const parsedDate = new Date(combinedDateTime);
                 if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
+                if (!isNaN(parsedDate.getTime())) {
+                    timeObj = parsedDate;
+                    if (timeObj.getTime() > Date.now()) {
+                        timeObj.setDate(timeObj.getDate() - 1);
+                    }
+                }
             }
 
             try {
