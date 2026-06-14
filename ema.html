@@ -1777,6 +1777,7 @@
             </div>
             <select class="status-dropdown-base unit-status-select ${style.bg}">
                 <option value="uitgerukt"   ${u.status === 'uitgerukt'    ? 'selected' : ''}>uitgerukt</option>
+                <option value="vertrek patiënt" ${u.status === 'vertrek patiënt' ? 'selected' : ''}>vertrek patiënt</option>
                 <option value="inzetbaar"   ${u.status === 'inzetbaar'    ? 'selected' : ''}>inzetbaar</option>
                 <option value="retour post" ${u.status === 'retour post'  ? 'selected' : ''}>retour post</option>
                 <option value="op post"     ${u.status === 'op post'      ? 'selected' : ''}>op post</option>
@@ -2413,12 +2414,81 @@
    if (freeLogForm) {
        freeLogForm.addEventListener('submit', (e) => {
            e.preventDefault();
-           const text = new FormData(freeLogForm).get('logText').trim();
+           let text = new FormData(freeLogForm).get('logText').trim();
            const inc = incidents.find(i => i.id === currentLogIncidentId);
            if (inc && text) {
-               addIncidentAudit(inc, `Lognotitie: ${text}`);
+               inc.details = inc.details || {};
+               let parsedNotes = [];
+
+               // -bls en -als
+               const isBls = /(^|\s)-bls\b/i.test(text);
+               const isAls = /(^|\s)-als\b/i.test(text);
+               if (isBls || isAls) {
+                   const type = isBls ? 'BLS' : 'ALS';
+                   inc.status = `Afgesloten: Retour ${type}`;
+                   const nu = new Date();
+                   inc.closedAtTime = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
+                   inc.closedAtTimestamp = nu.toISOString();
+                   parsedNotes.push(`Afloop ingesteld op Retour ${type}`);
+                   
+                   if (inc.units && inc.units.length > 0) {
+                       inc.units.forEach(uidStr => {
+                           const uName = uidStr.includes(':') ? uidStr.split(':')[1].trim() : uidStr;
+                           const unitToUpdate = units.find(u => u.id === uName);
+                           if (unitToUpdate) {
+                               unitToUpdate.status = 'vertrek patiënt';
+                               setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
+                           }
+                       });
+                       parsedNotes.push('Eenheid status naar vertrek patiënt');
+                   }
+                   text = text.replace(/(^|\s)-bls\b/gi, '').replace(/(^|\s)-als\b/gi, '').trim();
+               }
+
+               // -a2, -a1, -a0
+               const ambMatch = text.match(/(^|\s)-a([012])\b/i);
+               if (ambMatch) { parsedNotes.push(`Ambulance urgentie: A${ambMatch[2]}`); text = text.replace(/(^|\s)-a[012]\b/gi, '').trim(); }
+
+               // -ehtp
+               if (/(^|\s)-ehtp\b/i.test(text)) { parsedNotes.push('Zorg ter plaatse'); text = text.replace(/(^|\s)-ehtp\b/gi, '').trim(); }
+
+               const extractVal = (regex) => {
+                   const match = text.match(regex);
+                   if (match) { text = text.replace(match[0], '').trim(); return match[2].trim(); }
+                   return null;
+               };
+
+               const extractTextVal = (prefix) => {
+                   const regex = new RegExp(`(?:^|\\s)-${prefix}\\s+(.*?)(?=\\s+-[a-z]|$)`, 'i');
+                   const match = text.match(regex);
+                   if (match) { text = text.replace(match[0], '').trim(); return match[1].trim(); }
+                   return null;
+               };
+
+               // Vaste waarden
+               const urgVal = extractVal(/(^|\s)-urg\s+([123])/i);
+               if (urgVal) { const urgMap = { '1': 'Spoed', '2': 'Direct Vertrekken', '3': 'Uitstelmogelijkheid' }; inc.urgency = urgMap[urgVal]; parsedNotes.push(`Urgentie gewijzigd naar: ${inc.urgency}`); }
+               
+               const gesVal = extractVal(/(^|\s)-ges\s+([mv])/i);
+               if (gesVal) { const g = gesVal.toLowerCase() === 'm' ? 'Man' : 'Vrouw'; inc.details.gender = g; parsedNotes.push(`Geslacht: ${g}`); }
+               
+               const dVal = extractVal(/(^|\s)-d\s+([avpu])/i);
+               if (dVal) { const dMap = { 'a': 'Alert', 'v': 'Verbal', 'p': 'Pain', 'u': 'Unresponsive' }; inc.details.disability = dMap[dVal.toLowerCase()]; parsedNotes.push(`Disability (D): ${inc.details.disability}`); }
+
+               // Tekst velden
+               const fields = [ { key: 'dnr', prop: 'dnr', label: 'Deelnemersnummer', inDetails: true }, { key: 'loc', prop: 'location', label: 'Locatie', inDetails: false }, { key: 'geb', prop: 'event', label: 'Gebeurtenis', inDetails: false }, { key: 'melder', prop: 'reporter', label: 'Melder', inDetails: false }, { key: 'xps', prop: 'xps', label: 'XPS', inDetails: true }, { key: 'a', prop: 'airway', label: 'Airway (A)', inDetails: true }, { key: 'b', prop: 'breathing', label: 'Breathing (B)', inDetails: true }, { key: 'c', prop: 'circulation', label: 'Circulation (C)', inDetails: true }, { key: 'e', prop: 'exposure', label: 'Exposure (E)', inDetails: true } ];
+
+               fields.forEach(f => {
+                   const val = extractTextVal(f.key);
+                   if (val) { if (f.inDetails) { inc.details[f.prop] = val; } else { inc[f.prop] = val; } parsedNotes.push(`${f.label}: ${val}`); }
+               });
+
+               if (text.length > 0) addIncidentAudit(inc, `Lognotitie: ${text}`);
+               if (parsedNotes.length > 0) addIncidentAudit(inc, `Parser updates: ${parsedNotes.join(' | ')}`);
+
                setDoc(doc(db, "incidents", inc.id), inc);
-               showToast('Log succesvol toegevoegd aan incident.');
+               renderTables(); renderUnits(); if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+               showToast('Log & parser updates succesvol doorgevoerd.');
                freeLogModal.classList.remove('show');
                freeLogForm.reset();
            }
@@ -3062,6 +3132,7 @@
           const statusDropdown = `
               <select class="unit-status-select-detail ${style.bg}" data-unit-id="${u.id}">
                 <option value="uitgerukt" ${u.status === 'uitgerukt' ? 'selected' : ''}>uitgerukt</option>
+                <option value="vertrek patiënt" ${u.status === 'vertrek patiënt' ? 'selected' : ''}>vertrek patiënt</option>
                 <option value="inzetbaar" ${u.status === 'inzetbaar' ? 'selected' : ''}>inzetbaar</option>
                 <option value="retour post" ${u.status === 'retour post' ? 'selected' : ''}>retour post</option>
                 <option value="op post" ${u.status === 'op post' ? 'selected' : ''}>op post</option>
@@ -3607,7 +3678,9 @@
       const hourlyContainer = document.getElementById('hourlyForecastContainer');
       const alertsContainer = document.getElementById('weatherAlertsContainer');
       
-      buienradarIframe.src = `https://gadgets.buienradar.nl/gadget/zoommap/?lat=${lat}&lng=${lon}&overname=2&zoom=11&size=3&v=0`;
+      const brLat = parseFloat(lat).toFixed(2);
+      const brLng = parseFloat(lon).toFixed(2);
+      buienradarIframe.src = `https://gadgets.buienradar.nl/gadget/zoommap/?lat=${brLat}&lng=${brLng}&overname=2&zoom=11&size=3&v=0`;
       
       locInfo.innerHTML = 'Locatiegegevens laden...';
 
