@@ -264,7 +264,7 @@
         <button id="themeToggleBtn" style="background-color: var(--panel-bg);">🌗 Thema</button>
         <button id="helpBtn" style="background-color: var(--panel-bg);">❓ Help</button>
         <label style="font-size:0.85rem;" for="fileLoader">Inladen: </label>
-        <input type="file" id="fileLoader" accept="image/*,.json" style="width: auto; max-width: 200px;">
+        <input type="file" id="fileLoader" accept="image/*,.json" multiple style="width: auto; max-width: 200px;">
         <button id="saveProjectBtn" style="background-color: var(--panel-bg);">💾 Opslaan (.json)</button>
         <button id="undoBtn" style="background-color: var(--panel-bg);">↩ Undo</button>
         <button id="clearCanvas" class="danger-btn">Wis Alles</button>
@@ -425,6 +425,13 @@
         </div>
 
         <div class="panel-section">
+            <div class="panel-title">Lijst van Objecten</div>
+            <div id="objectListContainer" style="display:flex; flex-direction:column; gap:5px; max-height: 250px; overflow-y: auto; font-size: 0.85rem;">
+                <div style="text-align:center; color: var(--text-main); font-style: italic; padding: 10px 0;">Geen objecten</div>
+            </div>
+        </div>
+
+        <div class="panel-section">
             <div class="panel-title">Eigen Stempels</div>
             <button class="btn-full" onclick="saveCustomStamp()" style="margin-bottom: 8px;">➕ Selectie opslaan als stempel</button>
             <div id="customStampsContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
@@ -436,6 +443,7 @@
                 <button onclick="changeOrder('front')">Breng naar Voren</button>
                 <button onclick="changeOrder('back')">Breng naar Achteren</button>
                 <button onclick="toggleLock()" style="background-color: #a9b1d6; color: #1a1b26;">🔏 Vastzetten / Losmaken</button>
+                <button onclick="createArray()">🔠 Maak Patroon (Array)</button>
                 <button id="deleteObject" class="danger-btn">🗑️ Verwijder Selectie</button>
             </div>
             <div style="font-size: 0.75rem; margin-top: 10px; color: var(--text-main); text-align: center;">
@@ -445,6 +453,7 @@
         
         <div class="panel-section">
             <div class="panel-title">Hulpmiddelen</div>
+            <button class="btn-full" id="tool-crop" onclick="startCropMode()" style="margin-bottom: 8px; background-color: var(--panel-bg);">✂️ Afbeelding Bijsnijden</button>
             <button class="btn-full" onclick="generateLegend()">📝 Genereer Legenda</button>
             <div style="display: flex; gap: 8px; margin-top: 8px;">
                 <button style="flex:1;" onclick="generateBOM()">📋 Toon BOM</button>
@@ -477,6 +486,7 @@
     <button onclick="contextAction('back')">Naar Achteren</button>
     <button onclick="contextAction('lock')">🔏 Vastzetten/Losmaken</button>
     <button onclick="contextAction('clone')">Kopiëren</button>
+    <button onclick="contextAction('array')">🔠 Maak Patroon</button>
     <button onclick="contextAction('delete')" class="danger-btn">Verwijderen</button>
 </div>
 
@@ -500,7 +510,7 @@
     function saveState() {
         if (isUndoing) return; // Sla niet op tijdens het undo-proces
         try {
-            const jsonState = JSON.stringify(canvas.toJSON(['cadType']));
+            const jsonState = JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType']));
             
             // Voorkom identieke opeenvolgende opnames in de geschiedenis
             if (historyStack.length > 0 && historyStack[historyStack.length - 1] === jsonState) return;
@@ -535,6 +545,7 @@
     // Omschakelen naar Licht/Donker thema
     document.getElementById('themeToggleBtn').addEventListener('click', () => {
         document.documentElement.classList.toggle('light-mode');
+        canvas.requestRenderAll(); // Zorg dat de liniaal direct de nieuwe kleuren overneemt
     });
 
     // Pipet tool voor kleur selectie
@@ -592,6 +603,110 @@
         canvas.on('object:modified', saveState);
         canvas.on('object:removed', saveState);
         canvas.on('path:created', saveState);
+        
+        canvas.on('object:added', updateObjectList);
+        canvas.on('object:removed', updateObjectList);
+        canvas.on('selection:created', updateObjectList);
+        canvas.on('selection:updated', updateObjectList);
+        canvas.on('selection:cleared', updateObjectList);
+        canvas.on('object:modified', updateObjectList);
+    }
+
+    let listUpdateTimeout = null;
+    function updateObjectList() {
+        if (isUndoing) return;
+        clearTimeout(listUpdateTimeout);
+        listUpdateTimeout = setTimeout(() => {
+            const container = document.getElementById('objectListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            let objects = canvas.getObjects();
+            let addedCount = 0;
+            for (let i = objects.length - 1; i >= 0; i--) {
+                let obj = objects[i];
+                if (obj.excludeFromExport) continue; // Sla hulplijnen over
+                if (!obj.id) obj.id = 'obj_' + Date.now() + '_' + Math.floor(Math.random() * 1000) + i;
+                if (!obj.customName) {
+                    let defaultName = obj.symbolType || obj.cadType || obj.type || 'Object';
+                    obj.customName = defaultName.charAt(0).toUpperCase() + defaultName.slice(1);
+                }
+                
+                let div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                div.style.background = 'var(--bg-dark)';
+                div.style.padding = '4px 6px';
+                div.style.border = '1px solid var(--border-color)';
+                div.style.borderRadius = '4px';
+                
+                if (canvas.getActiveObjects().includes(obj)) {
+                    div.style.borderColor = 'var(--accent)';
+                }
+                
+                let nameSpan = document.createElement('span');
+                nameSpan.innerText = obj.customName;
+                nameSpan.style.flex = '1';
+                nameSpan.style.cursor = 'pointer';
+                nameSpan.style.overflow = 'hidden';
+                nameSpan.style.textOverflow = 'ellipsis';
+                nameSpan.style.whiteSpace = 'nowrap';
+                nameSpan.style.opacity = (obj.opacity === 0 || obj.visible === false) ? '0.5' : '1';
+                nameSpan.onclick = () => {
+                    canvas.discardActiveObject();
+                    if (obj.selectable !== false) {
+                        canvas.setActiveObject(obj);
+                    }
+                    canvas.requestRenderAll();
+                    updateObjectList();
+                };
+                
+                let renameBtn = document.createElement('button');
+                renameBtn.innerText = '✏️';
+                renameBtn.style.padding = '2px 4px';
+                renameBtn.style.marginRight = '4px';
+                renameBtn.style.background = 'transparent';
+                renameBtn.style.border = 'none';
+                renameBtn.title = "Hernoemen";
+                renameBtn.onclick = () => {
+                    let newName = prompt('Nieuwe naam voor dit object:', obj.customName);
+                    if (newName) {
+                        obj.customName = newName;
+                        saveState();
+                        updateObjectList();
+                    }
+                };
+                
+                let visBtn = document.createElement('button');
+                let isVisible = !(obj.opacity === 0 || obj.visible === false);
+                visBtn.innerText = isVisible ? '👁️' : '🙈';
+                visBtn.style.padding = '2px 4px';
+                visBtn.style.background = 'transparent';
+                visBtn.style.border = 'none';
+                visBtn.title = "Verbergen / Tonen";
+                visBtn.onclick = () => {
+                    if (isVisible) {
+                        obj.set({ opacity: 0, selectable: false, evented: false });
+                    } else {
+                        obj.set({ opacity: 1, selectable: true, evented: true });
+                    }
+                    canvas.discardActiveObject();
+                    canvas.requestRenderAll();
+                    saveState();
+                    updateObjectList();
+                };
+                
+                div.appendChild(nameSpan);
+                div.appendChild(renameBtn);
+                div.appendChild(visBtn);
+                container.appendChild(div);
+                addedCount++;
+            }
+            if (addedCount === 0) {
+                container.innerHTML = '<div style="text-align:center; color: var(--text-main); font-style: italic; padding: 10px 0;">Geen objecten</div>';
+            }
+        }, 100);
     }
 
     const savedData = localStorage.getItem('cadDrawingState');
@@ -602,16 +717,19 @@
                 historyStack.push(savedData); // Start de geschiedenis met de geladen data
                 setupAutoSave();
                 updateStatus();
+                updateObjectList();
                 if (gridEnabled) updateVisualGrid(); // Herlaad het raster
             });
         } catch(e) {
             console.error("Kon opgeslagen data niet laden", e);
-            historyStack.push(JSON.stringify(canvas.toJSON(['cadType'])));
+            historyStack.push(JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType'])));
             setupAutoSave();
+            updateObjectList();
         }
     } else {
-        historyStack.push(JSON.stringify(canvas.toJSON(['cadType'])));
+        historyStack.push(JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType'])));
         setupAutoSave();
+        updateObjectList();
     }
 
     // Reset Zoom en Pan naar originele positie
@@ -635,6 +753,11 @@
     // Area tools
     let areaPoints = [];
     let areaLines = [];
+
+    // Crop tools
+    let isCropping = false;
+    let cropRect = null;
+    let targetImageToCrop = null;
 
     // Status elementen
     const statusBar = document.getElementById('statusBar');
@@ -691,6 +814,9 @@
                 vLine.sendToBack();
                 hLine.sendToBack();
             }
+            canvas.getObjects().forEach(obj => {
+                if (obj.cadType === 'blueprint') obj.sendToBack();
+            });
             if (canvas.backgroundImage) canvas.backgroundImage.sendToBack();
             isUndoing = false;
         }
@@ -698,10 +824,16 @@
     }
     
     function updateBgOpacity(val) {
+        let opacity = parseInt(val) / 100;
         if (canvas.backgroundImage) {
-            canvas.backgroundImage.opacity = parseInt(val) / 100;
-            canvas.requestRenderAll();
+            canvas.backgroundImage.opacity = opacity;
         }
+        canvas.getObjects().forEach(obj => {
+            if (obj.cadType === 'blueprint') {
+                obj.opacity = opacity;
+            }
+        });
+        canvas.requestRenderAll();
     }
 
     // Detecteer spatiebalk voor tijdelijk pannen
@@ -741,6 +873,68 @@
             canvas.requestRenderAll();
             saveState();
         });
+    }
+
+    function createArray() {
+        let activeObj = canvas.getActiveObject();
+        if (!activeObj) {
+            alert("Selecteer eerst een object of groep om een patroon te maken.");
+            return;
+        }
+
+        let rc = prompt("Aantal rijen en kolommen (bijv. 3,4):", "2,2");
+        if (!rc) return;
+        let [rows, cols] = rc.split(',').map(n => parseInt(n ? n.trim() : '1'));
+        if (isNaN(rows)) rows = 1;
+        if (isNaN(cols)) cols = 1;
+
+        let sp = prompt("Tussenruimte in pixels horizontaal en verticaal (X,Y) (bijv. 20,20):", "20,20");
+        if (!sp) return;
+        let [spaceX, spaceY] = sp.split(',').map(n => parseInt(n ? n.trim() : '0'));
+        if (isNaN(spaceX)) spaceX = 0;
+        if (isNaN(spaceY)) spaceY = 0;
+
+        isUndoing = true; // pauzeer auto-save tijdens kopiëren
+        let clonesExpected = (rows * cols) - 1;
+        let clonesCompleted = 0;
+
+        if (clonesExpected <= 0) { isUndoing = false; return; }
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                if (r === 0 && c === 0) continue; // originele overslaan
+
+                activeObj.clone(function(clonedObj) {
+                    let w = activeObj.width * activeObj.scaleX;
+                    let h = activeObj.height * activeObj.scaleY;
+
+                    clonedObj.set({
+                        left: activeObj.left + (c * (w + spaceX)),
+                        top: activeObj.top + (r * (h + spaceY)),
+                        evented: true,
+                        selectable: true
+                    });
+
+                    if (clonedObj.type === 'activeSelection') {
+                        clonedObj.canvas = canvas;
+                        clonedObj.forEachObject(function(obj) {
+                            canvas.add(obj);
+                        });
+                        clonedObj.setCoords();
+                    } else {
+                        canvas.add(clonedObj);
+                    }
+
+                    clonesCompleted++;
+                    if (clonesCompleted === clonesExpected) {
+                        isUndoing = false;
+                        canvas.discardActiveObject();
+                        canvas.requestRenderAll();
+                        saveState(); // Sla alles als één stap op
+                    }
+                });
+            }
+        }
     }
 
     window.addEventListener('keydown', function(e) {
@@ -789,21 +983,46 @@
         }
     });
 
+    let smartGuides = [];
+    function clearSmartGuides() {
+        if (smartGuides.length > 0) {
+            smartGuides.forEach(guide => canvas.remove(guide));
+            smartGuides = [];
+            canvas.requestRenderAll();
+        }
+    }
+
     // Snappen naar het raster tijdens het verplaatsen van objecten
     canvas.on('object:moving', function(options) {
+        clearSmartGuides();
         if (gridEnabled) {
             options.target.set({
                 left: Math.round(options.target.left / gridSize) * gridSize,
                 top: Math.round(options.target.top / gridSize) * gridSize
             });
         } else if (document.getElementById('snapObjectsCheck').checked) {
-            // Snap to other objects
             let target = options.target;
             let snapDist = 15;
+            let snappedX = false;
+            let snappedY = false;
+            
             canvas.getObjects().forEach(obj => {
-                if (obj === target || obj.excludeFromExport) return;
-                if (Math.abs(target.left - obj.left) < snapDist && Math.abs(target.top - obj.top) < snapDist) {
-                    target.set({ left: obj.left, top: obj.top });
+                if (obj === target || obj.excludeFromExport || obj.cadType === 'blueprint' || smartGuides.includes(obj)) return;
+                
+                if (!snappedX && Math.abs(target.left - obj.left) < snapDist) {
+                    target.set({ left: obj.left });
+                    snappedX = true;
+                    let vGuide = new fabric.Line([obj.left, -4000, obj.left, 4000], { stroke: '#bb9af3', strokeWidth: 1, strokeDashArray: [5, 5], selectable: false, evented: false, excludeFromExport: true, opacity: 0.8 });
+                    smartGuides.push(vGuide);
+                    canvas.add(vGuide);
+                }
+                
+                if (!snappedY && Math.abs(target.top - obj.top) < snapDist) {
+                    target.set({ top: obj.top });
+                    snappedY = true;
+                    let hGuide = new fabric.Line([-4000, obj.top, 4000, obj.top], { stroke: '#bb9af3', strokeWidth: 1, strokeDashArray: [5, 5], selectable: false, evented: false, excludeFromExport: true, opacity: 0.8 });
+                    smartGuides.push(hGuide);
+                    canvas.add(hGuide);
                 }
             });
         }
@@ -829,6 +1048,10 @@
                 canvas.add(cloned);
                 canvas.setActiveObject(cloned);
             });
+        }
+        if (action === 'array') {
+            canvas.setActiveObject(contextTarget);
+            createArray();
         }
         canvas.requestRenderAll();
         document.getElementById('contextMenu').style.display = 'none';
@@ -1067,6 +1290,8 @@
     });
 
     canvas.on('mouse:up', function(o) {
+        clearSmartGuides();
+        
         if (isPanning) {
             isPanning = false;
             canvas.selection = (currentTool === 'select');
@@ -1309,7 +1534,8 @@
                 cornerColor: 'white',
                 cornerSize: 8,
                 transparentCorners: false,
-                cadType: 'symbol'
+                cadType: 'symbol',
+                symbolType: type
             });
             canvas.add(symbolGroup);
             canvas.setActiveObject(symbolGroup);
@@ -1374,47 +1600,222 @@
     // 4. Afbeeldingen / Funda Bouwtekeningen Inladen lokaal
     const fileLoader = document.getElementById('fileLoader');
     fileLoader.addEventListener('change', function(e) {
-        let file = e.target.files[0];
-        if (!file) return;
-
-        let reader = new FileReader();
+        let files = e.target.files;
+        if (!files || files.length === 0) return;
         
-        if (file.name.endsWith('.json')) {
-            reader.onload = function(f) {
-                canvas.loadFromJSON(f.target.result, function() {
-                    canvas.renderAll();
-                    historyStack.push(JSON.stringify(canvas.toJSON(['cadType'])));
-                    saveState();
-                    updateStatus();
-                });
-            };
-            reader.readAsText(file);
-            return;
+        // Check if there is a json file among them
+        for (let i = 0; i < files.length; i++) {
+            let file = files[i];
+            if (file.name.endsWith('.json')) {
+                let reader = new FileReader();
+                reader.onload = function(f) {
+                    canvas.loadFromJSON(f.target.result, function() {
+                        canvas.renderAll();
+                        historyStack.push(JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType'])));
+                        saveState();
+                        updateStatus();
+                    });
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+                return;
+            }
         }
         
-        reader.onload = function(f) {
-            let data = f.target.result;
-            fabric.Image.fromURL(data, function(img) {
-                // Optimaliseer canvas grootte naar de blauwdruk resolutie
-                canvas.setWidth(img.width > window.innerWidth ? img.width : window.innerWidth - 600);
-                canvas.setHeight(img.height > window.innerHeight ? img.height : window.innerHeight - 100);
-                
-                // Stel afbeelding in als niet-selecteerbare achtergrondlaag
-                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-                    scaleX: 1,
-                    scaleY: 1
-                });
-                
-                // Reset zoom
-                canvas.setZoom(1);
-                canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
-                updateStatus();
-                saveState(); // Bewaar de ingeladen achtergrond meteen
+        let currentRight = 0;
+        let currentBottom = 0;
+        
+        canvas.getObjects().forEach(obj => {
+            if (obj.cadType === 'blueprint') {
+                let rightEdge = obj.left + (obj.width * obj.scaleX);
+                let bottomEdge = obj.top + (obj.height * obj.scaleY);
+                if (rightEdge > currentRight) currentRight = rightEdge;
+                if (bottomEdge > currentBottom) currentBottom = bottomEdge;
+            }
+        });
+
+        if (canvas.backgroundImage) {
+             let rightEdge = canvas.backgroundImage.width * canvas.backgroundImage.scaleX;
+             let bottomEdge = canvas.backgroundImage.height * canvas.backgroundImage.scaleY;
+             if (rightEdge > currentRight) currentRight = rightEdge;
+             if (bottomEdge > currentBottom) currentBottom = bottomEdge;
+        }
+
+        let filesToLoad = Array.from(files);
+        
+        const loadImage = (file) => {
+            return new Promise((resolve) => {
+                let reader = new FileReader();
+                reader.onload = function(f) {
+                    let data = f.target.result;
+                    fabric.Image.fromURL(data, function(img) {
+                        resolve(img);
+                    });
+                };
+                reader.readAsDataURL(file);
             });
         };
-        reader.readAsDataURL(file);
+
+        const loadAllImages = async () => {
+            for (let i = 0; i < filesToLoad.length; i++) {
+                let img = await loadImage(filesToLoad[i]);
+                img.set({
+                    left: currentRight > 0 ? currentRight + 20 : 0,
+                    top: 0,
+                    selectable: false,
+                    evented: false,
+                    cadType: 'blueprint',
+                    opacity: parseInt(document.getElementById('bgOpacity').value) / 100
+                });
+                canvas.add(img);
+                img.sendToBack();
+                
+                currentRight = img.left + (img.width * img.scaleX);
+                let bottomEdge = img.top + (img.height * img.scaleY);
+                if (bottomEdge > currentBottom) currentBottom = bottomEdge;
+            }
+            
+            let newWidth = Math.max(window.innerWidth - 300, currentRight + 50);
+            let newHeight = Math.max(window.innerHeight - 100, currentBottom + 50);
+            
+            if (canvas.width < newWidth) canvas.setWidth(newWidth);
+            if (canvas.height < newHeight) canvas.setHeight(newHeight);
+            
+            canvas.setZoom(1);
+            canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
+            updateStatus();
+            saveState();
+            
+            if (gridEnabled) updateVisualGrid();
+        };
+
+        loadAllImages();
+        e.target.value = '';
     });
 
+    // 4b. Afbeeldingen Bijsnijden (Crop)
+    function startCropMode() {
+        let activeObj = canvas.getActiveObject();
+        if (!activeObj || activeObj.cadType !== 'blueprint') {
+            let found = false;
+            canvas.getObjects().forEach(obj => {
+                if (obj.cadType === 'blueprint') {
+                    obj.set({ selectable: true, evented: true });
+                    found = true;
+                }
+            });
+            if (found) {
+                alert("Klik op de afbeelding die je wilt bijsnijden om deze te selecteren, en klik daarna nogmaals op deze knop.");
+                switchTool('select');
+            } else {
+                alert("Er zijn geen afbeeldingen ingeladen om bij te snijden.");
+            }
+            return;
+        }
+
+        targetImageToCrop = activeObj;
+        targetImageToCrop.set('angle', 0);
+        
+        let cropWidth = targetImageToCrop.width * targetImageToCrop.scaleX;
+        let cropHeight = targetImageToCrop.height * targetImageToCrop.scaleY;
+
+        cropRect = new fabric.Rect({
+            left: targetImageToCrop.left,
+            top: targetImageToCrop.top,
+            width: cropWidth,
+            height: cropHeight,
+            fill: 'rgba(0,0,0,0.3)',
+            stroke: 'red',
+            strokeWidth: 2,
+            strokeDashArray: [5, 5],
+            cornerColor: 'red',
+            cornerSize: 12,
+            transparentCorners: false,
+            hasRotatingPoint: false,
+            cadType: 'cropRect'
+        });
+
+        canvas.add(cropRect);
+        canvas.setActiveObject(cropRect);
+        isCropping = true;
+
+        let cropBtn = document.getElementById('tool-crop');
+        if (cropBtn) {
+            cropBtn.innerHTML = "✅ Bevestig Bijsnijden";
+            cropBtn.style.backgroundColor = "var(--success)";
+            cropBtn.style.color = "#111";
+            cropBtn.onclick = applyCrop;
+        }
+        
+        document.getElementById('statusBar').innerText = "Pas het rode kader aan en klik op 'Bevestig Bijsnijden' of druk op Enter. Druk op ESC om te annuleren.";
+    }
+
+    function applyCrop() {
+        if (!isCropping || !cropRect || !targetImageToCrop) return;
+
+        let scaleX = targetImageToCrop.scaleX;
+        let scaleY = targetImageToCrop.scaleY;
+
+        let rectLeft = cropRect.left;
+        let rectTop = cropRect.top;
+        let rectWidth = cropRect.width * cropRect.scaleX;
+        let rectHeight = cropRect.height * cropRect.scaleY;
+
+        if (rectLeft < targetImageToCrop.left) rectLeft = targetImageToCrop.left;
+        if (rectTop < targetImageToCrop.top) rectTop = targetImageToCrop.top;
+        
+        let cropX = (rectLeft - targetImageToCrop.left) / scaleX;
+        let cropY = (rectTop - targetImageToCrop.top) / scaleY;
+        let newWidth = rectWidth / scaleX;
+        let newHeight = rectHeight / scaleY;
+
+        let actualCropX = (targetImageToCrop.cropX || 0) + cropX;
+        let actualCropY = (targetImageToCrop.cropY || 0) + cropY;
+
+        isUndoing = true;
+        targetImageToCrop.set({
+            cropX: actualCropX,
+            cropY: actualCropY,
+            width: Math.max(1, newWidth),
+            height: Math.max(1, newHeight),
+            left: rectLeft,
+            top: rectTop
+        });
+
+        cleanupCrop();
+    }
+
+    function cancelCrop() {
+        if (!isCropping) return;
+        cleanupCrop();
+    }
+
+    function cleanupCrop() {
+        if (cropRect) canvas.remove(cropRect);
+        cropRect = null;
+        isCropping = false;
+        targetImageToCrop = null;
+        
+        canvas.getObjects().forEach(obj => {
+            if (obj.cadType === 'blueprint') {
+                obj.set({ selectable: false, evented: false });
+            }
+        });
+        
+        isUndoing = false;
+        canvas.discardActiveObject();
+        canvas.requestRenderAll();
+        saveState();
+        
+        let cropBtn = document.getElementById('tool-crop');
+        if (cropBtn) {
+            cropBtn.innerHTML = "✂️ Afbeelding Bijsnijden";
+            cropBtn.style.backgroundColor = "var(--panel-bg)";
+            cropBtn.style.color = "var(--text-light)";
+            cropBtn.onclick = startCropMode;
+        }
+        updateStatus();
+    }
 
     // 5. Object Beheer Acties (Wissen, Lagenvolgorde)
     document.getElementById('deleteObject').addEventListener('click', deleteSelected);
@@ -1462,8 +1863,16 @@
     }
 
     function toggleLayer(type, isVisible) {
-        if (type === 'bg' && canvas.backgroundImage) {
-            canvas.backgroundImage.opacity = isVisible ? 1 : 0;
+        if (type === 'bg') {
+            let opacityVal = parseInt(document.getElementById('bgOpacity').value) / 100;
+            if (canvas.backgroundImage) {
+                canvas.backgroundImage.opacity = isVisible ? opacityVal : 0;
+            }
+            canvas.getObjects().forEach(obj => {
+                if (obj.cadType === 'blueprint') {
+                    obj.opacity = isVisible ? opacityVal : 0;
+                }
+            });
         } else {
             canvas.getObjects().forEach(obj => {
                 if (obj.cadType === type) {
@@ -1475,6 +1884,7 @@
         }
         canvas.discardActiveObject();
         canvas.requestRenderAll();
+        updateObjectList();
     }
 
     document.getElementById('undoBtn').addEventListener('click', undo);
@@ -1495,7 +1905,7 @@
     });
 
     document.getElementById('saveProjectBtn').addEventListener('click', () => {
-        const json = JSON.stringify(canvas.toJSON(['cadType'])); 
+        const json = JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType'])); 
         const blob = new Blob([json], {type: "application/json"});
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
