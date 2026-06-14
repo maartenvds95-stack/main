@@ -712,21 +712,21 @@
         <p style="color: var(--text-light); margin: 0; font-size: 14px;">Log in om het dagboek te openen</p>
     </div>
 
-    <div style="padding: 20px;">
+    <form id="loginForm" style="padding: 20px;">
         <div class="input-group">
             <label class="input-label">E-mailadres</label>
-            <input type="email" class="input-field" id="loginUsername" placeholder="Bijv. mama@email.nl" style="background-color: var(--card-bg); border-color: #e5e5ea;">
+            <input type="email" class="input-field" id="loginUsername" placeholder="Bijv. mama@email.nl" autocomplete="username" required style="background-color: var(--card-bg); border-color: #e5e5ea;">
         </div>
 
         <div class="input-group">
             <label class="input-label">Wachtwoord</label>
-            <input type="password" class="input-field" id="loginPassword" placeholder="Je wachtwoord" style="background-color: var(--card-bg); border-color: #e5e5ea;">
+            <input type="password" class="input-field" id="loginPassword" placeholder="Je wachtwoord" autocomplete="current-password" required style="background-color: var(--card-bg); border-color: #e5e5ea;">
         </div>
 
         <div style="margin-top: 40px;">
-            <button class="save-btn" id="loginBtn">Inloggen</button>
+            <button type="submit" class="save-btn" id="loginBtn">Inloggen</button>
         </div>
-    </div>
+    </form>
 </div>
 
 <!-- Hoofd App (Verstopt totdat je bent ingelogd) -->
@@ -1424,6 +1424,7 @@
         // ==========================================
         const loginScreen = document.getElementById('loginScreen');
         const mainApp = document.getElementById('mainApp');
+        const loginForm = document.getElementById('loginForm');
         const loginBtn = document.getElementById('loginBtn');
         const loginUsername = document.getElementById('loginUsername');
         const loginPassword = document.getElementById('loginPassword');
@@ -1500,8 +1501,9 @@
             }
         });
 
-        // Actie bij klikken op "Inloggen"
-        loginBtn.addEventListener('click', async () => {
+        // Actie bij versturen van het "Inloggen" formulier
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             const email = loginUsername.value.trim();
             const password = loginPassword.value.trim();
             
@@ -1740,7 +1742,6 @@
                     const endDateTime = new Date(item.timestamp);
                     
                     // Extract duration from subtitle "HH:MM, HH:MM:SS geslapen", "01:30 uur geslapen", or "45 min geslapen"
-                    const subtitle = item.subtitle || '';
                     const durationMatch3 = subtitle.match(/(\d{2}):(\d{2}):(\d{2})/);
                     const durationMatch2 = subtitle.match(/(\d{2}):(\d{2})\s*uur/);
                     const durationMatchMin = subtitle.match(/(\d+)\s*min/);
@@ -1768,9 +1769,6 @@
             
                     endDateTime.setMinutes(endDateTime.getMinutes() - endDateTime.getTimezoneOffset());
                     const formattedEndTime = endDateTime.toISOString();
-
-                    const notesParts = subtitle.split(' - ');
-                    const notes = notesParts.length > 1 ? notesParts.slice(1).join(' - ') : '';
             
                     document.getElementById('saveBtn').innerHTML = 'Bijwerken';
                     document.getElementById('deleteSleepBtn').style.display = 'block';
@@ -2184,7 +2182,6 @@
             if (isTimerRunning || (!isTimerRunning && timerSeconds > 0 && !document.getElementById('sleepEnd').value)) {
                 const newStartVal = document.getElementById('sleepStart').value;
                 let storedDate = sleepModal.dataset.date;
-                const storedDate = sleepModal.dataset.date;
                 if (!newStartVal || !storedDate) return;
                 
                 let newStartTime = new Date(`${storedDate}T${newStartVal}`).getTime();
@@ -2196,7 +2193,7 @@
                     sleepModal.dataset.date = storedDate;
                     localStorage.setItem('sleepTimerDate', storedDate);
                 }
-                const newStartTime = new Date(`${storedDate}T${newStartVal}`).getTime();
+                newStartTime = new Date(`${storedDate}T${newStartVal}`).getTime();
                 if (newStartTime > Date.now()) return;
                 
                 sleepTimerStartTime = newStartTime;
@@ -2211,7 +2208,6 @@
                     startTime: sleepTimerStartTime,
                     startValue: newStartVal,
                     startDate: storedDate
-                    startValue: newStartVal
                 });
             } else {
                 calculateAndDisplaySleepDuration();
