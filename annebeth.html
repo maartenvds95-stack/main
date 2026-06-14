@@ -727,6 +727,9 @@
             <button type="submit" class="save-btn" id="loginBtn">Inloggen</button>
         </div>
     </form>
+    <div style="text-align: center; margin-top: 15px;">
+        <button type="button" id="forgotPasswordBtn" style="background: transparent; border: none; color: var(--icon-purple); font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: underline;">Wachtwoord vergeten?</button>
+    </div>
 </div>
 
 <!-- Hoofd App (Verstopt totdat je bent ingelogd) -->
@@ -1114,7 +1117,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyChofc8PhMI4zIwk43Ld_R1OZMDEt_hGlU",
@@ -1514,16 +1517,6 @@
                     alert('Inloggen mislukt. Controleer je e-mailadres en wachtwoord.');
                     console.error("Fout bij inloggen:", error);
                 }
-                if (!activeBreastTimerUnsubscribe) {
-                    activeBreastTimerUnsubscribe = onSnapshot(doc(db, "active_state", "breastTimer"), (docSnap) => {
-                        if (docSnap.exists() && typeof syncBreastTimerFromFirebase === 'function') syncBreastTimerFromFirebase(docSnap.data());
-                    });
-                }
-                if (!activePumpTimerUnsubscribe) {
-                    activePumpTimerUnsubscribe = onSnapshot(doc(db, "active_state", "pumpTimer"), (docSnap) => {
-                        if (docSnap.exists() && typeof syncPumpTimerFromFirebase === 'function') syncPumpTimerFromFirebase(docSnap.data());
-                    });
-                }
             } else {
                 alert('Vul alsjeblieft een e-mailadres en wachtwoord in.');
             }
@@ -1702,6 +1695,7 @@
                 `;
                 timeline.appendChild(newItem);
             });
+            updateSleepBanner();
         }
         
         // --- Verwijder en Bewerken functionaliteit voor tijdlijn items ---
@@ -1837,14 +1831,6 @@
                     document.getElementById('noteModal').classList.add('active');
                     document.body.style.overflow = 'hidden';
                 }
-                if (activeBreastTimerUnsubscribe) {
-                    activeBreastTimerUnsubscribe();
-                    activeBreastTimerUnsubscribe = null;
-                }
-                if (activePumpTimerUnsubscribe) {
-                    activePumpTimerUnsubscribe();
-                    activePumpTimerUnsubscribe = null;
-                }
             }
         });
 
@@ -1897,7 +1883,7 @@
                 
                 if (!lastSleep && titleLower === 'slapen') lastSleep = item.timestamp;
                 if (!lastBreast && titleLower.includes('borst')) lastBreast = item.timestamp;
-                if (!lastDiaper && titleLower.includes('luier')) lastDiaper = item.timestamp;
+                if (!lastDiaper && (titleLower.includes('luier') || titleLower === 'verschonen')) lastDiaper = item.timestamp;
                 if (!lastBottle && titleLower.includes('fles')) lastBottle = item.timestamp;
                 if (!lastPump && titleLower.includes('kolv')) lastPump = item.timestamp;
                 if (!lastNote && titleLower.includes('notitie')) lastNote = item.timestamp;
@@ -2026,7 +2012,7 @@
         }
 
         if (isTimerRunning && sleepTimerStartTime) {
-            const savedDate = localStorage.getItem('sleepTimerDate');
+            const savedDate = localStorage.getItem('sleepTimerDate') || getCurrentDateTime().slice(0, 10);
             const savedStartVal = localStorage.getItem('sleepTimerStartValue');
             if (savedDate) sleepModal.dataset.date = savedDate;
             
@@ -2146,7 +2132,7 @@
             
             const startVal = document.getElementById('sleepStart').value;
             const endVal = document.getElementById('sleepEnd').value;
-            const storedDate = sleepModal.dataset.date;
+            const storedDate = sleepModal.dataset.date || getCurrentDateTime().slice(0, 10);
             
             if (startVal && endVal && storedDate) {
                 const startDateTime = new Date(`${storedDate}T${startVal}`);
@@ -3136,6 +3122,7 @@
         const closeGrowthModal = () => {
             growthModal.classList.remove('active');
             document.body.style.overflow = '';
+            currentEditGrowthId = null;
         };
 
         closeGrowthModalBtn.addEventListener('click', closeGrowthModal);
