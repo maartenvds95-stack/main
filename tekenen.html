@@ -53,12 +53,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 60px;
+            min-height: 60px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         header h1 {
             margin: 0;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             color: var(--text-light);
             font-weight: 600;
         }
@@ -67,13 +69,29 @@
             display: flex;
             gap: 12px;
             align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: var(--bg-dark);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .toolbar-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
         }
 
         /* Main Workspace Layout */
         .workspace {
             display: flex;
             flex: 1;
-            height: calc(100vh - 60px);
             overflow: hidden;
         }
 
@@ -118,6 +136,7 @@
             border-radius: 6px;
             padding: 12px;
             border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .panel-title {
@@ -129,6 +148,7 @@
             font-weight: bold;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 5px;
+            user-select: none;
         }
 
         .btn-grid {
@@ -147,7 +167,7 @@
             color: var(--text-light);
             border: 1px solid var(--border-color);
             padding: 8px 12px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 0.85rem;
             transition: all 0.2s ease;
@@ -270,27 +290,62 @@
             max-width: 400px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-main);
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Technische Bouwtekening & Installatie Editor (CAD Light)</h1>
+    <div style="display:flex; flex-direction:column; gap:2px;">
+        <h1>Technische Bouwtekening & Installatie Editor</h1>
+        <span style="font-size: 0.75rem; color: var(--text-main);">Professionele CAD Light Software</span>
+    </div>
     <div class="file-actions">
-        <button id="themeToggleBtn" style="background-color: var(--panel-bg);">🌗 Thema</button>
-        <button id="helpBtn" style="background-color: var(--panel-bg);">❓ Help</button>
-        <label style="font-size:0.85rem;" for="fileLoader">Inladen: </label>
-        <input type="file" id="fileLoader" accept="image/*,.json" multiple style="width: auto; max-width: 200px;">
-        <button id="saveProjectBtn" style="background-color: var(--panel-bg);">💾 Opslaan (.json)</button>
-        <span id="userInfo" style="display:none; color: var(--accent); font-size: 0.85rem; font-weight: bold;"></span>
-        <button id="authBtn" style="background-color: var(--panel-bg); color: var(--accent); border-color: var(--accent);">🔒 Inloggen</button>
-        <button onclick="window.saveToCloud()" style="background-color: var(--panel-bg); color: var(--accent); border-color: var(--accent);">☁️ Cloud Opslaan</button>
-        <button onclick="window.loadFromCloud()" style="background-color: var(--panel-bg); color: var(--accent); border-color: var(--accent);">📂 Cloud Projecten</button>
-        <button id="undoBtn" style="background-color: var(--panel-bg);">↩ Undo</button>
-        <button id="clearCanvas" class="danger-btn">Wis Alles</button>
-        <button id="exportImage" style="background-color: var(--success); color: #11111b; font-weight: bold;">Afbeelding</button>
-        <button id="exportSvgBtn" style="background-color: var(--success); color: #11111b; font-weight: bold;">SVG</button>
-        <button id="exportPdfBtn" style="background-color: var(--success); color: #11111b; font-weight: bold;">PDF</button>
+        <!-- Algemene Opties -->
+        <div class="toolbar-group">
+            <button id="themeToggleBtn">🌗 Thema</button>
+            <button id="helpBtn">❓ Help</button>
+            <button id="undoBtn">↩ Undo</button>
+            <button id="clearCanvas" class="danger-btn">Wis Alles</button>
+        </div>
+        
+        <!-- Bestand Beheer -->
+        <div class="toolbar-group">
+            <label for="fileLoader">Inladen: </label>
+            <input type="file" id="fileLoader" accept="image/*,.json" multiple style="width: auto; max-width: 180px; padding: 2px;">
+            <button id="saveProjectBtn">💾 Opslaan (.json)</button>
+        </div>
+
+        <!-- Cloud -->
+        <div class="toolbar-group" style="border-color: var(--accent);">
+            <span id="userInfo" style="display:none; color: var(--accent); font-size: 0.85rem; font-weight: bold;"></span>
+            <button id="authBtn" style="color: var(--accent);">🔒 Inloggen</button>
+            <button onclick="window.saveToCloud()" style="color: var(--accent);">☁️ Cloud Opslaan</button>
+            <button onclick="window.loadFromCloud()" style="color: var(--accent);">📂 Projecten</button>
+        </div>
+
+        <!-- Export -->
+        <div class="toolbar-group" style="border-color: var(--success);">
+            <span style="font-size: 0.8rem; font-weight: 600; color: var(--success);">Export:</span>
+            <button id="exportImage" style="background-color: var(--success); color: #11111b; font-weight: bold;">Afbeelding</button>
+            <button id="exportSvgBtn" style="background-color: var(--success); color: #11111b; font-weight: bold;">SVG</button>
+            <button id="exportPdfBtn" style="background-color: var(--success); color: #11111b; font-weight: bold;">PDF</button>
+        </div>
     </div>
 </header>
 
@@ -301,6 +356,7 @@
             <div class="btn-grid">
                 <button id="tool-select" class="active" onclick="switchTool('select')">Selecteer</button>
                 <button id="tool-pan" onclick="switchTool('pan')">Pan / Versleep</button>
+                <button id="tool-room" class="btn-full" onclick="switchTool('room')" style="border-color: var(--accent); color: var(--accent);">🏠 Ruimte / Kamer Tekenen</button>
                 <button id="tool-line" onclick="switchTool('line')">Rechte Lijn</button>
                 <button id="tool-curve" onclick="switchTool('curve')">〰️ Flexibele Buis</button>
                 <button id="tool-rect" onclick="switchTool('rect')">🟩 Rechthoek</button>
@@ -386,9 +442,12 @@
     </div>
 
     <div class="sidebar right-sidebar">
-        <div class="input-group" style="background: var(--panel-bg); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 10px;">
-            <label for="symbolScale">Symbool Grootte (<span id="symScaleVal">100</span>%):</label>
-            <input type="range" id="symbolScale" min="50" max="200" value="100" oninput="document.getElementById('symScaleVal').innerText=this.value">
+        <div class="panel-section">
+            <div class="panel-title">Symbool Eigenschappen</div>
+            <div class="input-group">
+                <label for="symbolScale">Symbool Grootte (<span id="symScaleVal">100</span>%):</label>
+                <input type="range" id="symbolScale" min="50" max="200" value="100" oninput="document.getElementById('symScaleVal').innerText=this.value">
+            </div>
         </div>
 
         <div class="panel-section">
@@ -541,6 +600,54 @@
 </div>
 
 <script>
+    // --- UI Verbeteringen: Inklapbare Panelen (Accordions) ---
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll('.panel-section').forEach((section) => {
+            const title = section.querySelector('.panel-title');
+            if (!title) return;
+            
+            title.style.cursor = 'pointer';
+            title.style.display = 'flex';
+            title.style.justifyContent = 'space-between';
+            title.style.alignItems = 'center';
+            title.innerHTML += '<span class="toggle-icon" style="font-size:0.7rem; transition: transform 0.2s;">▼</span>';
+            
+            // Panelen die we standaard willen inklappen voor een rustiger overzicht
+            const collapseByDefault = [
+                'Sanitair & Verwarming', 
+                'Bouwkundig & Data', 
+                'Meubilair & Inrichting', 
+                'Uitlijnen (Meerdere objecten)', 
+                'Lijst van Objecten', 
+                'Eigen Stempels', 
+                'Hulpmiddelen'
+            ];
+            
+            const isCollapsibleDefault = collapseByDefault.some(name => title.innerText.includes(name));
+            
+            function togglePanel(collapse) {
+                if (collapse) {
+                    title.classList.add('collapsed');
+                    title.querySelector('.toggle-icon').style.transform = 'rotate(-90deg)';
+                } else {
+                    title.classList.remove('collapsed');
+                    title.querySelector('.toggle-icon').style.transform = 'rotate(0deg)';
+                }
+                
+                Array.from(section.children).forEach(child => {
+                    if (child !== title) child.style.display = collapse ? 'none' : '';
+                });
+            }
+
+            if (isCollapsibleDefault) togglePanel(true);
+
+            title.addEventListener('click', () => {
+                const isCollapsed = title.classList.contains('collapsed');
+                togglePanel(!isCollapsed);
+            });
+        });
+    });
+
     // Initialiseer Fabric Canvas
     const canvas = new fabric.Canvas('cadCanvas', {
         width: 1000,
@@ -803,6 +910,8 @@
     // Area tools
     let areaPoints = [];
     let areaLines = [];
+    let roomPoints = [];
+    let roomLines = [];
 
     // Crop tools
     let isCropping = false;
@@ -855,7 +964,7 @@
         gridLines = [];
         if (gridEnabled) {
             isUndoing = true; // Zorg dat raster niet in Undo history komt
-            const w = 4000, h = 4000; // Grootte van de map
+            const w = 20000, h = 20000; // Grootte van de map flink vergroot
             for (let i = -w/2; i <= w/2; i += gridSize) {
                 let vLine = new fabric.Line([i, -h/2, i, h/2], { stroke: 'rgba(65, 72, 104, 0.4)', strokeWidth: 1, selectable: false, evented: false, excludeFromExport: true });
                 let hLine = new fabric.Line([-w/2, i, w/2, i], { stroke: 'rgba(65, 72, 104, 0.4)', strokeWidth: 1, selectable: false, evented: false, excludeFromExport: true });
@@ -1009,6 +1118,7 @@
         }
         if (e.key === 'Enter' || e.key === 'Escape') {
             if (currentTool === 'area' && areaPoints.length > 2) finishArea();
+            if (currentTool === 'room' && roomPoints.length > 2) finishRoom();
         }
         // Copy / Paste (Ctrl+C / Ctrl+V)
         if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C') && document.activeElement.tagName !== 'INPUT') {
@@ -1349,7 +1459,7 @@
             return;
         }
         
-        if (currentTool === 'area') {
+        if (currentTool === 'area' || currentTool === 'room') {
             return; // Gebruiker moet op Enter drukken om vlak te sluiten
         }
 
@@ -1426,11 +1536,127 @@
         if (currentTool === 'area' && areaPoints.length > 2) {
             finishArea();
         }
+        if (currentTool === 'room' && roomPoints.length > 2) {
+            finishRoom();
+        }
     });
+    
+    function finishArea() {
+        if (areaPoints.length < 3) return cleanupArea();
+        
+        let areaPx = 0;
+        let j = areaPoints.length - 1;
+        for (let i = 0; i < areaPoints.length; i++) {
+            areaPx += (areaPoints[j].x + areaPoints[i].x) * (areaPoints[j].y - areaPoints[i].y);
+            j = i;
+        }
+        areaPx = Math.abs(areaPx / 2);
+        
+        let scale = parseFloat(document.getElementById('scaleInput').value) || 100;
+        let areaM2 = (areaPx / (scale * scale)).toFixed(2);
+        
+        let poly = new fabric.Polygon(areaPoints, {
+            fill: 'rgba(158, 206, 106, 0.3)', stroke: '#9ece6a', strokeWidth: 2, strokeDashArray: [5,5], selectable: false, evented: false
+        });
+        
+        let minX = Math.min(...areaPoints.map(p => p.x)), maxX = Math.max(...areaPoints.map(p => p.x));
+        let minY = Math.min(...areaPoints.map(p => p.y)), maxY = Math.max(...areaPoints.map(p => p.y));
+        
+        let text = new fabric.Text(areaM2 + ' m²', {
+            left: minX + (maxX - minX)/2, top: minY + (maxY - minY)/2,
+            fontSize: parseInt(document.getElementById('fontSize').value) || 16,
+            fill: '#9ece6a', backgroundColor: 'rgba(26,27,38,0.8)',
+            originX: 'center', originY: 'center', selectable: false, evented: false
+        });
+        
+        let group = new fabric.Group([poly, text], { cadType: 'text', selectable: true, hasControls: true });
+        
+        isUndoing = true;
+        areaLines.forEach(l => canvas.remove(l));
+        if (activeLine) canvas.remove(activeLine);
+        canvas.add(group);
+        isUndoing = false;
+        
+        cleanupArea(); saveState(); switchTool('select');
+    }
+
+    function cleanupArea() {
+        areaPoints = [];
+        areaLines.forEach(l => canvas.remove(l));
+        areaLines = [];
+        if (activeLine) canvas.remove(activeLine);
+        activeLine = null;
+        isDrawingLine = false;
+    }
+
+    function finishRoom() {
+        if (roomPoints.length < 3) return cleanupRoom();
+        
+        let roomName = prompt("Naam van de ruimte (bijv. Woonkamer):", "Kamer");
+        if (!roomName) { cleanupRoom(); switchTool('select'); return; }
+
+        let hexColor = customColor.value;
+        let r = parseInt(hexColor.slice(1,3), 16), g = parseInt(hexColor.slice(3,5), 16), b = parseInt(hexColor.slice(5,7), 16);
+        let fillRgba = `rgba(${r}, ${g}, ${b}, 0.15)`;
+
+        let poly = new fabric.Polygon(roomPoints, {
+            fill: fillRgba, stroke: hexColor, strokeWidth: parseInt(customWidth.value) || 4, selectable: false, evented: false
+        });
+        
+        let minX = Math.min(...roomPoints.map(p => p.x)), maxX = Math.max(...roomPoints.map(p => p.x));
+        let minY = Math.min(...roomPoints.map(p => p.y)), maxY = Math.max(...roomPoints.map(p => p.y));
+        
+        let areaPx = 0; let j = roomPoints.length - 1;
+        for (let i = 0; i < roomPoints.length; i++) {
+            areaPx += (roomPoints[j].x + roomPoints[i].x) * (roomPoints[j].y - roomPoints[i].y);
+            j = i;
+        }
+        areaPx = Math.abs(areaPx / 2);
+        let scale = parseFloat(document.getElementById('scaleInput').value) || 100;
+        let areaM2 = (areaPx / (scale * scale)).toFixed(2);
+        
+        let textTitle = new fabric.Text(roomName, {
+            fontSize: parseInt(document.getElementById('fontSize').value) || 20, fill: hexColor,
+            originX: 'center', originY: 'center', fontWeight: 'bold', top: -10
+        });
+        
+        let textArea = new fabric.Text(areaM2 + ' m²', {
+            fontSize: (parseInt(document.getElementById('fontSize').value) || 20) * 0.7, fill: hexColor,
+            originX: 'center', originY: 'center', top: 15
+        });
+        
+        let textGroup = new fabric.Group([textTitle, textArea], {
+            left: minX + (maxX - minX)/2, top: minY + (maxY - minY)/2,
+            originX: 'center', originY: 'center', selectable: false, evented: false
+        });
+
+        let group = new fabric.Group([poly, textGroup], {
+            cadType: 'shape', customName: roomName, selectable: true, hasControls: true
+        });
+        
+        isUndoing = true;
+        roomLines.forEach(l => canvas.remove(l));
+        if (activeLine) canvas.remove(activeLine);
+        canvas.add(group);
+        isUndoing = false;
+        
+        cleanupRoom(); saveState(); switchTool('select');
+    }
+    
+    function cleanupRoom() {
+        roomPoints = [];
+        roomLines.forEach(l => canvas.remove(l));
+        roomLines = [];
+        if (activeLine) canvas.remove(activeLine);
+        activeLine = null;
+        isDrawingLine = false;
+    }
 
     // 2. Switchen van Modus & Gereedschap
     function switchTool(toolName) {
         currentTool = toolName;
+        if (typeof cleanupArea === 'function') cleanupArea();
+        if (typeof cleanupRoom === 'function') cleanupRoom();
         
         // Deactiveer alle actieve buttons in de zijbalk
         document.querySelectorAll('.sidebar button').forEach(btn => btn.classList.remove('active'));
@@ -1457,7 +1683,12 @@
         // Selecteerbaarheid aanpassen op basis van modus
         if (toolName === 'select') {
             canvas.selection = true;
-            canvas.forEachObject(o => { o.selectable = true; o.evented = true; });
+            canvas.forEachObject(o => { 
+                if (o.cadType !== 'blueprint' && !o.excludeFromExport) {
+                    o.selectable = true; 
+                    o.evented = true; 
+                }
+            });
             canvas.setCursor('default');
         } else {
             canvas.selection = false;
