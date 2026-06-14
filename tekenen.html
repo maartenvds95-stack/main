@@ -254,6 +254,22 @@
         .context-menu button.danger-btn {
             color: var(--danger);
         }
+
+        /* Full Page Login Overlay */
+        .login-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-dark); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .login-box {
+            background-color: var(--sidebar-bg);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
@@ -266,6 +282,10 @@
         <label style="font-size:0.85rem;" for="fileLoader">Inladen: </label>
         <input type="file" id="fileLoader" accept="image/*,.json" multiple style="width: auto; max-width: 200px;">
         <button id="saveProjectBtn" style="background-color: var(--panel-bg);">💾 Opslaan (.json)</button>
+        <span id="userInfo" style="display:none; color: var(--accent); font-size: 0.85rem; font-weight: bold;"></span>
+        <button id="authBtn" style="background-color: var(--panel-bg); color: var(--accent); border-color: var(--accent);">🔒 Inloggen</button>
+        <button onclick="window.saveToCloud()" style="background-color: var(--panel-bg); color: var(--accent); border-color: var(--accent);">☁️ Cloud Opslaan</button>
+        <button onclick="window.loadFromCloud()" style="background-color: var(--panel-bg); color: var(--accent); border-color: var(--accent);">📂 Cloud Projecten</button>
         <button id="undoBtn" style="background-color: var(--panel-bg);">↩ Undo</button>
         <button id="clearCanvas" class="danger-btn">Wis Alles</button>
         <button id="exportImage" style="background-color: var(--success); color: #11111b; font-weight: bold;">Afbeelding</button>
@@ -488,6 +508,36 @@
     <button onclick="contextAction('clone')">Kopiëren</button>
     <button onclick="contextAction('array')">🔠 Maak Patroon</button>
     <button onclick="contextAction('delete')" class="danger-btn">Verwijderen</button>
+</div>
+
+<!-- Het schermvullende inlogscherm -->
+<div class="login-overlay" id="loginScreen">
+    <div class="login-box">
+        <h2 style="margin-top:0; text-align:center; color:var(--text-light);">🔒 Inloggen</h2>
+        <p style="text-align:center; font-size:0.85rem; color:var(--text-main); margin-bottom: 20px;">Log in om de applicatie te gebruiken.</p>
+        <div class="input-group">
+            <label>E-mailadres</label>
+            <input type="email" id="loginEmail" placeholder="naam@email.nl">
+        </div>
+        <div class="input-group">
+            <label>Wachtwoord</label>
+            <input type="password" id="loginPassword" placeholder="Wachtwoord">
+        </div>
+        <div style="margin-top: 20px;">
+            <button id="loginSubmitBtn" style="width: 100%; padding: 10px; background-color: var(--success); color: #111; font-weight: bold; font-size: 1rem;">Inloggen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Het venster voor Cloud Projecten -->
+<div class="modal-overlay" id="projectsModal">
+    <div class="modal-content" style="width: 500px;">
+        <h2>☁️ Opgeslagen Projecten (Firebase)</h2>
+        <div id="projectsList" style="max-height: 350px; overflow-y: auto; margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+            <p>Laden...</p>
+        </div>
+        <button onclick="document.getElementById('projectsModal').style.display='none'" style="width:100%; padding:10px; font-weight:bold; margin-top: 15px;">Sluiten</button>
+    </div>
 </div>
 
 <script>
@@ -2016,6 +2066,187 @@
         dlLink.href = dataURL;
         dlLink.click();
     });
+</script>
+
+<script type="module">
+    // ==========================================
+    // FIREBASE CLOUD OPSLAAN & LADEN
+    // ==========================================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+    // Let op: Vervang deze configuratie met je EIGEN Firebase project instellingen!
+    const firebaseConfig = {
+        apiKey: "AIzaSyBNT6u9donKGO5Az3nVQPTk-hVc7CItLw4",
+        authDomain: "tekenen-4ec47.firebaseapp.com",
+        projectId: "tekenen-4ec47",
+        storageBucket: "tekenen-4ec47.firebasestorage.app",
+        messagingSenderId: "600382244481",
+        appId: "1:600382244481:web:cb2165e6dfa2fcd4242f80",
+        measurementId: "G-X88GWP4R8L"
+    };
+
+    let app, analytics, db, auth;
+    let currentUser = null;
+
+    try {
+        app = initializeApp(firebaseConfig);
+        analytics = getAnalytics(app);
+        db = getFirestore(app);
+        auth = getAuth(app);
+    } catch(e) {
+        console.warn("Firebase niet ingesteld. Zorg dat je de juiste config hierboven invult.");
+    }
+
+    if (auth) {
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            const authBtn = document.getElementById('authBtn');
+            const userInfo = document.getElementById('userInfo');
+            const loginScreen = document.getElementById('loginScreen');
+            if (user) {
+                loginScreen.style.display = 'none';
+                userInfo.style.display = 'inline-block';
+                userInfo.innerText = user.email;
+                authBtn.innerText = '🔓 Uitloggen';
+            } else {
+                loginScreen.style.display = 'flex';
+                userInfo.style.display = 'none';
+                userInfo.innerText = '';
+                authBtn.innerText = '🔒 Inloggen';
+            }
+        });
+
+        document.getElementById('authBtn').addEventListener('click', () => {
+            if (currentUser) {
+                signOut(auth).then(() => alert("Succesvol uitgelogd."));
+            }
+        });
+
+        document.getElementById('loginSubmitBtn').addEventListener('click', async () => {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            if (!email || !password) return alert("Vul e-mail en wachtwoord in.");
+            try {
+                document.getElementById('loginSubmitBtn').innerText = 'Laden...';
+                await signInWithEmailAndPassword(auth, email, password);
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+            } catch (e) {
+                alert("Inloggen mislukt: Controleer je e-mailadres en wachtwoord.");
+            } finally {
+                document.getElementById('loginSubmitBtn').innerText = 'Inloggen';
+            }
+        });
+    }
+
+    window.saveToCloud = async function() {
+        if (!db) return alert("Firebase is nog niet geconfigureerd in de code!");
+        if (!currentUser) return alert("Je moet ingelogd zijn om projecten in de cloud op te slaan.");
+        let projectName = prompt("Geef het project een naam:", "Nieuw Project");
+        if (!projectName) return;
+
+        let jsonState = JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType']));
+        
+        try {
+            document.getElementById('statusBar').innerText = "Project opslaan naar cloud...";
+            await addDoc(collection(db, "projects"), {
+                name: projectName,
+                data: jsonState,
+                timestamp: new Date().toISOString()
+            });
+            alert("Project succesvol opgeslagen in de cloud!");
+            document.getElementById('statusBar').innerText = "Project opgeslagen in Firebase.";
+        } catch (e) {
+            console.error(e);
+            alert("Fout bij opslaan. Check de console en je database regels (Rules).");
+            document.getElementById('statusBar').innerText = "Opslaan mislukt.";
+        }
+    };
+
+    window.loadFromCloud = async function() {
+        if (!db) return alert("Firebase is nog niet geconfigureerd in de code!");
+        if (!currentUser) return alert("Je moet ingelogd zijn om cloud projecten te bekijken.");
+        document.getElementById('projectsModal').style.display = 'flex';
+        const list = document.getElementById('projectsList');
+        list.innerHTML = '<p>Projecten laden...</p>';
+        
+        try {
+            const q = query(collection(db, "projects"), orderBy("timestamp", "desc"));
+            const querySnapshot = await getDocs(q);
+            list.innerHTML = '';
+            if (querySnapshot.empty) {
+                list.innerHTML = '<p style="color:var(--text-main);">Geen projecten gevonden in de cloud.</p>';
+                return;
+            }
+            
+            querySnapshot.forEach((docSnap) => {
+                let project = docSnap.data();
+                let div = document.createElement('div');
+                div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:var(--panel-bg); padding:10px; border-radius:4px; border:1px solid var(--border-color);';
+                
+                let nameSpan = document.createElement('span');
+                nameSpan.innerText = project.name || 'Naamloos';
+                nameSpan.style.cssText = 'color:var(--text-light); font-weight:bold; font-size:0.95rem;';
+                
+                let dateSpan = document.createElement('div');
+                let d = new Date(project.timestamp);
+                dateSpan.innerText = d.toLocaleDateString('nl-NL') + ' ' + d.toLocaleTimeString('nl-NL');
+                dateSpan.style.cssText = 'font-size:0.75rem; color:var(--text-main); margin-top:3px;';
+                
+                let btnGroup = document.createElement('div');
+                btnGroup.style.cssText = 'display:flex; gap:8px;';
+                
+                let loadBtn = document.createElement('button');
+                loadBtn.innerHTML = '📂 Inladen';
+                loadBtn.onclick = () => {
+                    if(confirm(`Weet je zeker dat je '${project.name}' wilt inladen? Dit overschrijft je huidige canvas.`)) {
+                        canvas.loadFromJSON(project.data, function() {
+                            canvas.renderAll();
+                            historyStack.push(project.data);
+                            saveState();
+                            document.getElementById('projectsModal').style.display = 'none';
+                            updateObjectList();
+                            if (document.getElementById('toggleGridBtn').classList.contains('active')) {
+                                updateVisualGrid();
+                            }
+                        });
+                    }
+                };
+                
+                let delBtn = document.createElement('button');
+                delBtn.innerHTML = '🗑️';
+                delBtn.className = 'danger-btn';
+                delBtn.title = 'Verwijderen';
+                delBtn.onclick = async () => {
+                    if (confirm(`Weet je zeker dat je het project '${project.name}' voor altijd wilt verwijderen uit de cloud?`)) {
+                        await deleteDoc(doc(db, "projects", docSnap.id));
+                        window.loadFromCloud(); // Ververs de lijst
+                    }
+                };
+                
+                btnGroup.appendChild(loadBtn);
+                btnGroup.appendChild(delBtn);
+                
+                let infoGroup = document.createElement('div');
+                infoGroup.appendChild(nameSpan);
+                infoGroup.appendChild(dateSpan);
+                
+                div.appendChild(infoGroup);
+                div.appendChild(btnGroup);
+                list.appendChild(div);
+            });
+        } catch (e) {
+            console.error(e);
+            if(e.code === 'failed-precondition' || e.message.includes('index')) {
+                 list.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">Fout: Firebase Index ontbreekt (of database rules weigeren).<br><br>${e.message}</p>`;
+            } else {
+                 list.innerHTML = '<p style="color:var(--danger);">Fout bij het laden van projecten.</p>';
+            }
+        }
+    };
 </script>
 
 </body>
