@@ -417,7 +417,6 @@
   <button class="nav-btn" data-target="view-meldingen"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg> Meldingen</button>
   <button class="nav-btn" data-target="view-eenheden"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h6m-3-3v6M1 20l4-4m0 0h10a2 2 0 002-2V8"/></svg> Eenheden</button>
   <button class="nav-btn" data-target="view-posten"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h16"/></svg> Posten</button>
-  <button class="nav-btn" data-target="view-actuele-logging"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Live Logboek</button>
   <button class="nav-btn" data-target="view-logging"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h10"/><path d="M18 18V6"/></svg> Logging</button>
   <button class="nav-btn" data-target="view-rapportage"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg> Rapportage</button>
   <button class="nav-btn" data-target="view-account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5.5 20a6.5 6.5 0 0113 0"/></svg> Accountinstellingen</button>
@@ -429,7 +428,7 @@
   <button id="btnDetailedMedical" class="ab ab-b" title="Sneltoets: Alt + S"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Uitgebreide medische melding</button>
   <button class="ab ab-o" id="btnBrandwacht" title="Sneltoets: Alt + B"><svg viewBox="0 0 24 24"><path d="M9 3h6a2 2 0 012 2v14a2 2 0 01-2 2H9a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M9 8h6"/></svg> Brandwacht melding</button>
   <button class="ab ab-p" id="btnLogistiek" title="Sneltoets: Alt + L"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> Logistieke melding</button>
-  <button class="ab ab-a"><svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M12 4v16"/></svg> Logging toevoegen</button>
+  <button class="ab ab-a" id="btnGlobalLog"><svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M12 4v16"/></svg> Logging toevoegen</button>
   <button class="ab" id="btnProtocols" style="background: var(--bg3); border-color: var(--border); color: var(--text1); margin-left: auto;">
     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Protocollen
   </button>
@@ -520,9 +519,27 @@
       </div>
     </div>
 
-    <div class="view" id="view-actuele-logging">
+    <div class="view" id="view-logging">
       <div class="section-hdr"><span class="section-title">Globaal Live Logboek</span></div>
-      <div class="tbl-wrap" id="actueleLoggingWrapper" style="max-height: calc(100vh - 250px); overflow-y: auto;">
+      
+      <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+        <input type="text" id="liveLogSearchInput" placeholder="🔍 Zoek op bericht, incident..." style="flex: 1; max-width: 350px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+        <select id="liveLogTypeFilter" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+          <option value="">Alle soorten</option>
+          <option value="Status">Status</option>
+          <option value="Wijziging">Wijziging</option>
+          <option value="Toegevoegd">Toegevoegd</option>
+          <option value="Afloop">Afloop</option>
+          <option value="Notitie">Notitie / Nader bericht</option>
+        </select>
+        <select id="liveLogUnitFilter" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+          <option value="">Alle eenheden</option>
+        </select>
+        <button class="btn btn-outline" id="exportCsvBtn" style="margin-left: auto;" title="Exporteer actieve weergave naar CSV"><svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg> CSV</button>
+        <button class="btn btn-outline" id="printLogsBtn" title="Print of bewaar als PDF"><svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print/PDF</button>
+      </div>
+
+      <div class="tbl-wrap" id="actueleLoggingWrapper" style="max-height: 400px; overflow-y: auto; margin-bottom: 30px;">
         <table>
           <thead style="position: sticky; top: 0; z-index: 10;">
             <tr><th style="width:120px;">Tijd</th><th>Soort</th><th>Melding</th><th>Eenheid</th><th>Actie / Notitie</th><th>Gebruiker</th></tr>
@@ -532,9 +549,7 @@
         </table>
         <div id="loadMoreLogsBtn" style="text-align: center; padding: 15px; cursor: pointer; color: var(--blue); font-weight: 600; display: none;">Laad meer logs...</div>
       </div>
-    </div>
 
-    <div class="view" id="view-logging">
       <div class="section-hdr"><span class="section-title">Logging (Afgesloten Meldingen)</span></div>
       
       <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
@@ -570,6 +585,27 @@
         </div>
       </div>
       
+      <div style="background: var(--bg2); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
+        <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 16px;">Type uitrukmeldingen</h3>
+        <div class="tbl-wrap" style="border: 1px solid var(--border); border-radius: 8px;">
+          <table>
+            <thead>
+              <tr><th>Type uitrukmeldingen</th><th style="width: 150px; text-align: right; padding-right: 24px;">Aantal</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Retour BLS</td><td style="text-align: right; padding-right: 24px;" id="rapRetourBLS">0</td></tr>
+              <tr><td>Retour ALS</td><td style="text-align: right; padding-right: 24px;" id="rapRetourALS">0</td></tr>
+              <tr><td>Loze meldingen</td><td style="text-align: right; padding-right: 24px;" id="rapLoze">0</td></tr>
+              <tr><td>Zorg ter plaatse</td><td style="text-align: right; padding-right: 24px;" id="rapZorg">0</td></tr>
+              <tr><td>Dubbele meldingen</td><td style="text-align: right; padding-right: 24px;" id="rapDubbel">0</td></tr>
+              <tr><td>Onbekend / nog openstaande meldingen</td><td style="text-align: right; padding-right: 24px;" id="rapOpen">0</td></tr>
+              <tr style="font-weight: 600; background: var(--bg3);"><td>Totaal aantal uitrukmeldingen</td><td style="text-align: right; padding-right: 24px; color: var(--blue);" id="rapTotalUitruk">0</td></tr>
+              <tr style="font-weight: 600; background: var(--bg3);"><td>Totaal aantal zelfzorgcontacten</td><td style="text-align: right; padding-right: 24px; color: var(--green);" id="rapTotalZelfzorg">0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div style="background: var(--bg2); padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
          <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 10px;">Toelichting Dashboard</h3>
          <p style="color: var(--text2); font-size: 13px; line-height: 1.6;">Dit overzicht toont real-time statistieken op basis van de afgesloten incidenten uit deze meldkamer post. De gemiddelde afhandeltijd wordt automatisch berekend door het verschil in minuten te nemen tussen het tijdstip van binnenkomst en het moment van definitief afsluiten van de afloop.</p>
@@ -1219,8 +1255,8 @@
         </div>
 
         <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-           <iframe id="buienradarIframe" src="about:blank" scrolling="no" width="330" height="330" frameborder="no" style="border: 1px solid var(--border); border-radius: 12px; background: var(--bg2); max-width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></iframe>
-           <div style="font-size: 11px; color: var(--text3); margin-top: 12px; text-align: center;">Bron radar: Buienradar. Bron weerdata: Open-Meteo.</div>
+           <iframe id="buienradarIframe" src="about:blank" scrolling="no" width="100%" height="330" frameborder="no" style="border: 1px solid var(--border); border-radius: 12px; background: var(--bg2); max-width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></iframe>
+           <div style="font-size: 11px; color: var(--text3); margin-top: 12px; text-align: center;">Bron radar: Windy. Bron weerdata: Open-Meteo.</div>
         </div>
       </div>
       
@@ -1265,6 +1301,10 @@
         <strong>Agressie / Vechtpartij</strong>
         <span>Protocol bij escalatie of geweld</span>
       </button>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="vermissing">
+        <strong>Vermissing op evenementen</strong>
+        <span>Protocol omgaan met vermiste personen</span>
+      </button>
     </div>
   </div>
 </div>
@@ -1284,7 +1324,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
   import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1353,6 +1393,7 @@
               units = [];
               snapshot.forEach(doc => units.push(doc.data()));
               if (typeof sortUnits === 'function') sortUnits(currentSort.col, true);
+              if (typeof updateLiveLogUnitDropdown === 'function') updateLiveLogUnitDropdown();
           });
           
           unsubPosts = onSnapshot(collection(db, "posts"), (snapshot) => {
@@ -1541,14 +1582,67 @@
       return { bg: 'var(--purple-bg)', color: 'var(--purple)' };
   }
 
+  function updateLiveLogUnitDropdown() {
+      const select = document.getElementById('liveLogUnitFilter');
+      if (!select) return;
+      const currentVal = select.value;
+      let html = '<option value="">Alle eenheden</option>';
+      
+      const sortedUnits = [...units].sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+      sortedUnits.forEach(u => {
+          html += `<option value="${u.id}">${u.id}</option>`;
+      });
+      
+      select.innerHTML = html;
+      if (units.find(u => u.id === currentVal)) {
+          select.value = currentVal;
+      }
+  }
+
   function renderGlobalLogs() {
       const tbody = document.getElementById('actueleLoggingBody');
       if (!tbody) return;
+      
       if (globalLogs.length === 0) {
           tbody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">Nog geen logs beschikbaar.</td></tr>';
+          const loadMoreBtn = document.getElementById('loadMoreLogsBtn');
+          if (loadMoreBtn) loadMoreBtn.style.display = 'none';
           return;
       }
-      tbody.innerHTML = globalLogs.map(log => {
+      
+      const searchQ = (document.getElementById('liveLogSearchInput')?.value || '').toLowerCase();
+      const typeQ = document.getElementById('liveLogTypeFilter')?.value;
+      const unitQ = document.getElementById('liveLogUnitFilter')?.value;
+
+      let filteredLogs = globalLogs;
+
+      if (searchQ) {
+          filteredLogs = filteredLogs.filter(log => 
+              (log.message || '').toLowerCase().includes(searchQ) ||
+              (log.incidentId || '').toLowerCase().includes(searchQ) ||
+              (log.user || '').toLowerCase().includes(searchQ)
+          );
+      }
+      
+      if (typeQ) {
+          filteredLogs = filteredLogs.filter(log => {
+              if (typeQ === 'Notitie') return (log.type || '').includes('Notitie') || (log.type || '').includes('Nader bericht');
+              return log.type === typeQ;
+          });
+      }
+      
+      if (unitQ) {
+          filteredLogs = filteredLogs.filter(log => log.unitId === unitQ);
+      }
+
+      if (filteredLogs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">Geen logs gevonden met huidige filters.</td></tr>';
+          const loadMoreBtn = document.getElementById('loadMoreLogsBtn');
+          if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+          return;
+      }
+
+      tbody.innerHTML = filteredLogs.map(log => {
           const d = new Date(log.timestamp);
           const timeStr = d.toLocaleDateString('nl-NL', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
           const style = getLogTypeStyle(log.type);
@@ -1601,6 +1695,40 @@
   }
 
   document.getElementById('loadMoreLogsBtn')?.addEventListener('click', loadMoreLogs);
+  document.getElementById('liveLogSearchInput')?.addEventListener('input', renderGlobalLogs);
+  document.getElementById('liveLogTypeFilter')?.addEventListener('change', renderGlobalLogs);
+  document.getElementById('liveLogUnitFilter')?.addEventListener('change', renderGlobalLogs);
+  
+  document.getElementById('exportCsvBtn')?.addEventListener('click', () => {
+      const rows = [['Datum/Tijd', 'Soort', 'Melding', 'Eenheid', 'Bericht/Notitie', 'Gebruiker']];
+      const tbody = document.getElementById('actueleLoggingBody');
+      if (!tbody) return;
+      Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+          if (tr.querySelector('.empty-table-msg')) return;
+          const cols = Array.from(tr.querySelectorAll('td')).map(td => `"${(td.innerText || td.textContent).replace(/"/g, '""')}"`);
+          rows.push(cols.join(','));
+      });
+      const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + rows.join('\n');
+      const link = document.createElement("a");
+      link.setAttribute("href", encodeURI(csvContent));
+      link.setAttribute("download", `logboek_export_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  });
+
+  document.getElementById('printLogsBtn')?.addEventListener('click', () => {
+      const printWin = window.open('', '_blank');
+      const tableHtml = document.getElementById('actueleLoggingWrapper').querySelector('table').outerHTML;
+      printWin.document.write(`
+          <html><head><title>Logboek Export</title>
+          <style>body{font-family:Arial,sans-serif;padding:20px;color:#333;} h2{color:#111;border-bottom:1px solid #ccc;padding-bottom:10px;} table{width:100%;border-collapse:collapse;font-size:12px;margin-top:20px;} th,td{border:1px solid #ddd;padding:8px;text-align:left;} th{background-color:#f5f5f5;font-weight:bold;} a{text-decoration:none;color:inherit;}</style>
+          </head><body>
+          <h2>Globaal Logboek Export - ${new Date().toLocaleString('nl-NL')}</h2>
+          ${tableHtml}
+          <script>setTimeout(() => { window.print(); window.close(); }, 300);<\/script>
+          </body></html>
+      `);
+      printWin.document.close();
+  });
 
   document.addEventListener('click', (e) => {
       if (e.target.classList.contains('log-incident-link')) {
@@ -1799,6 +1927,7 @@
                 }
                 
                 setDoc(doc(db, "units", u.id), units[unitIndex]);
+                addLog('Status', `Status gewijzigd naar: ${newStatus}`, u.id, '', units[unitIndex].location);
             }
             // ✅ FIX 1: renderUnits wordt maar 1x aangeroepen
             renderUnits();
@@ -1896,7 +2025,6 @@
                     <td>
                       <div class="row-actions">
                         <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
-                        <button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}" disabled style="opacity: 0.5; cursor: not-allowed;" title="Wijs eerst een eenheid toe">Opschalen</button>
                         <button type="button" class="btn btn-outline" data-action="log" data-id="${inc.id}">Log</button>
                         <button type="button" class="btn btn-outline" data-action="samenvoegen" data-id="${inc.id}">Samenvoegen</button>
                         <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Statusen</button>
@@ -1926,7 +2054,6 @@
                 <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
                 <td>
                   <div class="row-actions">
-                    <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
                     <button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}">Opschalen</button>
                     <button type="button" class="btn btn-outline" data-action="log" data-id="${inc.id}">Log</button>
                     <button type="button" class="btn btn-outline" data-action="samenvoegen" data-id="${inc.id}">Samenvoegen</button>
@@ -1950,6 +2077,10 @@
                   ? `<button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}">Opschalen</button>`
                   : `<button type="button" class="btn btn-outline" data-action="opschalen" data-id="${inc.id}" disabled style="opacity: 0.5; cursor: not-allowed;" title="Wijs eerst een eenheid toe">Opschalen</button>`;
 
+              const toewijzenBtn = !isAssigned 
+                  ? `<button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>`
+                  : ``;
+
               const trAll = document.createElement('tr');
           makeRowDropTarget(trAll, inc.id);
               trAll.innerHTML = `
@@ -1961,7 +2092,7 @@
                 <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
                 <td>
                   <div class="row-actions">
-                    <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
+                    ${toewijzenBtn}
                     ${opschaalBtn}
                     <button type="button" class="btn btn-outline" data-action="log" data-id="${inc.id}">Log</button>
                     <button type="button" class="btn btn-outline" data-action="samenvoegen" data-id="${inc.id}">Samenvoegen</button>
@@ -2090,6 +2221,40 @@
       }
       const rapTopUnit = document.getElementById('rapTopUnit');
       if (rapTopUnit) rapTopUnit.innerText = maxCount > 0 ? topUnit + ` (${maxCount}x)` : '-';
+
+      let rapRetourBLS = 0;
+      let rapRetourALS = 0;
+      let rapLoze = 0;
+      let rapZorg = 0;
+      let rapDubbel = 0;
+      let rapOpen = 0;
+      let rapTotalUitruk = 0;
+      let rapTotalZelfzorg = 0;
+
+      closedIncidents.forEach(inc => {
+          const s = (inc.status || '').toLowerCase();
+          if (s.includes('retour bls')) rapRetourBLS++;
+          if (s.includes('retour als')) rapRetourALS++;
+          if (s.includes('loze melding')) rapLoze++;
+          if (s.includes('zorg ter plaatse')) rapZorg++;
+          if (s.includes('dubbele melding')) rapDubbel++;
+
+          if (inc.units && inc.units.length > 0) {
+              rapTotalUitruk++;
+          } else {
+              rapTotalZelfzorg++;
+          }
+      });
+      rapOpen = incidents.filter(inc => !inc.status.startsWith('Afgesloten')).length;
+
+      if (document.getElementById('rapRetourBLS')) document.getElementById('rapRetourBLS').innerText = rapRetourBLS;
+      if (document.getElementById('rapRetourALS')) document.getElementById('rapRetourALS').innerText = rapRetourALS;
+      if (document.getElementById('rapLoze')) document.getElementById('rapLoze').innerText = rapLoze;
+      if (document.getElementById('rapZorg')) document.getElementById('rapZorg').innerText = rapZorg;
+      if (document.getElementById('rapDubbel')) document.getElementById('rapDubbel').innerText = rapDubbel;
+      if (document.getElementById('rapOpen')) document.getElementById('rapOpen').innerText = rapOpen;
+      if (document.getElementById('rapTotalUitruk')) document.getElementById('rapTotalUitruk').innerText = rapTotalUitruk;
+      if (document.getElementById('rapTotalZelfzorg')) document.getElementById('rapTotalZelfzorg').innerText = rapTotalZelfzorg;
   }
 
    let currentEscalationIncidentId = null;
@@ -2339,6 +2504,69 @@
        document.getElementById('mergeModal').classList.remove('show');
        currentMergeIncidentId = null;
    });
+   
+   function openAfloopModal(incidentId) {
+       currentAfloopIncidentId = incidentId;
+       document.getElementById('afloopModal').classList.add('show');
+   }
+
+   document.getElementById('afloopCloseBtn')?.addEventListener('click', () => {
+       document.getElementById('afloopModal').classList.remove('show');
+       currentAfloopIncidentId = null;
+   });
+
+   document.querySelectorAll('#afloopModal .option-btn').forEach(btn => {
+       btn.addEventListener('click', () => {
+           const reason = btn.getAttribute('data-afloop');
+           const incident = incidents.find(i => i.id === currentAfloopIncidentId);
+           if (!incident) return;
+           
+           const closingReasons = ['Inzetbaar', 'Loze melding', 'Retour BLS', 'Retour ALS', 'Dubbele melding', 'Brand meester', 'Assistentie Brandweer'];
+           const isClosing = closingReasons.includes(reason);
+
+           if (isClosing) {
+               const nu = new Date();
+               const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
+               incident.closedAtTime = tijdString;
+               incident.closedAtTimestamp = nu.toISOString();
+               incident.status = `Afgesloten: ${reason}`;
+               addIncidentAudit(incident, `Melding afgesloten (${reason})`);
+           } else {
+               incident.status = reason;
+               addIncidentAudit(incident, `Status gewijzigd naar: ${reason}`);
+           }
+           
+           setDoc(doc(db, "incidents", incident.id), incident);
+
+           const upUnits = incident.units || [];
+           upUnits.forEach(uidStr => {
+               const uName = uidStr.includes(':') ? uidStr.split(':')[1].trim() : uidStr;
+               const u = units.find(x => uName === x.id);
+               if (u) {
+                   let oldStatus = u.status;
+                   if (['Inzetbaar', 'Loze melding', 'Dubbele melding', 'Brand meester', 'Assistentie Brandweer'].includes(reason)) {
+                       u.status = 'inzetbaar';
+                   } else if (reason === 'Retour ALS' || reason === 'Retour BLS') {
+                       u.status = 'retour post';
+                       if (u.gekoppeldAanPost) {
+                           u.location = u.gekoppeldAanPost;
+                       }
+                   }
+                   
+                   if (oldStatus !== u.status) {
+                       setDoc(doc(db, "units", u.id), u);
+                       addLog('Status', `Status gewijzigd naar: ${u.status}`, u.id, incident.id, incident.location);
+                   }
+               }
+           });
+
+           renderTables();
+           renderUnits();
+           if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+           document.getElementById('afloopModal').classList.remove('show');
+           currentAfloopIncidentId = null;
+       });
+   });
 
    function attachRowActionHandlers() {
        document.querySelectorAll('.row-actions button').forEach(btn => {
@@ -2425,22 +2653,22 @@
                const isAls = /(^|\s)-als\b/i.test(text);
                if (isBls || isAls) {
                    const type = isBls ? 'BLS' : 'ALS';
-                   inc.status = `Afgesloten: Retour ${type}`;
-                   const nu = new Date();
-                   inc.closedAtTime = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
-                   inc.closedAtTimestamp = nu.toISOString();
-                   parsedNotes.push(`Afloop ingesteld op Retour ${type}`);
+                   inc.status = `Retour ${type}`;
+                   parsedNotes.push(`Status gewijzigd naar Retour ${type}`);
                    
                    if (inc.units && inc.units.length > 0) {
                        inc.units.forEach(uidStr => {
                            const uName = uidStr.includes(':') ? uidStr.split(':')[1].trim() : uidStr;
                            const unitToUpdate = units.find(u => u.id === uName);
                            if (unitToUpdate) {
-                               unitToUpdate.status = 'vertrek patiënt';
+                               unitToUpdate.status = 'retour post';
+                               if (unitToUpdate.gekoppeldAanPost) {
+                                   unitToUpdate.location = unitToUpdate.gekoppeldAanPost;
+                               }
                                setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
                            }
                        });
-                       parsedNotes.push('Eenheid status naar vertrek patiënt');
+                       parsedNotes.push('Eenheid status naar retour post');
                    }
                    text = text.replace(/(^|\s)-bls\b/gi, '').replace(/(^|\s)-als\b/gi, '').trim();
                }
@@ -2451,6 +2679,10 @@
 
                // -ehtp
                if (/(^|\s)-ehtp\b/i.test(text)) { parsedNotes.push('Zorg ter plaatse'); text = text.replace(/(^|\s)-ehtp\b/gi, '').trim(); }
+
+               // -nb (Nader Bericht)
+               let isNaderBericht = false;
+               if (/(^|\s)-nb\b/i.test(text)) { isNaderBericht = true; text = text.replace(/(^|\s)-nb\b/gi, '').trim(); }
 
                const extractVal = (regex) => {
                    const match = text.match(regex);
@@ -2483,7 +2715,17 @@
                    if (val) { if (f.inDetails) { inc.details[f.prop] = val; } else { inc[f.prop] = val; } parsedNotes.push(`${f.label}: ${val}`); }
                });
 
-               if (text.length > 0) addIncidentAudit(inc, `Lognotitie: ${text}`);
+               if (text.length > 0) {
+                   if (isNaderBericht) {
+                       addLog('Nader bericht', text, '', inc.id, inc.location);
+                       const timeStr = new Date().getHours().toString().padStart(2,'0')+':'+new Date().getMinutes().toString().padStart(2,'0');
+                       const user = auth.currentUser ? auth.currentUser.email.split('@')[0] : 'Systeem';
+                       inc.auditTrail = inc.auditTrail || [];
+                       inc.auditTrail.push({ time: timeStr, action: `Nader bericht: ${text}`, user: user });
+                   } else {
+                       addIncidentAudit(inc, `Lognotitie: ${text}`);
+                   }
+               }
                if (parsedNotes.length > 0) addIncidentAudit(inc, `Parser updates: ${parsedNotes.join(' | ')}`);
 
                setDoc(doc(db, "incidents", inc.id), inc);
@@ -2571,122 +2813,6 @@
               const formInOverlay = overlay.querySelector('form');
               if (formInOverlay) formInOverlay.reset();
           }
-      });
-  });
-
-  const helpBtn = document.getElementById('helpBtn');
-  const helpModal = document.getElementById('helpModal');
-  if (helpBtn && helpModal) {
-      helpBtn.addEventListener('click', () => helpModal.classList.add('show'));
-  }
-
-  document.getElementById('assignCloseBtn').addEventListener('click', () => {
-      closeAssignModal();
-  });
-
-  document.getElementById('escalationCloseBtn').addEventListener('click', () => {
-      closeEscalationModal();
-  });
-
-  // Externe eenheid (112) toevoegen in Escalatiescherm
-  document.getElementById('externalUnitBtn')?.addEventListener('click', () => {
-      const input = document.getElementById('externalUnitInput');
-      const val = input.value.trim();
-      if (!val) return;
-      
-      const inc = incidents.find(i => i.id === currentEscalationIncidentId);
-      if (inc) {
-          addIncidentAudit(inc, `Externe Hulpdienst (112) gealarmeerd/ter plaatse: ${val}`);
-          inc.units = inc.units || [];
-          if (!inc.units.includes(val)) inc.units.push(`[112] ${val}`);
-          setDoc(doc(db, "incidents", inc.id), inc);
-          showToast('Externe eenheid geregistreerd.');
-          input.value = '';
-          closeEscalationModal();
-      }
-  });
-
-  document.querySelectorAll('#escalationModal .option-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-          const escalationType = btn.getAttribute('data-escalation');
-          const incidentId = currentEscalationIncidentId;
-          const incident = incidents.find(i => i.id === incidentId);
-          closeEscalationModal();
-          if (!incident) return;
-        const assignNeeded = ['Assistentie ALS', 'Assistentie 2e BLS team', 'Assistentie BLS vervoer', 'Assistentie ALS vervoer'];
-        if (assignNeeded.includes(escalationType)) {
-          openAssignModal(incidentId, escalationType);
-        } else {
-          incident.units = incident.units || [];
-          if (!incident.units.includes(escalationType)) incident.units.push(escalationType);
-          incident.status = escalationType;
-          addIncidentAudit(incident, `Opschaling: ${escalationType}`);
-          setDoc(doc(db, "incidents", incident.id), incident);
-          renderTables();
-        }
-      });
-  });
-  
-  // Afloop logica uit de opschaal-loop gehaald
-  document.getElementById('afloopCloseBtn').addEventListener('click', () => {
-      document.getElementById('afloopModal').classList.remove('show');
-      currentAfloopIncidentId = null;
-  });
-
-  function openAfloopModal(incidentId) {
-      currentAfloopIncidentId = incidentId;
-      document.getElementById('afloopModal').classList.add('show');
-  }
-
-  document.querySelectorAll('#afloopModal .option-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-          const reason = btn.getAttribute('data-afloop');
-          const incident = incidents.find(i => i.id === currentAfloopIncidentId);
-          if (!incident) return;
-          
-          const closingReasons = ['Inzetbaar', 'Loze melding', 'Zorg ter plaatse', 'Retour BLS', 'Retour ALS', 'Dubbele melding', 'Brand meester', 'Assistentie Brandweer'];
-          const isClosing = closingReasons.includes(reason);
-
-          if (isClosing) {
-              const nu = new Date();
-              const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
-              incident.closedAtTime = tijdString;
-              incident.closedAtTimestamp = nu.toISOString();
-              incident.status = `Afgesloten: ${reason}`;
-              addIncidentAudit(incident, `Melding afgesloten (${reason})`);
-          } else {
-              incident.status = reason;
-              addIncidentAudit(incident, `Status gewijzigd naar: ${reason}`);
-          }
-          
-          setDoc(doc(db, "incidents", incident.id), incident);
-
-          const upUnits = incident.units || [];
-          upUnits.forEach(uidStr => {
-              const u = units.find(x => uidStr === x.id || uidStr.endsWith(': ' + x.id));
-              if (u) {
-                  let oldStatus = u.status;
-                  if (reason === 'Inzetbaar' || reason === 'Loze melding') {
-                      u.status = 'inzetbaar';
-                  } else if (reason === 'Retour ALS' || reason === 'Retour BLS') {
-                      u.status = 'retour post';
-                      if (u.gekoppeldAanPost) {
-                          u.location = u.gekoppeldAanPost;
-                      }
-                  }
-                  
-                  if (oldStatus !== u.status) {
-                      setDoc(doc(db, "units", u.id), u);
-                      addLog('Status', `Eenheid ${u.status}`, u.id, incident.id, incident.location);
-                  }
-              }
-          });
-
-          renderTables();
-          renderUnits();
-          renderDetailedUnitsTable();
-          document.getElementById('afloopModal').classList.remove('show');
-          currentAfloopIncidentId = null;
       });
   });
 
@@ -3114,7 +3240,7 @@
       if (!tbody) return;
 
       if (units.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="14" class="empty-table-msg">Geen eenheden geregistreerd</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="13" class="empty-table-msg">Geen eenheden geregistreerd</td></tr>';
           return;
       }
 
@@ -3258,8 +3384,16 @@
               }
               const unitIndex = units.findIndex(u => u.id === unitId);
               if (unitIndex !== -1) {
+                  const oldValue = units[unitIndex][field];
                   units[unitIndex][field] = newVal;
                   setDoc(doc(db, "units", units[unitIndex].id), units[unitIndex]);
+                  
+                  if (oldValue !== newVal) {
+                      const fieldNames = { 'type': 'soort', 'location': 'locatie', 'naam1': 'naam medewerker 1', 'naam2': 'naam medewerker 2', 'naam3': 'naam medewerker 3', 'gekoppeldAanPost': 'gekoppeld aan post', 'ipadnr': 'ipadnr', 'tasnummer': 'tasnummer', 'radioId': 'radioid' };
+                      const fieldNameNL = fieldNames[field] || field;
+                      addLog('Wijziging', `${fieldNameNL} gewijzigd van '${oldValue || 'niets'}' in '${newVal || 'niets'}'`, unitId, '', units[unitIndex].location);
+                  }
+                  
                   renderUnits(); // Update right panel
                   renderDetailedUnitsTable(); // Update detailed table
                   showToast(`Eenheid ${unitId} bijgewerkt.`);
@@ -3530,7 +3664,15 @@
           var save = function() {
               var newVal = $input.val();
               const postIndex = posts.findIndex(x => x.id === postId);
-              if (postIndex !== -1) { posts[postIndex][field] = newVal; setDoc(doc(db, "posts", posts[postIndex].id), posts[postIndex]); renderPosts(); renderDetailedPostsTable(); showToast(`Post bijgewerkt.`); }
+              if (postIndex !== -1) { 
+                  const oldValue = posts[postIndex][field];
+                  posts[postIndex][field] = newVal; 
+                  setDoc(doc(db, "posts", posts[postIndex].id), posts[postIndex]); 
+                  if (oldValue !== newVal) {
+                      addLog('Wijziging', `${field} gewijzigd van '${oldValue || 'niets'}' in '${newVal || 'niets'}'`, '', '', posts[postIndex].locatie);
+                  }
+                  renderPosts(); renderDetailedPostsTable(); showToast(`Post bijgewerkt.`); 
+              }
               restore();
           };
           $saveBtn.click(function(e) { e.stopPropagation(); save(); });
@@ -3620,43 +3762,6 @@
   updateClock();
 
   // ==========================================
-  // TIMERS VOOR EENHEDEN (PAUZE / INZET)
-  // ==========================================
-  function formatElapsedTime(isoString) {
-      if (!isoString) return "00:00";
-      const start = new Date(isoString).getTime();
-      if (isNaN(start)) return "00:00";
-      const now = Date.now();
-      const diff = Math.max(0, Math.floor((now - start) / 1000));
-      const h = Math.floor(diff / 3600);
-      const m = Math.floor((diff % 3600) / 60);
-      const s = diff % 60;
-      if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
-
-  function updateTimers() {
-      document.querySelectorAll('.unit-timer').forEach(el => {
-          const ts = el.getAttribute('data-timestamp');
-          const status = el.getAttribute('data-status');
-          
-          if (status !== 'pauze') {
-              el.style.display = 'none';
-              return;
-          }
-          
-          el.style.display = 'block';
-          if (ts) {
-              const elapsed = formatElapsedTime(ts);
-              el.textContent = `Pauze: ${elapsed}`;
-              const diffSec = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
-              if (diffSec > 1800) el.style.color = 'var(--red)';
-              else el.style.color = 'var(--amber)';
-          }
-      });
-  }
-
-  // ==========================================
   // BUIENRADAR / WEER MODAL
   // ==========================================
   const weatherBtn = document.getElementById('weatherBtn');
@@ -3681,6 +3786,7 @@
       const brLat = parseFloat(lat).toFixed(2);
       const brLng = parseFloat(lon).toFixed(2);
       buienradarIframe.src = `https://gadgets.buienradar.nl/gadget/zoommap/?lat=${brLat}&lng=${brLng}&overname=2&zoom=11&size=3&v=0`;
+      buienradarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&zoom=10&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&marker=true`;
       
       locInfo.innerHTML = 'Locatiegegevens laden...';
 
@@ -3958,7 +4064,8 @@
   const protocols = {
       reanimatie: { titel: 'Reanimatie (BLS / AED)', inhoud: `<ol style="padding-left:20px;line-height:2"><li>Controleer bewustzijn — roep naam, schouder aanraken</li><li>Roep hulp — alarm slaan, AED ophalen</li><li>Controleer ademhaling max. 10 seconden</li><li>Start borstcompressies: 30x, 5–6 cm diep, 100–120/min</li><li>2 beademingen (indien getraind)</li><li>Wissel elke 2 minuten</li><li>Zodra AED aanwezig: aansluiten en instructies volgen</li></ol>` },
       ontruiming: { titel: 'Ontruiming / Calamiteit', inhoud: `<ol style="padding-left:20px;line-height:2"><li>Melding ontvangen van beveiliging of organisatie</li><li>Informeer alle posten via portofoon</li><li>Zet extra eenheden naar uitgangen</li><li>Houd centrale post bemand voor coördinatie</li><li>Registreer slachtoffers en vermisten</li><li>Wacht instructies van leidinggevende / brandweer</li></ol>` },
-      agressie:   { titel: 'Agressie / Vechtpartij', inhoud: `<ol style="padding-left:20px;line-height:2"><li>Schakel beveiliging direct in</li><li>Houd afstand — ga niet zelf tussenbeide</li><li>Zorg voor vrije vluchtweg voor bezoekers</li><li>Registreer locatie en beschrijving dader(s)</li><li>Eerste hulp gereed houden voor eventuele slachtoffers</li><li>Informeer de organisatie en overweeg politie 112</li></ol>` }
+      agressie:   { titel: 'Agressie / Vechtpartij', inhoud: `<ol style="padding-left:20px;line-height:2"><li>Schakel beveiliging direct in</li><li>Houd afstand — ga niet zelf tussenbeide</li><li>Zorg voor vrije vluchtweg voor bezoekers</li><li>Registreer locatie en beschrijving dader(s)</li><li>Eerste hulp gereed houden voor eventuele slachtoffers</li><li>Informeer de organisatie en overweeg politie 112</li></ol>` },
+      vermissing: { titel: 'Vermissing op evenementen', inhoud: `<h4 style="margin-bottom:10px; color:var(--text1);">Protocol Omgaan met Vermissingen op Evenementen (Versie 1, Nov 2024)</h4><p style="margin-bottom:10px;">Helaas komt het voor dat personen vermist raken op een evenement. Gelukkig is dit over het algemeen van korte duur, maar regelmatig wordt bij dergelijke gevallen contact gezocht met de EHBO. Hoewel de EHBO kan ondersteunen bij incidenten rondom vermiste personen, is het niet onze primaire taak om actieve zoekacties uit te voeren. Onze hoofdverantwoordelijkheid ligt bij het verlenen van eerste hulp, en actieve zoektochten kunnen deze taak belemmeren.</p><p style="margin-bottom:15px;">Er zijn echter een aantal zaken die wij kunnen doen om te helpen. Door deze richtlijnen te volgen, kunnen we op een effectieve en professionele manier omgaan met vermissingen tijdens evenementen, zonder dat dit ten koste gaat van onze primaire taak.</p><h5 style="margin-bottom:5px; font-size:13px; color:var(--blue);">Gegevens</h5><p style="margin-bottom:5px;">Gegevens die handig zijn om te weten:</p><ol style="padding-left:20px; margin-bottom:10px;"><li>Naam & Geboortedatum</li><li>Recente foto die gedeeld kan/mag worden</li><li>Uiterlijke kenmerken & Kleding</li><li>Omschrijving van de situatie (Laatst gezien, specifieke zaken)</li></ol><p style="margin-bottom:15px; font-style:italic; font-size:12px;">Let op dat alle persoonlijke informatie vertrouwelijk wordt behandeld (AVG).</p><h5 style="margin-bottom:5px; font-size:13px; color:var(--blue);">Communicatie</h5><p style="margin-bottom:5px;">Bij een groot evenement verloopt de communicatie via de coördinator en centralist. Anders via de Postcoördinator (PCO):</p><ol style="padding-left:20px; margin-bottom:15px;"><li><strong>Coördinator:</strong> Algemene leiding en besluitvorming.</li><li><strong>Centralist:</strong> Beheert communicatie en coördinatie tussen teams.</li><li><strong>PCO:</strong> Operationele aansturing op locatie.</li></ol><h5 style="margin-bottom:5px; font-size:13px; color:var(--blue);">Uit te voeren acties in overleg</h5><ol style="padding-left:20px; margin-bottom:15px;"><li><strong>Deel gegevens met organisatie:</strong> Met inachtneming van AVG.</li><li><strong>Controleer zorgrapportage:</strong> Kijk of de persoon recent is gezien.</li><li><strong>Informeer uitrukteams:</strong> Vraag uit te kijken naar de persoon, zonder dat dit primaire taken belemmert (geen actieve zoektocht).</li></ol><h5 style="margin-bottom:5px; font-size:13px; color:var(--blue);">Verslaglegging & Ondersteuning</h5><ul style="padding-left:20px; margin-bottom:15px;"><li>Rapporteer incidenten zo snel mogelijk via info@ems.nl.</li><li>Bij medische hulp: Maak zorgcontact aan volgens protocol.</li><li>Toon empathie, bied luisterend oor, geef geen valse verwachtingen en verwijs naar organisatie.</li></ul>` }
   };
 
   const btnProtocols = document.getElementById('btnProtocols');
@@ -4025,6 +4132,38 @@
           }
       }
 
+      // Escape toets om actieve modal te sluiten
+      if (e.key === 'Escape') {
+          const openModal = document.querySelector('.modal-overlay.show');
+          if (openModal) {
+              const closeBtn = openModal.querySelector('.modal-close, #detailedCloseBtn, .closeModalBtn');
+              if (closeBtn) {
+                  closeBtn.click();
+              } else {
+                  openModal.classList.remove('show');
+              }
+              return; // Stop verdere navigatie-verwerking
+          }
+      }
+
+      // Enter om formulieren op te slaan
+      if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+          const activeForm = e.target.closest('form');
+          if (activeForm) {
+              const parentModal = activeForm.closest('.modal-overlay.show');
+              const parentSection = activeForm.closest('#unitFormSection, #postFormSection, #bulkUnitFormSection');
+
+              if (parentModal || (parentSection && parentSection.style.display !== 'none')) {
+                  e.preventDefault();
+                  const submitBtn = activeForm.querySelector('.btn-submit');
+                  if (submitBtn) {
+                      submitBtn.click();
+                  }
+                  return; // Stop verdere verwerking
+              }
+          }
+      }
+
       // Negeer pijltjestoetsen als je in een input typt of als er een modal open staat
       if (document.querySelector('.modal-overlay.show') || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
@@ -4064,6 +4203,7 @@
 
   // Roep de functie aan die de temperatuur in de weer-knop laadt
   initializeWeather();
+  setInterval(initializeWeather, 15 * 60 * 1000); // Ververs weer elke 15 minuten
 
 </script>
 <!-- Link to user's legacy stylesheet to preserve layout; can be refined or trimmed as needed -->
