@@ -86,6 +86,29 @@
   .light-mode .theme-icon-light {
     display: block;
   }
+
+  .topbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font);
+    outline: none;
+  }
+  .topbar-btn:hover {
+    background: var(--bg3);
+    color: var(--text1);
+    border-color: var(--text2);
+  }
   
   .nav { height: 44px; background: var(--bg1); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 2px; position: sticky; top: 60px; z-index: 99; overflow-x: auto; }
   .nav::-webkit-scrollbar { display: none; }
@@ -371,7 +394,14 @@
         <label>Wachtwoord</label>
         <input type="password" id="loginPassword" required autocomplete="current-password">
       </div>
-      <button type="submit" class="btn btn-submit" style="width: 100%; margin-top: 8px;">Inloggen</button>
+      <div style="display: flex; align-items: center; gap: 10px; margin: 16px 0;">
+        <input type="checkbox" id="rememberMe" style="width: 16px; height: 16px; accent-color: var(--green);">
+        <label for="rememberMe" style="font-size: 13px; color: var(--text2); font-weight: normal; cursor: pointer; user-select: none;">Onthoud e-mailadres</label>
+      </div>
+      <button type="submit" class="btn btn-submit" style="width: 100%;">Inloggen</button>
+      <div style="text-align: center; margin-top: 16px;">
+        <button type="button" id="forgotPasswordBtn" style="background:none; border:none; color:var(--blue); font-size:12px; cursor:pointer; text-decoration:underline;">Wachtwoord vergeten?</button>
+      </div>
     </form>
   </div>
 </div>
@@ -389,22 +419,22 @@
     <button id="toggleRightPanelBtn" class="theme-toggle mobile-only" title="Toon/Verberg Eenheden">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
     </button>
-    <select id="zoomSelect" title="Vergroot/verklein weergave" style="background: var(--bg2); color: var(--text1); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 500; outline: none; cursor: pointer;">
+    <select id="zoomSelect" title="Vergroot/verklein weergave" class="topbar-btn">
       <option value="0.8">80%</option>
       <option value="0.9">90%</option>
       <option value="1" selected>100%</option>
       <option value="1.1">110%</option>
       <option value="1.2">120%</option>
     </select>
-    <button id="themeToggle" class="theme-toggle" title="Donker/Licht modus">
+    <button id="themeToggle" class="topbar-btn" title="Donker/Licht modus" style="padding: 0; width: 36px;">
       <svg class="theme-icon-dark" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      <svg class="theme-icon-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="theme-icon-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
     </button>
-    <button id="weatherBtn" title="Lokale Buienradar" style="background: var(--bg2); color: var(--text1); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 500; outline: none; cursor: pointer; display: flex; align-items: center; gap: 6px; min-width: 110px; justify-content: center;">
+    <button id="weatherBtn" title="Lokale Buienradar" class="topbar-btn" style="gap: 6px; min-width: 110px;">
       <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
       Weer <span id="weatherBtnTemp" style="margin-left: 6px; color: var(--text2); font-weight: 400;"></span>
     </button>
-    <div id="digitalClock" style="font-weight: 600; font-size: 13px; color: var(--text1); font-variant-numeric: tabular-nums; background: var(--bg2); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); letter-spacing: 1px;">00:00:00</div>
+    <div id="digitalClock" class="topbar-btn" style="font-variant-numeric: tabular-nums; letter-spacing: 1px; color: var(--text1); cursor: default;">00:00:00</div>
     <div id="connectionStatus" style="display:flex;align-items:center;gap:7px;">
       <span id="connectionDot" style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green); transition: all 0.3s;"></span>
       <span id="connectionText" style="color:var(--green);font-weight:500; transition: color 0.3s;">Live</span>
@@ -655,6 +685,7 @@
       <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
         <button id="showAddUnitFormBtn" class="btn btn-outline">Nieuwe eenheid toevoegen</button>
         <button id="showBulkAddUnitFormBtn" class="btn btn-outline">Bulk eenheden toevoegen</button>
+        <button id="showImportCsvFormBtn" class="btn btn-outline" style="margin-left: auto;">CSV Rooster Importeren</button>
       </div>
 
       <div id="unitFormSection" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;">
@@ -756,6 +787,24 @@
             <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
               <button type="submit" class="btn btn-submit" style="flex:1;min-width:140px;">Eenheden Toevoegen</button>
               <button type="button" id="cancelBulkAddUnitFormBtn" class="btn btn-outline" style="flex:1;min-width:140px;">Annuleren</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div id="importCsvFormSection" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:600;color:var(--text1);margin-bottom:10px;">Rooster Importeren via CSV</h3>
+        <p style="font-size:12px; color:var(--text2); line-height:1.6; margin-bottom:20px;">
+          Upload een CSV-bestand (komma-gescheiden) met de volgende kolomkoppen in de eerste rij: <strong>Roepnummer, Soort, Locatie, Naam1, Naam2, Naam3, GekoppeldAanPost, iPadnr, Tasnummer, RadioId</strong>.
+          Bestaande eenheden met hetzelfde roepnummer worden bijgewerkt, nieuwe worden aangemaakt.
+          <a href="#" id="downloadCsvTemplate" style="color: var(--green); text-decoration: underline;">Download CSV-sjabloon</a>.
+        </p>
+        <form id="importCsvForm">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <input type="file" id="csvFileInput" accept=".csv" required style="padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);">
+            <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-submit" style="flex:1;min-width:140px;">Importeren</button>
+              <button type="button" id="cancelImportCsvFormBtn" class="btn btn-outline" style="flex:1;min-width:140px;">Annuleren</button>
             </div>
           </div>
         </form>
@@ -866,7 +915,7 @@
   <div class="modal-content">
     <div class="modal-header">
       <h3>Snelle medische melding</h3>
-      <button class="modal-close closeModalBtn">&times;</button>
+      <button class="modal-close" id="closeQuickMedicalModalBtn">&times;</button>
     </div>
     <form id="quickMedicalForm" class="form-content">
       <div class="form-group">
@@ -902,7 +951,7 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-cancel closeModalBtn">Annuleren</button>
+        <button type="button" class="btn btn-cancel" id="cancelQuickMedicalModalBtn">Annuleren</button>
         <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
       </div>
     </form>
@@ -913,7 +962,7 @@
   <div class="modal-content">
     <div class="modal-header">
       <h3>Brandwacht melding</h3>
-      <button class="modal-close closeModalBtn">&times;</button>
+      <button class="modal-close" id="closeBrandwachtModalBtn">&times;</button>
     </div>
     <form id="brandwachtForm" class="form-content">
       <div class="form-group">
@@ -939,7 +988,7 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-cancel closeModalBtn">Annuleren</button>
+        <button type="button" class="btn btn-cancel" id="cancelBrandwachtModalBtn">Annuleren</button>
         <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
       </div>
     </form>
@@ -950,7 +999,7 @@
   <div class="modal-content">
     <div class="modal-header">
       <h3>Logistieke melding</h3>
-      <button class="modal-close closeModalBtn">&times;</button>
+      <button class="modal-close" id="closeLogistiekModalBtn">&times;</button>
     </div>
     <form id="logistiekForm" class="form-content">
       <div class="form-group">
@@ -974,7 +1023,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-cancel closeModalBtn">Annuleren</button>
+        <button type="button" class="btn btn-cancel" id="cancelLogistiekModalBtn">Annuleren</button>
         <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
       </div>
     </form>
@@ -1193,8 +1242,12 @@
 </div>
 
 <div class="modal-overlay" id="weatherModal">
+<div class="modal-overlay" id="weatherModal" style="z-index: 1001;">
   <div class="modal-content" style="width: 900px; max-width: 95vw;">
     <div class="modal-header">
+      <button id="weatherPopoutBtn" class="btn btn-outline" style="padding: 4px 6px; border: none; font-size: 11px; height: 24px; margin-right: auto;" title="Open in nieuw venster">
+          <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; margin: 0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </button>
       <h3>Lokaal Weer & Neerslagradar</h3>
       <button class="modal-close" id="weatherCloseBtn">&times;</button>
     </div>
@@ -1286,7 +1339,7 @@
   <div class="modal-content" style="width: 400px;">
     <div class="modal-header">
       <h3>Kies een Protocol</h3>
-      <button class="modal-close closeModalBtn">&times;</button>
+      <button class="modal-close" id="closeProtocolListModalBtn">&times;</button>
     </div>
     <div class="option-list" style="padding-top: 20px;">
       <button type="button" class="option-btn protocol-select-btn" data-protocol="reanimatie">
@@ -1314,7 +1367,7 @@
   <div class="modal-content" style="width: 750px; max-width: 95vw;">
     <div class="modal-header">
       <h3 id="protocolViewTitle">Protocol</h3>
-      <button class="modal-close closeModalBtn">&times;</button>
+      <button class="modal-close" id="closeProtocolViewModalBtn">&times;</button>
     </div>
     <div style="padding: 24px; max-height: calc(100vh - 120px); overflow-y: auto; background: var(--bg2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; font-size: 14px; line-height: 1.6;" id="protocolViewContent"></div>
   </div>
@@ -1367,11 +1420,53 @@
   // ==========================================
   // 0A. LOGIN SCHERM LOGICA
   // ==========================================
-  const loginScreen = document.getElementById('loginScreen');
-  const loginForm = document.getElementById('loginForm');
-  const loginUsername = document.getElementById('loginUsername');
-  const loginPassword = document.getElementById('loginPassword');
+  // --- DOM Elementen Caching ---
+  const loginScreen = document.getElementById('loginScreen'),
+        loginForm = document.getElementById('loginForm'),
+        loginUsername = document.getElementById('loginUsername'),
+        loginPassword = document.getElementById('loginPassword'),
+        rememberMeCheckbox = document.getElementById('rememberMe'),
+        forgotPasswordBtn = document.getElementById('forgotPasswordBtn'),
+        themeToggle = document.getElementById('themeToggle'),
+        htmlElement = document.documentElement,
+        themeDarkBtn = document.getElementById('themeDarkBtn'),
+        themeLightBtn = document.getElementById('themeLightBtn'),
+        popoutBtn = document.getElementById('popoutBtn'),
+        toggleRightPanelBtn = document.getElementById('toggleRightPanelBtn'),
+        rightPanel = document.querySelector('.right'),
+        panelOverlay = document.getElementById('panelOverlay'),
+        linkToEenheden = document.getElementById('linkToEenheden'),
+        linkToPosten = document.getElementById('linkToPosten'),
+        actueleLoggingBody = document.getElementById('actueleLoggingBody'),
+        liveLogSearchInput = document.getElementById('liveLogSearchInput'),
+        liveLogTypeFilter = document.getElementById('liveLogTypeFilter'),
+        liveLogUnitFilter = document.getElementById('liveLogUnitFilter'),
+        loadMoreLogsBtn = document.getElementById('loadMoreLogsBtn'),
+        exportCsvBtn = document.getElementById('exportCsvBtn'),
+        printLogsBtn = document.getElementById('printLogsBtn'),
+        logSearchInput = document.getElementById('logSearchInput'),
+        logDateFilter = document.getElementById('logDateFilter'),
+        changePasswordForm = document.getElementById('changePasswordForm'),
+        btnBrandwacht = document.getElementById('btnBrandwacht'),
+        btnLogistiek = document.getElementById('btnLogistiek'),
+        addUnitForm = document.getElementById('addUnitForm'),
+        showAddUnitFormBtn = document.getElementById('showAddUnitFormBtn'),
+        showBulkAddUnitFormBtn = document.getElementById('showBulkAddUnitFormBtn'),
+        showImportCsvFormBtn = document.getElementById('showImportCsvFormBtn'),
+        unitFormSection = document.getElementById('unitFormSection'),
+        unitTypeButtons = document.querySelectorAll('.unit-type-btn'),
+        unitTypeInput = document.querySelector('input[name="soort"]'),
+        cancelUnitFormBtn = document.getElementById('cancelUnitFormBtn'),
+        cancelBulkAddUnitFormBtn = document.getElementById('cancelBulkAddUnitFormBtn'),
+        bulkUnitFormSection = document.getElementById('bulkUnitFormSection'),
+        bulkAddUnitForm = document.getElementById('bulkAddUnitForm');
   
+  // Pre-fill email if it's stored in localStorage
+  const savedEmail = localStorage.getItem('ema-email');
+  if (savedEmail && loginUsername) {
+    loginUsername.value = savedEmail;
+  }
+
   let unsubIncidents, unsubUnits, unsubPosts, unsubLogs;
   let globalLogs = [];
   let logLimit = 50;
@@ -1424,6 +1519,11 @@
           
           try {
               await signInWithEmailAndPassword(auth, email, password);
+              if (rememberMeCheckbox.checked) {
+                localStorage.setItem('ema-email', email); // Save email on successful login
+              } else {
+                localStorage.removeItem('ema-email'); // Remove email if not checked
+              }
               showToast('Succesvol ingelogd');
               loginForm.reset();
           } catch (error) {
@@ -1436,8 +1536,6 @@
   // ==========================================
   // 0. DONKER/LICHT MODUS TOGGLE
   // ==========================================
-  const themeToggle = document.getElementById('themeToggle');
-  const htmlElement = document.documentElement;
 
   // Laad opgeslagen theme voorkeur, standaard is lichte modus
   const savedTheme = localStorage.getItem('theme') || 'light';
@@ -1446,8 +1544,6 @@
   }
 
   function updateThemeButtons() {
-      const themeDarkBtn = document.getElementById('themeDarkBtn');
-      const themeLightBtn = document.getElementById('themeLightBtn');
       if (!themeDarkBtn || !themeLightBtn) return;
       if (htmlElement.classList.contains('light-mode')) {
           themeLightBtn.classList.add('btn-submit');
@@ -1473,8 +1569,6 @@
       });
   }
   
-  const themeDarkBtn = document.getElementById('themeDarkBtn');
-  const themeLightBtn = document.getElementById('themeLightBtn');
   if (themeDarkBtn) {
       themeDarkBtn.addEventListener('click', () => {
           htmlElement.classList.remove('light-mode');
@@ -1497,6 +1591,14 @@
   const isPopout = urlParams.get('popout') === 'true';
 
   if (isPopout) {
+      // Check for weather popout
+      if (urlParams.get('panel') === 'weather') {
+          document.getElementById('weatherModal').classList.add('show');
+          document.querySelector('#weatherModal .modal-content').style.width = '100%';
+          document.querySelector('#weatherModal .modal-content').style.height = '100vh';
+          document.querySelector('#weatherModal .modal-content').style.borderRadius = '0';
+          document.getElementById('weatherPopoutBtn').style.display = 'none';
+      }
       // Verberg alle overbodige elementen in het pop-out venster
       document.querySelector('.topbar').style.display = 'none';
       document.querySelector('.nav').style.display = 'none';
@@ -1514,7 +1616,6 @@
       document.getElementById('popoutBtn').style.display = 'none';
   }
 
-  const popoutBtn = document.getElementById('popoutBtn');
   if (popoutBtn && !isPopout) {
       popoutBtn.addEventListener('click', () => {
           window.open(window.location.pathname + '?popout=true', 'EenhedenPanel', 'width=380,height=800,left=1000,top=100');
@@ -1523,10 +1624,6 @@
           showToast('Eenheden paneel geopend in nieuw venster. Herlaad de pagina om hem weer vast te zetten.');
       });
   }
-
-  const toggleRightPanelBtn = document.getElementById('toggleRightPanelBtn');
-  const rightPanel = document.querySelector('.right');
-  const panelOverlay = document.getElementById('panelOverlay');
 
   if (toggleRightPanelBtn && rightPanel && panelOverlay) {
       toggleRightPanelBtn.addEventListener('click', () => {
@@ -1542,14 +1639,12 @@
   // ==========================================
   // SNELKOPPELING NAAR EENHEDEN
   // ==========================================
-  const linkToEenheden = document.getElementById('linkToEenheden');
   if (linkToEenheden) {
       linkToEenheden.addEventListener('click', () => {
           const eenhedenNavBtn = document.querySelector('.nav-btn[data-target="view-eenheden"]');
           if (eenhedenNavBtn && !isPopout) eenhedenNavBtn.click();
       });
   }
-
   const linkToPosten = document.getElementById('linkToPosten');
   if (linkToPosten) {
       linkToPosten.addEventListener('click', () => {
@@ -1600,13 +1695,11 @@
   }
 
   function renderGlobalLogs() {
-      const tbody = document.getElementById('actueleLoggingBody');
-      if (!tbody) return;
+      if (!actueleLoggingBody) return;
       
       if (globalLogs.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">Nog geen logs beschikbaar.</td></tr>';
-          const loadMoreBtn = document.getElementById('loadMoreLogsBtn');
-          if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+          actueleLoggingBody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">Nog geen logs beschikbaar.</td></tr>';
+          if (loadMoreLogsBtn) loadMoreLogsBtn.style.display = 'none';
           return;
       }
       
@@ -1636,13 +1729,12 @@
       }
 
       if (filteredLogs.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">Geen logs gevonden met huidige filters.</td></tr>';
-          const loadMoreBtn = document.getElementById('loadMoreLogsBtn');
-          if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+          actueleLoggingBody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">Geen logs gevonden met huidige filters.</td></tr>';
+          if (loadMoreLogsBtn) loadMoreLogsBtn.style.display = 'none';
           return;
       }
 
-      tbody.innerHTML = filteredLogs.map(log => {
+      actueleLoggingBody.innerHTML = filteredLogs.map(log => {
           const d = new Date(log.timestamp);
           const timeStr = d.toLocaleDateString('nl-NL', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
           const style = getLogTypeStyle(log.type);
@@ -1663,7 +1755,6 @@
           `;
       }).join('');
 
-      const loadMoreBtn = document.getElementById('loadMoreLogsBtn');
       if (loadMoreBtn) {
           if (globalLogs.length < logLimit) loadMoreBtn.style.display = 'none';
           else { loadMoreBtn.style.display = 'block'; loadMoreBtn.innerText = 'Laad meer logs...'; }
@@ -1694,16 +1785,26 @@
       });
   }
 
-  document.getElementById('loadMoreLogsBtn')?.addEventListener('click', loadMoreLogs);
-  document.getElementById('liveLogSearchInput')?.addEventListener('input', renderGlobalLogs);
-  document.getElementById('liveLogTypeFilter')?.addEventListener('change', renderGlobalLogs);
-  document.getElementById('liveLogUnitFilter')?.addEventListener('change', renderGlobalLogs);
+  // Debounce function to prevent excessive function calls on input
+  function debounce(func, delay) {
+      let timeout;
+      return function(...args) {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, args), delay);
+      };
+  }
+
+  const debouncedRenderGlobalLogs = debounce(renderGlobalLogs, 300);
+
+  loadMoreLogsBtn?.addEventListener('click', loadMoreLogs);
+  liveLogSearchInput?.addEventListener('input', debouncedRenderGlobalLogs);
+  liveLogTypeFilter?.addEventListener('change', renderGlobalLogs);
+  liveLogUnitFilter?.addEventListener('change', renderGlobalLogs);
   
-  document.getElementById('exportCsvBtn')?.addEventListener('click', () => {
+  exportCsvBtn?.addEventListener('click', () => {
       const rows = [['Datum/Tijd', 'Soort', 'Melding', 'Eenheid', 'Bericht/Notitie', 'Gebruiker']];
-      const tbody = document.getElementById('actueleLoggingBody');
-      if (!tbody) return;
-      Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+      if (!actueleLoggingBody) return;
+      Array.from(actueleLoggingBody.querySelectorAll('tr')).forEach(tr => {
           if (tr.querySelector('.empty-table-msg')) return;
           const cols = Array.from(tr.querySelectorAll('td')).map(td => `"${(td.innerText || td.textContent).replace(/"/g, '""')}"`);
           rows.push(cols.join(','));
@@ -1715,7 +1816,7 @@
       document.body.appendChild(link); link.click(); document.body.removeChild(link);
   });
 
-  document.getElementById('printLogsBtn')?.addEventListener('click', () => {
+  printLogsBtn?.addEventListener('click', () => {
       const printWin = window.open('', '_blank');
       const tableHtml = document.getElementById('actueleLoggingWrapper').querySelector('table').outerHTML;
       printWin.document.write(`
@@ -2171,8 +2272,6 @@
   }
 
   // Filter Event Listeners
-  const logSearchInput = document.getElementById('logSearchInput');
-  const logDateFilter = document.getElementById('logDateFilter');
   if (logSearchInput) logSearchInput.addEventListener('input', renderTables);
   if (logDateFilter) logDateFilter.addEventListener('change', renderTables);
 
@@ -2801,19 +2900,25 @@
       });
   });
 
-  const modal = document.getElementById('quickMedicalModal');
-  const form = document.getElementById('quickMedicalForm');
-  document.getElementById('btnQuickMedical').addEventListener('click', () => modal.classList.add('show'));
-  
-  document.querySelectorAll('.closeModalBtn').forEach(cBtn => {
-      cBtn.addEventListener('click', (e) => {
-          const overlay = e.target.closest('.modal-overlay');
-          if (overlay) {
-              overlay.classList.remove('show');
-              const formInOverlay = overlay.querySelector('form');
-              if (formInOverlay) formInOverlay.reset();
-          }
+  // --- Generieke Modal Setup ---
+  function setupModal(modalId, openBtnId, formId) {
+      const modal = document.getElementById(modalId);
+      const openBtn = document.getElementById(openBtnId);
+      const form = formId ? document.getElementById(formId) : null;
+      if (!modal || !openBtn) return;
+
+      openBtn.addEventListener('click', () => modal.classList.add('show'));
+      
+      modal.querySelectorAll('.modal-close, .btn-cancel').forEach(btn => {
+          btn.addEventListener('click', () => {
+              modal.classList.remove('show');
+              if (form) form.reset();
+          });
       });
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('show'); });
   });
 
           // Detailed SBAR modal handlers
@@ -2873,6 +2978,7 @@
             detailedForm.reset();
           });
 
+  const quickMedicalForm = document.getElementById('quickMedicalForm');
   form.addEventListener('submit', (e) => {
       e.preventDefault();
       try {
@@ -2929,13 +3035,11 @@
   // ==========================================
   // ACCOUNTINSTELLINGEN (Wachtwoord)
   // ==========================================
-  const changePasswordForm = document.getElementById('changePasswordForm');
   if (changePasswordForm) {
       changePasswordForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           const newPass = document.getElementById('newPassword').value;
           const confirmPass = document.getElementById('newPasswordConfirm').value;
-          
           if (newPass !== confirmPass) {
               showToast('Wachtwoorden komen niet overeen.', true);
               return;
@@ -2967,13 +3071,7 @@
   // ==========================================
   // BRANDWACHT MELDING FORMULIER
   // ==========================================
-  const bwModal = document.getElementById('brandwachtModal');
   const bwForm = document.getElementById('brandwachtForm');
-  const btnBrandwacht = document.getElementById('btnBrandwacht');
-  
-  if (btnBrandwacht && bwModal) {
-      btnBrandwacht.addEventListener('click', () => bwModal.classList.add('show'));
-  }
 
   if (bwForm) {
       bwForm.addEventListener('submit', (e) => {
@@ -3024,13 +3122,7 @@
   // ==========================================
   // LOGISTIEKE MELDING FORMULIER
   // ==========================================
-  const logModal = document.getElementById('logistiekModal');
   const logForm = document.getElementById('logistiekForm');
-  const btnLogistiek = document.getElementById('btnLogistiek');
-  
-  if (btnLogistiek && logModal) {
-      btnLogistiek.addEventListener('click', () => logModal.classList.add('show'));
-  }
 
   if (logForm) {
       logForm.addEventListener('submit', (e) => {
@@ -3086,17 +3178,9 @@
   // ==========================================
   // EENHEDEN INVOER FORMULIER
   // ==========================================
-  const addUnitForm = document.getElementById('addUnitForm');
-  const showAddUnitFormBtn = document.getElementById('showAddUnitFormBtn');
-  const showBulkAddUnitFormBtn = document.getElementById('showBulkAddUnitFormBtn'); // NEW
-  const unitFormSection = document.getElementById('unitFormSection');
-  const unitTypeButtons = document.querySelectorAll('.unit-type-btn');
-  const unitTypeInput = document.querySelector('input[name="soort"]');
-
-  const cancelUnitFormBtn = document.getElementById('cancelUnitFormBtn');
-  const cancelBulkAddUnitFormBtn = document.getElementById('cancelBulkAddUnitFormBtn');
-  const bulkUnitFormSection = document.getElementById('bulkUnitFormSection');
-  const bulkAddUnitForm = document.getElementById('bulkAddUnitForm');
+  const importCsvFormSection = document.getElementById('importCsvFormSection');
+  const importCsvForm = document.getElementById('importCsvForm');
+  const cancelImportCsvFormBtn = document.getElementById('cancelImportCsvFormBtn');
 
   // Function to reset button styles for the form toggles
   function resetUnitFormButtons() {
@@ -3108,11 +3192,16 @@
           showBulkAddUnitFormBtn.classList.remove('btn-submit');
           showBulkAddUnitFormBtn.classList.add('btn-outline');
       }
+      if (showImportCsvFormBtn) {
+          showImportCsvFormBtn.classList.remove('btn-submit');
+          showImportCsvFormBtn.classList.add('btn-outline');
+      }
   }
 
   // Initially hide all sub-sections and reset button styles
   if (unitFormSection) unitFormSection.style.display = 'none';
   if (bulkUnitFormSection) bulkUnitFormSection.style.display = 'none';
+  if (importCsvFormSection) importCsvFormSection.style.display = 'none';
   resetUnitFormButtons();
 
   // Show/hide the add unit form
@@ -3125,6 +3214,7 @@
           } else {
               unitFormSection.style.display = 'block';
               bulkUnitFormSection.style.display = 'none';
+              importCsvFormSection.style.display = 'none';
               
               showAddUnitFormBtn.classList.remove('btn-outline');
               showAddUnitFormBtn.classList.add('btn-submit');
@@ -3132,6 +3222,9 @@
               showBulkAddUnitFormBtn.classList.remove('btn-submit');
               showBulkAddUnitFormBtn.classList.add('btn-outline');
           }
+          showImportCsvFormBtn.classList.remove('btn-submit');
+          showImportCsvFormBtn.classList.add('btn-outline');
+
       });
   }
 
@@ -3172,6 +3265,9 @@
               
               showAddUnitFormBtn.classList.remove('btn-submit');
               showAddUnitFormBtn.classList.add('btn-outline');
+
+              showImportCsvFormBtn.classList.remove('btn-submit');
+              showImportCsvFormBtn.classList.add('btn-outline');
           }
       });
   }
@@ -3182,6 +3278,65 @@
           bulkUnitFormSection.style.display = 'none';
           bulkAddUnitForm.reset();
           resetUnitFormButtons(); // Reset both buttons
+      });
+  }
+
+  // CSV Import Logic
+  if (showImportCsvFormBtn && importCsvFormSection) {
+      showImportCsvFormBtn.addEventListener('click', () => {
+          if (importCsvFormSection.style.display === 'block') {
+              importCsvFormSection.style.display = 'none';
+              resetUnitFormButtons();
+          } else {
+              importCsvFormSection.style.display = 'block';
+              unitFormSection.style.display = 'none';
+              bulkUnitFormSection.style.display = 'none';
+              showImportCsvFormBtn.classList.add('btn-submit');
+              showImportCsvFormBtn.classList.remove('btn-outline');
+              showAddUnitFormBtn.classList.remove('btn-submit');
+              showAddUnitFormBtn.classList.add('btn-outline');
+              showBulkAddUnitFormBtn.classList.remove('btn-submit');
+              showBulkAddUnitFormBtn.classList.add('btn-outline');
+          }
+      });
+  }
+
+  if (cancelImportCsvFormBtn && importCsvFormSection) {
+      cancelImportCsvFormBtn.addEventListener('click', () => {
+          importCsvFormSection.style.display = 'none';
+          importCsvForm.reset();
+          resetUnitFormButtons();
+      });
+  }
+
+  if (importCsvForm) {
+      importCsvForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const fileInput = document.getElementById('csvFileInput');
+          if (!fileInput.files.length) return showToast('Selecteer eerst een CSV-bestand.', true);
+          const file = fileInput.files[0];
+          const reader = new FileReader();
+          reader.onload = function(event) {
+              const text = event.target.result;
+              processCSV(text);
+          };
+          reader.readAsText(file);
+      });
+  }
+
+  const downloadCsvTemplateBtn = document.getElementById('downloadCsvTemplate');
+  if (downloadCsvTemplateBtn) {
+      downloadCsvTemplateBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const headers = "Roepnummer,Soort,Locatie,Naam1,Naam2,Naam3,GekoppeldAanPost,iPadnr,Tasnummer,RadioId";
+          const exampleRow = "BLS-01,BLS,Post 1,Jan Jansen,Piet Puk,,,,,,";
+          const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(headers + "\n" + exampleRow);
+          const link = document.createElement("a");
+          link.setAttribute("href", csvContent);
+          link.setAttribute("download", "rooster_sjabloon.csv");
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
       });
   }
 
@@ -3325,7 +3480,7 @@
           var field = $span.data("field");
 
           var $input;
-          if (field === 'location' || field === 'gekoppeldAanPost') {
+          if (field === 'gekoppeldAanPost') {
               $input = $("<select>", {
                   class: "edit-field-input",
                   style: "width: 140px; font-size: 13px; padding: 4px; border: 1px solid var(--green); border-radius: 4px; background: var(--bg0); color: var(--text1); outline: none;"
@@ -3517,6 +3672,67 @@
       });
   }
   
+  function processCSV(csvText) {
+      const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+      if (lines.length < 2) return showToast('CSV-bestand is leeg of bevat alleen een kopregel.', true);
+
+      const headers = lines[0].split(',').map(h => h.trim());
+      const requiredHeaders = ['Roepnummer', 'Soort'];
+      if (!requiredHeaders.every(h => headers.includes(h))) {
+          return showToast(`CSV-bestand mist verplichte kolommen: ${requiredHeaders.join(', ')}.`, true);
+      }
+
+      let updatedCount = 0;
+      let createdCount = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',');
+          const row = headers.reduce((obj, header, index) => {
+              obj[header] = values[index] ? values[index].trim() : '';
+              return obj;
+          }, {});
+
+          const unitId = row['Roepnummer'];
+          if (!unitId) continue;
+
+          const existingUnitIndex = units.findIndex(u => u.id === unitId);
+
+          const unitData = {
+              id: unitId,
+              type: row['Soort'] || 'Onbekend',
+              location: row['Locatie'] || 'Onbekend',
+              naam1: row['Naam1'] || '',
+              naam2: row['Naam2'] || '',
+              naam3: row['Naam3'] || '',
+              status: 'inzetbaar', // Default status
+              gekoppeldAanPost: row['GekoppeldAanPost'] || '',
+              ondersteunend: (row['Soort'] || '').toLowerCase() === 'ondersteunend',
+              ipadnr: row['iPadnr'] || '',
+              tasnummer: row['Tasnummer'] || '',
+              radioId: row['RadioId'] || ''
+          };
+
+          if (existingUnitIndex > -1) {
+              // Update existing unit
+              units[existingUnitIndex] = { ...units[existingUnitIndex], ...unitData };
+              setDoc(doc(db, "units", unitId), units[existingUnitIndex]);
+              updatedCount++;
+          } else {
+              // Create new unit
+              units.push(unitData);
+              setDoc(doc(db, "units", unitId), unitData);
+              createdCount++;
+          }
+      }
+
+      renderUnits();
+      renderDetailedUnitsTable();
+      showToast(`Import voltooid: ${createdCount} eenheden aangemaakt, ${updatedCount} eenheden bijgewerkt.`);
+      importCsvFormSection.style.display = 'none';
+      importCsvForm.reset();
+      resetUnitFormButtons();
+  }
+
   // ==========================================
   // SORTEREN VAN EENHEDEN
   // ==========================================
@@ -3746,6 +3962,11 @@
   sortPosts('naam', true);
   renderTables(); 
   refreshRowActions();
+
+  // Setup all modals
+  setupModal('quickMedicalModal', 'btnQuickMedical', 'quickMedicalForm');
+  setupModal('brandwachtModal', 'btnBrandwacht', 'brandwachtForm');
+  setupModal('logistiekModal', 'btnLogistiek', 'logistiekForm');
   
   // ==========================================
   // DIGITALE KLOK
@@ -3764,7 +3985,6 @@
   // ==========================================
   // BUIENRADAR / WEER MODAL
   // ==========================================
-  const weatherBtn = document.getElementById('weatherBtn');
   const weatherModal = document.getElementById('weatherModal');
   const weatherCloseBtn = document.getElementById('weatherCloseBtn');
   const buienradarIframe = document.getElementById('buienradarIframe');
@@ -3787,6 +4007,7 @@
       const brLng = parseFloat(lon).toFixed(2);
       buienradarIframe.src = `https://gadgets.buienradar.nl/gadget/zoommap/?lat=${brLat}&lng=${brLng}&overname=2&zoom=11&size=3&v=0`;
       buienradarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&zoom=10&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&marker=true`;
+      buienradarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&zoom=10&overlay=thunder&product=radar&level=surface&lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&marker=true`;
       
       locInfo.innerHTML = 'Locatiegegevens laden...';
 
@@ -4002,7 +4223,6 @@
       }
   }
 
-  if (weatherBtn && weatherModal) {
       weatherBtn.addEventListener('click', () => {
           weatherModal.classList.add('show');
           if (navigator.geolocation) {
@@ -4022,12 +4242,19 @@
       weatherCloseBtn.addEventListener('click', () => {
           weatherModal.classList.remove('show');
       });
-  }
+
+      const weatherPopoutBtn = document.getElementById('weatherPopoutBtn');
+      if (weatherPopoutBtn) {
+          weatherPopoutBtn.addEventListener('click', () => {
+              window.open(window.location.pathname + '?popout=true&panel=weather', 'WeerPanel', 'width=900,height=700,left=200,top=200');
+              weatherModal.classList.remove('show');
+          });
+      }
 
   // ==========================================
   // ZOOM FUNCTIE
   // ==========================================
-  const zoomSelect = document.getElementById('zoomSelect');
+  const zoomSelect = document.getElementById('zoomSelect'); // Already cached, but keep for clarity
   function applyZoom(zoomLevel) {
       document.body.style.zoom = zoomLevel;
   }
@@ -4035,7 +4262,6 @@
       zoomSelect.addEventListener('change', (e) => applyZoom(e.target.value));
   }
 
-  const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
   if (forgotPasswordBtn) {
       forgotPasswordBtn.addEventListener('click', async () => {
           const email = loginUsername.value.trim();
@@ -4057,7 +4283,6 @@
           }
       });
   }
-
   // ==========================================
   // PROTOCOLLEN LOGICA
   // ==========================================
@@ -4068,10 +4293,14 @@
       vermissing: { titel: 'Vermissing op evenementen', inhoud: `<h4 style="margin-bottom:10px; color:var(--text1);">Protocol Omgaan met Vermissingen op Evenementen (Versie 1, Nov 2024)</h4><p style="margin-bottom:10px;">Helaas komt het voor dat personen vermist raken op een evenement. Gelukkig is dit over het algemeen van korte duur, maar regelmatig wordt bij dergelijke gevallen contact gezocht met de EHBO. Hoewel de EHBO kan ondersteunen bij incidenten rondom vermiste personen, is het niet onze primaire taak om actieve zoekacties uit te voeren. Onze hoofdverantwoordelijkheid ligt bij het verlenen van eerste hulp, en actieve zoektochten kunnen deze taak belemmeren.</p><p style="margin-bottom:15px;">Er zijn echter een aantal zaken die wij kunnen doen om te helpen. Door deze richtlijnen te volgen, kunnen we op een effectieve en professionele manier omgaan met vermissingen tijdens evenementen, zonder dat dit ten koste gaat van onze primaire taak.</p><h5 style="margin-bottom:5px; font-size:13px; color:var(--blue);">Gegevens</h5><p style="margin-bottom:5px;">Gegevens die handig zijn om te weten:</p><ol style="padding-left:20px; margin-bottom:10px;"><li>Naam & Geboortedatum</li><li>Recente foto die gedeeld kan/mag worden</li><li>Uiterlijke kenmerken & Kleding</li><li>Omschrijving van de situatie (Laatst gezien, specifieke zaken)</li></ol><p style="margin-bottom:15px; font-style:italic; font-size:12px;">Let op dat alle persoonlijke informatie vertrouwelijk wordt behandeld (AVG).</p><h5 style="margin-bottom:5px; font-size:13px; color:var(--blue);">Communicatie</h5><p style="margin-bottom:5px;">Bij een groot evenement verloopt de communicatie via de coördinator en centralist. Anders via de Postcoördinator (PCO):</p><ol style="padding-left:20px; margin-bottom:15px;"><li><strong>Coördinator:</strong> Algemene leiding en besluitvorming.</li><li><strong>Centralist:</strong> Beheert communicatie en coördinatie tussen teams.</li><li><strong>PCO:</strong> Operationele aansturing op locatie.</li></ol><h5 style="margin-bottom:5px; font-size:13px; color:var(--blue);">Uit te voeren acties in overleg</h5><ol style="padding-left:20px; margin-bottom:15px;"><li><strong>Deel gegevens met organisatie:</strong> Met inachtneming van AVG.</li><li><strong>Controleer zorgrapportage:</strong> Kijk of de persoon recent is gezien.</li><li><strong>Informeer uitrukteams:</strong> Vraag uit te kijken naar de persoon, zonder dat dit primaire taken belemmert (geen actieve zoektocht).</li></ol><h5 style="margin-bottom:5px; font-size:13px; color:var(--blue);">Verslaglegging & Ondersteuning</h5><ul style="padding-left:20px; margin-bottom:15px;"><li>Rapporteer incidenten zo snel mogelijk via info@ems.nl.</li><li>Bij medische hulp: Maak zorgcontact aan volgens protocol.</li><li>Toon empathie, bied luisterend oor, geef geen valse verwachtingen en verwijs naar organisatie.</li></ul>` }
   };
 
-  const btnProtocols = document.getElementById('btnProtocols');
-  if (btnProtocols) {
-      btnProtocols.addEventListener('click', () => {
-          document.getElementById('protocolListModal').classList.add('show');
+  document.getElementById('btnProtocols')?.addEventListener('click', () => {
+      document.getElementById('protocolListModal').classList.add('show');
+  });
+
+      const closeProtocolListBtn = document.getElementById('closeProtocolListModalBtn');
+      if (closeProtocolListBtn) {
+          closeProtocolListBtn.addEventListener('click', () => {
+              document.getElementById('protocolListModal').classList.remove('show');
       });
   }
 
@@ -4085,6 +4314,13 @@
               document.getElementById('protocolListModal').classList.remove('show');
               document.getElementById('protocolViewModal').classList.add('show');
           }
+      });
+  });
+
+  const closeProtocolViewBtn = document.getElementById('closeProtocolViewModalBtn');
+  if (closeProtocolViewBtn) {
+      closeProtocolViewBtn.addEventListener('click', () => {
+          document.getElementById('protocolViewModal').classList.remove('show');
       });
   });
 

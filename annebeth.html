@@ -21,6 +21,9 @@
 
     <title>Het dagboek van Annebeth</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js bibliotheek voor de groeicurve -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
         :root {
             --bg-color: #f7f5ef;
@@ -1097,6 +1100,14 @@
                 <div class="input-group" style="flex: 1; margin-bottom: 0;">
                     <label class="input-label">Gewicht (kg)</label>
                     <input type="number" step="0.01" class="input-field" id="growthWeight" inputmode="decimal" placeholder="Bijv. 4.50" style="background-color: #ffebd6; border-color: #ffebd6; color: var(--text-dark);">
+                </div>
+            </div>
+
+            <!-- Container voor de groeicurve -->
+            <div class="input-group" style="margin-top: 10px;">
+                <label class="input-label">Groeicurve</label>
+                <div style="background-color: #f9f9f9; border-radius: 15px; padding: 10px;">
+                    <canvas id="growthChart"></canvas>
                 </div>
             </div>
 
@@ -3037,6 +3048,7 @@
         const growthHistoryList = document.getElementById('growthHistoryList');
 
         let currentEditGrowthId = null;
+        let growthChartInstance = null;
 
         function renderGrowthData() {
             // Sorteer nieuwste bovenaan
@@ -3071,6 +3083,75 @@
                         </div>
                     </div>
                 `;
+            });
+
+            // --- Chart.js Logica ---
+            const chartData = [...growthData].reverse(); // Kopieer en draai om voor chronologische volgorde
+            const labels = chartData.map(d => new Date(d.timestamp));
+            const lengthData = chartData.map(d => d.length ? parseFloat(d.length.replace(',', '.')) : null);
+            const weightData = chartData.map(d => d.weight ? parseFloat(d.weight.replace(',', '.')) : null);
+
+            const ctx = document.getElementById('growthChart').getContext('2d');
+
+            if (growthChartInstance) {
+                growthChartInstance.destroy(); // Verwijder oude grafiek om opnieuw te tekenen
+            }
+
+            growthChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Gewicht (kg)',
+                            data: weightData,
+                            borderColor: '#ff8a66',
+                            backgroundColor: 'rgba(255, 138, 102, 0.1)',
+                            fill: true,
+                            tension: 0.4, // Maakt de lijn mooi gebogen
+                            yAxisID: 'yWeight',
+                            pointRadius: 4,
+                            pointBackgroundColor: '#ff8a66',
+                        },
+                        {
+                            label: 'Lengte (cm)',
+                            data: lengthData,
+                            borderColor: '#7b52de',
+                            backgroundColor: 'rgba(123, 82, 222, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'yLength',
+                            pointRadius: 4,
+                            pointBackgroundColor: '#7b52de',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'dd MMM yyyy',
+                                displayFormats: { day: 'dd MMM' }
+                            },
+                            grid: { display: false }
+                        },
+                        yWeight: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: 'Gewicht (kg)', color: '#ff8a66' }
+                        },
+                        yLength: {
+                            type: 'linear',
+                            position: 'right',
+                            title: { display: true, text: 'Lengte (cm)', color: '#7b52de' },
+                            grid: { drawOnChartArea: false } // Voorkomt dubbele grid lijnen
+                        }
+                    }
+                }
             });
         }
 
