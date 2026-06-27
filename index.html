@@ -116,8 +116,12 @@
     </header>
 
     <footer>
-        <p>&copy; 2026 Familie van der Steenhoven. Alle rechten voorbehouden.</p>
+        <p>&copy; <span id="copyright-year">2026</span> Familie van der Steenhoven. Alle rechten voorbehouden.</p>
     </footer>
 
+    <script>
+        // Zorgt ervoor dat het copyright-jaar altijd up-to-date is.
+        document.getElementById('copyright-year').textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>

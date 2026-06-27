@@ -67,6 +67,16 @@
     border-color: var(--text2);
   }
 
+  #themeToggle svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: currentColor; /* Vul de iconen voor duidelijkheid */
+  }
+
   .theme-toggle svg {
     width: 18px;
     height: 18px;
@@ -439,7 +449,7 @@
     </select>
     <button id="themeToggle" class="topbar-btn" title="Donker/Licht modus" style="padding: 0; width: 36px;">
       <svg class="theme-icon-dark" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      <svg class="theme-icon-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <svg class="theme-icon-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
     </button>
     <button id="weatherBtn" title="Lokale Buienradar" class="topbar-btn" style="gap: 6px; min-width: 110px;">
       <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
@@ -561,10 +571,14 @@
     </div>
 
     <div class="view" id="view-logging">
-      <div class="section-hdr"><span class="section-title">Globaal Live Logboek</span></div>
+      <div class="section-hdr"><span class="section-title">Logboek / Audit Trail</span></div>
       
-      <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+      <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
         <input type="text" id="liveLogSearchInput" placeholder="🔍 Zoek op bericht, incident..." style="flex: 1; max-width: 350px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+        <label for="logStartDate" style="font-size: 11px; color: var(--text3);">Van:</label>
+        <input type="date" id="logStartDate" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+        <label for="logEndDate" style="font-size: 11px; color: var(--text3);">Tot:</label>
+        <input type="date" id="logEndDate" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
         <select id="liveLogTypeFilter" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
           <option value="">Alle soorten</option>
           <option value="Status">Status</option>
@@ -580,7 +594,7 @@
         <button class="btn btn-outline" id="printLogsBtn" title="Print of bewaar als PDF"><svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print/PDF</button>
       </div>
 
-      <div class="tbl-wrap" id="actueleLoggingWrapper" style="max-height: 400px; overflow-y: auto; margin-bottom: 30px;">
+      <div class="tbl-wrap" id="actueleLoggingWrapper" style="max-height: calc(100vh - 320px); overflow-y: auto;">
         <table>
           <thead style="position: sticky; top: 0; z-index: 10;">
             <tr><th style="width:120px;">Tijd</th><th>Soort</th><th>Melding</th><th>Eenheid</th><th>Actie / Notitie</th><th>Gebruiker</th></tr>
@@ -589,23 +603,6 @@
           </tbody>
         </table>
         <div id="loadMoreLogsBtn" style="text-align: center; padding: 15px; cursor: pointer; color: var(--blue); font-weight: 600; display: none;">Laad meer logs...</div>
-      </div>
-
-      <div class="section-hdr"><span class="section-title">Logging (Afgesloten Meldingen)</span></div>
-      
-      <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
-        <input type="text" id="logSearchInput" placeholder="🔍 Zoek op melder, locatie, eenheid of tekst..." style="flex: 1; max-width: 350px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
-        <input type="date" id="logDateFilter" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
-      </div>
-
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-          <tr><th>Status</th><th class="col-time">Gemeld</th><th class="col-time">Afgesloten</th><th>Locatie</th><th>Gebeurtenis</th><th>Melder</th><th>Roep n.r / Post</th></tr>
-          </thead>
-          <tbody id="loggingIncidentsTable">
-            </tbody>
-        </table>
       </div>
     </div>
 
@@ -783,7 +780,6 @@
         <form id="bulkAddUnitForm">
           <div style="display:flex;flex-direction:column;gap:16px;">
             <div>
-              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra ALS teams toevoegen</label>
               <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra BLS teams toevoegen</label>
               <select name="blsCount" id="blsCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
                 <option value="0" selected>0</option>
@@ -791,7 +787,6 @@
               </select>
             </div>
             <div>
-              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra brandwachten toevoegen</label>
               <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra ALS teams toevoegen</label>
               <select name="alsCount" id="alsCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
                 <option value="0" selected>0</option>
@@ -799,7 +794,6 @@
               </select>
             </div>
             <div>
-              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra BLS teams toevoegen</label>
               <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra brandwachten toevoegen</label>
               <select name="brandwachtCount" id="brandwachtCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
                 <option value="0" selected>0</option>
@@ -1464,12 +1458,12 @@
         liveLogSearchInput = document.getElementById('liveLogSearchInput'),
         liveLogTypeFilter = document.getElementById('liveLogTypeFilter'),
         liveLogUnitFilter = document.getElementById('liveLogUnitFilter'),
+        logStartDate = document.getElementById('logStartDate'),
+        logEndDate = document.getElementById('logEndDate'),
         loadMoreLogsBtn = document.getElementById('loadMoreLogsBtn'),
         weatherBtn = document.getElementById('weatherBtn'),
         exportCsvBtn = document.getElementById('exportCsvBtn'),
         printLogsBtn = document.getElementById('printLogsBtn'),
-        logSearchInput = document.getElementById('logSearchInput'),
-        logDateFilter = document.getElementById('logDateFilter'),
         changePasswordForm = document.getElementById('changePasswordForm'),
         btnBrandwacht = document.getElementById('btnBrandwacht'),
         btnLogistiek = document.getElementById('btnLogistiek'),
@@ -1495,6 +1489,41 @@
   let unsubIncidents, unsubUnits, unsubPosts, unsubLogs;
   let globalLogs = [];
   let logLimit = 50;
+
+  async function fetchAndRenderLogs() {
+      if (unsubLogs) unsubLogs();
+
+      const startDate = document.getElementById('logStartDate')?.value;
+      const endDate = document.getElementById('logEndDate')?.value;
+
+      let qConstraints = [orderBy("timestamp", "desc")];
+
+      if (startDate) {
+          qConstraints.push(where("timestamp", ">=", startDate + 'T00:00:00.000Z'));
+      }
+      if (endDate) {
+          qConstraints.push(where("timestamp", "<=", endDate + 'T23:59:59.999Z'));
+      }
+
+      // If a date range is active, we don't limit. Otherwise, we use the incremental limit.
+      if (!startDate && !endDate) {
+          qConstraints.push(limit(logLimit));
+      }
+
+      const logQuery = query(collection(db, "logs"), ...qConstraints);
+
+      unsubLogs = onSnapshot(logQuery, (snapshot) => {
+          globalLogs = [];
+          snapshot.forEach(doc => globalLogs.push(doc.data()));
+          if (typeof renderGlobalLogs === 'function') renderGlobalLogs();
+      }, (error) => {
+          console.error("Fout bij ophalen logs:", error);
+          if (error.code === 'failed-precondition') {
+              showToast('Firebase index voor log-datums ontbreekt. Maak deze aan.', true, 10000);
+              if(actueleLoggingBody) actueleLoggingBody.innerHTML = '<tr><td colspan="6" class="empty-table-msg" style="color:var(--amber);">⚠️ Firebase index ontbreekt. Kan niet op datum filteren. Ga naar de Firebase Console → Firestore → Indexen en maak een samengestelde index aan op <strong>logs</strong>: timestamp (DESC).</td></tr>';
+          }
+      });
+  }
 
   // Check realtime of de gebruiker is ingelogd
   onAuthStateChanged(auth, (user) => {
@@ -1522,11 +1551,7 @@
               if (typeof sortPosts === 'function') sortPosts(currentPostSort.col, true);
           });
           
-          unsubLogs = onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(logLimit)), (snapshot) => {
-              globalLogs = [];
-              snapshot.forEach(doc => globalLogs.push(doc.data()));
-              if (typeof renderGlobalLogs === 'function') renderGlobalLogs();
-          });
+          fetchAndRenderLogs();
       } else {
           loginScreen.style.display = 'flex';
           if (unsubIncidents) unsubIncidents();
@@ -1535,6 +1560,9 @@
           if (unsubLogs) unsubLogs();
       }
   });
+
+  if (logStartDate) logStartDate.addEventListener('change', fetchAndRenderLogs);
+  if (logEndDate) logEndDate.addEventListener('change', fetchAndRenderLogs);
 
   if (loginForm) {
       loginForm.addEventListener('submit', async (e) => {
@@ -1612,29 +1640,38 @@
   const isPopout = urlParams.get('popout') === 'true';
 
   if (isPopout) {
-      // Check for weather popout
-      if (urlParams.get('panel') === 'weather') {
-          document.getElementById('weatherModal').classList.add('show');
-          document.querySelector('#weatherModal .modal-content').style.width = '100%';
-          document.querySelector('#weatherModal .modal-content').style.height = '100vh';
-          document.querySelector('#weatherModal .modal-content').style.borderRadius = '0';
-          document.getElementById('weatherPopoutBtn').style.display = 'none';
-      }
-      // Verberg alle overbodige elementen in het pop-out venster
+      // Hide all main interface elements for any popout
       document.querySelector('.topbar').style.display = 'none';
       document.querySelector('.nav').style.display = 'none';
       document.querySelector('.actions').style.display = 'none';
       document.querySelector('.left-container').style.display = 'none';
       document.querySelector('.body').style.gridTemplateColumns = '1fr';
       document.querySelector('.body').style.height = '100vh';
-      document.querySelector('.right').style.width = '100%';
-      document.querySelector('.right').style.height = '100vh';
-      document.querySelector('.right').style.border = 'none';
-      document.querySelector('.right').style.position = 'relative';
-      document.querySelector('.right').style.right = '0';
-      document.querySelector('.right').style.overflowY = 'auto';
-      document.querySelectorAll('.rp-header').forEach(h => h.style.top = '0');
-      document.getElementById('popoutBtn').style.display = 'none';
+
+      // Check which panel to show
+      if (urlParams.get('panel') === 'weather') {
+          document.querySelector('.right').style.display = 'none'; // Hide the units panel
+          document.getElementById('weatherModal').classList.add('show');
+          const weatherContent = document.querySelector('#weatherModal .modal-content');
+          weatherContent.style.width = '100%';
+          weatherContent.style.height = '100vh';
+          weatherContent.style.borderRadius = '0';
+          weatherContent.style.maxWidth = 'none';
+          document.getElementById('weatherPopoutBtn').style.display = 'none';
+          document.getElementById('weatherCloseBtn').style.display = 'none';
+          // Trigger weather data load
+          fetchWeatherData(52.09, 5.12, true); // Use fallback location for popout
+      } else { // Default to units panel popout
+          document.querySelector('.right').style.display = 'flex'; // Make sure it's visible
+          document.querySelector('.right').style.width = '100%';
+          document.querySelector('.right').style.height = '100vh';
+          document.querySelector('.right').style.border = 'none';
+          document.querySelector('.right').style.position = 'relative';
+          document.querySelector('.right').style.right = '0';
+          document.querySelector('.right').style.overflowY = 'auto';
+          document.querySelectorAll('.rp-header').forEach(h => h.style.top = '0');
+          document.getElementById('popoutBtn').style.display = 'none';
+      }
   }
 
   if (popoutBtn && !isPopout) {
@@ -1718,7 +1755,7 @@
       if (!actueleLoggingBody) return;
       
       if (globalLogs.length === 0) {
-          actueleLoggingBody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">Nog geen logs beschikbaar.</td></tr>';
+          actueleLoggingBody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">Geen logs gevonden voor de geselecteerde criteria.</td></tr>';
           if (loadMoreLogsBtn) loadMoreLogsBtn.style.display = 'none';
           return;
       }
@@ -1776,8 +1813,14 @@
       }).join('');
 
       if (loadMoreLogsBtn) {
-          if (globalLogs.length < logLimit) loadMoreLogsBtn.style.display = 'none';
-          else { loadMoreLogsBtn.style.display = 'block'; loadMoreLogsBtn.innerText = 'Laad meer logs...'; }
+          const startDate = document.getElementById('logStartDate')?.value;
+          const endDate = document.getElementById('logEndDate')?.value;
+          if (startDate || endDate) {
+              loadMoreLogsBtn.style.display = 'none';
+          } else {
+              if (globalLogs.length < logLimit) loadMoreLogsBtn.style.display = 'none';
+              else { loadMoreLogsBtn.style.display = 'block'; loadMoreLogsBtn.innerText = 'Laad meer logs...'; }
+          }
       }
   }
 
@@ -1785,11 +1828,7 @@
       if (unsubLogs) unsubLogs();
       unsubLogs = null;
       logLimit += 50;
-      unsubLogs = onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(logLimit)), (snapshot) => {
-          globalLogs = [];
-          snapshot.forEach(doc => globalLogs.push(doc.data()));
-          if (typeof renderGlobalLogs === 'function') renderGlobalLogs();
-      });
+      fetchAndRenderLogs();
   }
 
   const wrapper = document.getElementById('actueleLoggingWrapper');
@@ -2112,12 +2151,10 @@
       const newTable = document.getElementById('newIncidentsTable');
       const homeTable = document.getElementById('homeIncidentsTable');
       const allTable = document.getElementById('allIncidentsTable');
-      const loggingTable = document.getElementById('loggingIncidentsTable');
       
       if (newTable) newTable.innerHTML = '';
       homeTable.innerHTML = '';
       allTable.innerHTML = '';
-      if (loggingTable) loggingTable.innerHTML = '';
 
       const activeIncidents = incidents.filter(inc => !inc.status.startsWith('Afgesloten'));
       let closedIncidents = incidents.filter(inc => inc.status.startsWith('Afgesloten'));
@@ -2224,53 +2261,6 @@
           });
       }
 
-      // Filter logica voor de logging tabel
-      const sq = (document.getElementById('logSearchInput')?.value || '').toLowerCase();
-      const dq = document.getElementById('logDateFilter')?.value;
-
-      if (sq) {
-          closedIncidents = closedIncidents.filter(inc =>
-              (inc.location || '').toLowerCase().includes(sq) ||
-              (inc.reporter || '').toLowerCase().includes(sq) ||
-              (inc.event || '').toLowerCase().includes(sq) ||
-              (inc.units && inc.units.join(' ').toLowerCase().includes(sq)) ||
-              (inc.status || '').toLowerCase().includes(sq)
-          );
-      }
-      if (dq) {
-          closedIncidents = closedIncidents.filter(inc => {
-              if (!inc.closedAtTimestamp) return false;
-              return inc.closedAtTimestamp.startsWith(dq);
-          });
-      }
-
-      // Render de afgesloten meldingen in de logging tabel
-      if (loggingTable) {
-          if (closedIncidents.length === 0) {
-              loggingTable.innerHTML = `<tr><td colspan="7" class="empty-table-msg">Geen afgesloten meldingen.</td></tr>`;
-          } else {
-              closedIncidents.forEach(inc => {
-                  const assignedUnits = (inc.units && inc.units.length) ? inc.units.join('<br>') : (inc.unit ? inc.unit : '-');
-                  const trHist = document.createElement('tr');
-                  trHist.innerHTML = `
-                    <td><span class="pill" style="background:var(--bg3); color:var(--text3); border:1px solid var(--border);">${inc.status}</span></td>
-                    <td class="col-time" style="color:var(--text3);font-size:11px">${inc.time}</td>
-                    <td class="col-time" style="color:var(--text3);font-size:11px">${inc.closedAtTime || '-'}</td>
-                    <td>${inc.location}</td>
-                    <td>${inc.event}</td>
-                    <td>${inc.reporter}</td>
-                    <td><span style="color:var(--text2);">${assignedUnits}</span></td>
-                    <td>
-                      <div class="row-actions">
-                        <button type="button" class="btn btn-outline" data-action="tijdlijn" data-id="${inc.id}">Tijdlijn</button>
-                      </div>
-                    </td>
-                  `;
-                  loggingTable.appendChild(trHist);
-              });
-          }
-      }
-
       // Update the counters
       const countNewEl = document.getElementById('countNew');
       if(countNewEl) countNewEl.innerText = newIncidents.length;
@@ -2291,9 +2281,6 @@
       attachRowActionHandlers();
   }
 
-  // Filter Event Listeners
-  if (logSearchInput) logSearchInput.addEventListener('input', renderTables);
-  if (logDateFilter) logDateFilter.addEventListener('change', renderTables);
 
   // Helperfunctie om het verschil in minuten te berekenen tussen twee 'HH:MM' tijden (zelfs over middernacht)
   function getDiffInMinutes(startStr, endStr) {
@@ -4053,10 +4040,7 @@
       const hourlyContainer = document.getElementById('hourlyForecastContainer');
       const alertsContainer = document.getElementById('weatherAlertsContainer');
       
-      const brLat = parseFloat(lat).toFixed(2);
-      const brLng = parseFloat(lon).toFixed(2);
-      buienradarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&zoom=10&overlay=thunder&product=radar&level=surface&lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&marker=true`;
-      
+      buienradarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&zoom=10&overlay=rain&product=radar&level=surface&lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&marker=true`;
       locInfo.innerHTML = 'Locatiegegevens laden...';
 
       // Ophalen van de 5-minuten data via Buienradar API
@@ -4287,6 +4271,12 @@
               fetchWeatherData(52.09, 5.12, true);
           }
       });
+
+      if (weatherCloseBtn) {
+          weatherCloseBtn.addEventListener('click', () => {
+              weatherModal.classList.remove('show');
+          });
+      }
 
       const weatherPopoutBtn = document.getElementById('weatherPopoutBtn');
       if (weatherPopoutBtn) {
