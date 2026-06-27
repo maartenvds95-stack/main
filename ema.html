@@ -3076,61 +3076,6 @@
             detailedForm.reset();
           });
 
-  const quickMedicalForm = document.getElementById('quickMedicalForm'); // Already cached, but for clarity
-  quickMedicalForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      try {
-          const quickMedicalModal = document.getElementById('quickMedicalModal');
-          const formData = new FormData(quickMedicalForm);
-          const melder = formData.get('reporter').toLowerCase().trim();
-          
-          let assignedUnit = "-";
-          let alertMsg = "Snelle medische melding succesvol aangemaakt.";
-    
-          // Systeem intelligentie: herken u1, u2, u3, etc.
-          if (melder.startsWith('u') && !isNaN(melder.substring(1))) {
-              const uNum = melder.substring(1).padStart(2, '0');
-              assignedUnit = `Uitruk ${uNum}`;
-              
-              const unitToUpdate = units.find(u => u.id === assignedUnit);
-              if(unitToUpdate) {
-                  unitToUpdate.status = "uitgerukt";
-                  unitToUpdate.location = formData.get('location'); 
-                  setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
-                  alertMsg = `Melding aangemaakt. Eenheid '${assignedUnit}' is herkend en de status is automatisch gezet op 'uitgerukt'.`;
-              }
-          }
-    
-          const nu = new Date();
-          const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
-    
-          incidents.push({
-              id: "M-" + Date.now() + "-" + Math.floor(Math.random() * 999), 
-              status: assignedUnit && assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
-              time: tijdString,
-              location: formData.get('location'),
-              event: formData.get('description'),
-              reporter: formData.get('reporter'),
-              urgency: formData.get('urgency'),
-              units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
-          });
-          addIncidentAudit(incidents[incidents.length - 1], `Aangemaakt - ${formData.get('urgency')}`);
-    
-          setDoc(doc(db, "incidents", incidents[incidents.length - 1].id), incidents[incidents.length - 1]);
-          renderTables();
-          renderUnits();
-          renderDetailedUnitsTable();
-          
-          showToast(alertMsg);
-      } catch (error) {
-          console.error("Fout bij opslaan van de melding:", error);
-          showToast('Er ging iets mis bij het aanmaken van de melding.', true);
-      } finally {
-          modal.classList.remove('show');
-          quickMedicalForm.reset();
-      }
-  });
-  
   // ==========================================
   // ACCOUNTINSTELLINGEN (Wachtwoord)
   // ==========================================
@@ -4326,7 +4271,6 @@
       }
   }
 
-      weatherBtn.addEventListener('click', () => {
       weatherBtn?.addEventListener('click', () => {
           weatherModal.classList.add('show');
           if (navigator.geolocation) {
@@ -4342,9 +4286,6 @@
           } else {
               fetchWeatherData(52.09, 5.12, true);
           }
-      });
-      weatherCloseBtn.addEventListener('click', () => {
-          weatherModal.classList.remove('show');
       });
 
       const weatherPopoutBtn = document.getElementById('weatherPopoutBtn');
