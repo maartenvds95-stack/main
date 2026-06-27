@@ -1098,8 +1098,8 @@
                     <input type="number" step="0.1" class="input-field" id="growthLength" inputmode="decimal" placeholder="Bijv. 55" style="background-color: #ffebd6; border-color: #ffebd6; color: var(--text-dark);">
                 </div>
                 <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                    <label class="input-label">Gewicht (kg)</label>
-                    <input type="number" step="0.01" class="input-field" id="growthWeight" inputmode="decimal" placeholder="Bijv. 4.50" style="background-color: #ffebd6; border-color: #ffebd6; color: var(--text-dark);">
+                    <label class="input-label" id="growthWeightLabel">Gewicht</label>
+                    <input type="number" step="1" class="input-field" id="growthWeight" inputmode="numeric" placeholder="Bijv. 4520" style="background-color: #ffebd6; border-color: #ffebd6; color: var(--text-dark);">
                 </div>
             </div>
 
@@ -2589,9 +2589,11 @@
             
             let timeObj = new Date();
             if (timeVal && storedDate) {
-                const combinedDateTime = `${storedDate}T${timeVal}`;
-                const parsedDate = new Date(combinedDateTime);
-                if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
+                let parsedDate = new Date(`${storedDate}T${timeVal}`);
+                if (!isNaN(parsedDate.getTime())) {
+                    if (parsedDate.getTime() > Date.now()) parsedDate.setDate(parsedDate.getDate() - 1);
+                    timeObj = parsedDate;
+                }
             }
             const timeString = format24Hour(timeObj);
 
@@ -2695,9 +2697,11 @@
             
             let timeObj = new Date();
             if (timeVal && storedDate) {
-                const combinedDateTime = `${storedDate}T${timeVal}`;
-                const parsedDate = new Date(combinedDateTime);
-                if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
+                let parsedDate = new Date(`${storedDate}T${timeVal}`);
+                if (!isNaN(parsedDate.getTime())) {
+                    if (parsedDate.getTime() > Date.now()) parsedDate.setDate(parsedDate.getDate() - 1);
+                    timeObj = parsedDate;
+                }
             }
             const timeString = format24Hour(timeObj);
             
@@ -2885,9 +2889,11 @@
             
             let timeObj = new Date();
             if (timeVal && storedDate) {
-                const combinedDateTime = `${storedDate}T${timeVal}`;
-                const parsedDate = new Date(combinedDateTime);
-                if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
+                let parsedDate = new Date(`${storedDate}T${timeVal}`);
+                if (!isNaN(parsedDate.getTime())) {
+                    if (parsedDate.getTime() > Date.now()) parsedDate.setDate(parsedDate.getDate() - 1);
+                    timeObj = parsedDate;
+                }
             }
             const timeString = format24Hour(timeObj);
 
@@ -2998,9 +3004,11 @@
             
             let timeObj = new Date();
             if (timeVal && storedDate) {
-                const combinedDateTime = `${storedDate}T${timeVal}`;
-                const parsedDate = new Date(combinedDateTime);
-                if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
+                let parsedDate = new Date(`${storedDate}T${timeVal}`);
+                if (!isNaN(parsedDate.getTime())) {
+                    if (parsedDate.getTime() > Date.now()) parsedDate.setDate(parsedDate.getDate() - 1);
+                    timeObj = parsedDate;
+                }
             }
             const timeString = format24Hour(timeObj);
 
@@ -3050,16 +3058,23 @@
         let currentEditGrowthId = null;
         let growthChartInstance = null;
 
+        function formatWeight(weightInKg) {
+            const kg = parseFloat(String(weightInKg).replace(',', '.'));
+            if (isNaN(kg)) return '--';
+            if (kg < 10) return `${Math.round(kg * 1000)} gram`;
+            return `${kg.toFixed(1).replace('.', ',')} kg`;
+        }
+
         function renderGrowthData() {
             // Sorteer nieuwste bovenaan
             growthData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
             // Werk statistieken bovenin bij
             let latestLength = '-- cm';
-            let latestWeight = '-- kg';
+            let latestWeight = '--';
             for (let entry of growthData) {
                 if (latestLength === '-- cm' && entry.length) latestLength = entry.length + ' cm';
-                if (latestWeight === '-- kg' && entry.weight) latestWeight = entry.weight + ' kg';
+                if (latestWeight === '--' && entry.weight) latestWeight = formatWeight(entry.weight);
             }
             displayLength.textContent = latestLength;
             displayWeight.textContent = latestWeight;
@@ -3070,8 +3085,8 @@
                 const d = new Date(entry.timestamp);
                 const dateString = getDutchDateShort(d);
                 let vals = [];
-                if (entry.length) vals.push(entry.length + ' cm');
-                if (entry.weight) vals.push(entry.weight + ' kg');
+                if (entry.length) vals.push(`${entry.length} cm`);
+                if (entry.weight) vals.push(formatWeight(entry.weight));
 
                 growthHistoryList.innerHTML += `
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px; font-size: 13px;">
@@ -3088,8 +3103,8 @@
             // --- Chart.js Logica ---
             const chartData = [...growthData].reverse(); // Kopieer en draai om voor chronologische volgorde
             const labels = chartData.map(d => new Date(d.timestamp));
-            const lengthData = chartData.map(d => d.length ? parseFloat(d.length.replace(',', '.')) : null);
-            const weightData = chartData.map(d => d.weight ? parseFloat(d.weight.replace(',', '.')) : null);
+            const lengthData = chartData.map(d => d.length ? parseFloat(String(d.length).replace(',', '.')) : null);
+            const weightData = chartData.map(d => d.weight ? parseFloat(String(d.weight).replace(',', '.')) : null);
 
             const ctx = document.getElementById('growthChart').getContext('2d');
 
@@ -3181,8 +3196,15 @@
                 document.getElementById('growthTime').value = isoString.slice(11, 16);
                 
                 // Komma terugzetten naar een punt voor het nummer-invoerveld
-                document.getElementById('growthLength').value = entry.length ? entry.length.replace(',', '.') : '';
-                document.getElementById('growthWeight').value = entry.weight ? entry.weight.replace(',', '.') : '';
+                document.getElementById('growthLength').value = entry.length ? String(entry.length).replace(',', '.') : '';
+                
+                const weightInKg = entry.weight ? parseFloat(String(entry.weight).replace(',', '.')) : 0;
+                if (weightInKg < 10) {
+                    document.getElementById('growthWeight').value = Math.round(weightInKg * 1000);
+                } else {
+                    document.getElementById('growthWeight').value = weightInKg.toFixed(1);
+                }
+                updateGrowthInputUI(weightInKg);
                 
                 document.getElementById('saveGrowthBtn').innerHTML = 'Bijwerken';
             }
@@ -3190,6 +3212,8 @@
 
         openGrowthBtns.forEach(btn => btn.addEventListener('click', () => {
             currentEditGrowthId = null;
+            const latestWeightKg = growthData.length > 0 && growthData[0].weight ? parseFloat(String(growthData[0].weight).replace(',', '.')) : 0;
+            updateGrowthInputUI(latestWeightKg);
             document.getElementById('saveGrowthBtn').innerHTML = 'Opslaan';
             growthModal.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -3199,6 +3223,20 @@
             document.getElementById('growthLength').value = '';
             document.getElementById('growthWeight').value = '';
         }));
+
+        function updateGrowthInputUI(latestWeightKg) {
+            const weightInput = document.getElementById('growthWeight');
+            const weightLabel = document.getElementById('growthWeightLabel');
+            if (latestWeightKg >= 10) {
+                weightLabel.textContent = 'Gewicht (kg)';
+                weightInput.placeholder = 'Bijv. 10,1';
+                weightInput.step = '0.1';
+            } else {
+                weightLabel.textContent = 'Gewicht (gram)';
+                weightInput.placeholder = 'Bijv. 4520';
+                weightInput.step = '1';
+            }
+        }
 
         const closeGrowthModal = () => {
             growthModal.classList.remove('active');
@@ -3212,7 +3250,7 @@
         saveGrowthBtn.addEventListener('click', async () => {
             const timeVal = document.getElementById('growthTime').value;
             const lenVal = document.getElementById('growthLength').value;
-            const wgtVal = document.getElementById('growthWeight').value;
+            let wgtVal = document.getElementById('growthWeight').value;
             const storedDate = growthModal.dataset.date;
 
             if (!lenVal && !wgtVal) return alert('Vul op z\'n minst een lengte of gewicht in.');
@@ -3234,10 +3272,18 @@
                 saveGrowthBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opslaan...';
                 saveGrowthBtn.disabled = true;
 
+                let weightInKg = null;
+                if (wgtVal) {
+                    const numWgt = parseFloat(String(wgtVal).replace(',', '.'));
+                    // Als het getal groter is dan (bijv.) 200, gaan we uit van grammen.
+                    weightInKg = numWgt > 200 ? numWgt / 1000 : numWgt;
+                }
+
                 const growthDataObj = {
                     timestamp: timeObj.toISOString(),
-                    length: lenVal ? lenVal.replace('.', ',') : null,
-                    weight: wgtVal ? wgtVal.replace('.', ',') : null
+                    length: lenVal ? String(lenVal).replace('.', ',') : null,
+                    // Sla altijd op als kg met komma als decimaal
+                    weight: weightInKg ? String(weightInKg.toFixed(3)).replace('.', ',') : null
                 };
 
                 if (currentEditGrowthId) {

@@ -267,6 +267,17 @@
   .radio-boxes input[type="radio"]:checked + label, .radio-boxes input[type="checkbox"]:checked + label {
     background: var(--green-bg); border-color: var(--green); color: var(--green); font-weight: 500;
   }
+  
+  .segmented-control-theme { display: flex; background: var(--bg3); border-radius: 8px; padding: 4px; max-width: 280px; }
+  .segmented-control-theme button {
+    flex: 1; padding: 8px 12px; border: none; background: transparent; border-radius: 6px;
+    font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .segmented-control-theme button.active {
+    background: var(--bg1); color: var(--text1); box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid var(--border2);
+  }
 
   /* ── MODALS ── */
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 21, 32, 0.8); display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(3px); }
@@ -636,6 +647,16 @@
         </div>
       </div>
 
+      <div style="background: var(--bg2); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
+        <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 16px;">Meldingen per uur</h3>
+        <div id="incidentChartContainer" style="display: flex; align-items: flex-end; height: 120px; gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 5px;"></div>
+        <div id="incidentChartLabels" style="display: flex; font-size: 10px; color: var(--text3); margin-top: 6px;"></div>
+        <div style="display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--text2);">
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--blue);border-radius:2px;margin-right:4px;"></span>Actief</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:2px;margin-right:4px;"></span>Afgesloten</span>
+        </div>
+      </div>
+
       <div style="background: var(--bg2); padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
          <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 10px;">Toelichting Dashboard</h3>
          <p style="color: var(--text2); font-size: 13px; line-height: 1.6;">Dit overzicht toont real-time statistieken op basis van de afgesloten incidenten uit deze meldkamer post. De gemiddelde afhandeltijd wordt automatisch berekend door het verschil in minuten te nemen tussen het tijdstip van binnenkomst en het moment van definitief afsluiten van de afloop.</p>
@@ -670,9 +691,9 @@
         <div style="border-top: 1px solid var(--border); padding-top: 24px;">
           <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 12px;">Weergave</h3>
           <p style="font-size: 13px; color: var(--text2); margin-bottom: 12px;">Kies het thema van de applicatie. Dit wordt opgeslagen op dit apparaat.</p>
-          <div style="display: flex; gap: 12px;">
-            <button class="btn btn-outline" id="themeDarkBtn">Donker thema</button>
-            <button class="btn btn-outline" id="themeLightBtn">Licht thema</button>
+          <div class="segmented-control-theme">
+            <button id="themeDarkBtn">Donker</button>
+            <button id="themeLightBtn">Licht</button>
           </div>
         </div>
 
@@ -762,6 +783,7 @@
         <form id="bulkAddUnitForm">
           <div style="display:flex;flex-direction:column;gap:16px;">
             <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra ALS teams toevoegen</label>
               <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra BLS teams toevoegen</label>
               <select name="blsCount" id="blsCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
                 <option value="0" selected>0</option>
@@ -769,6 +791,7 @@
               </select>
             </div>
             <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra brandwachten toevoegen</label>
               <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra ALS teams toevoegen</label>
               <select name="alsCount" id="alsCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
                 <option value="0" selected>0</option>
@@ -776,6 +799,7 @@
               </select>
             </div>
             <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra BLS teams toevoegen</label>
               <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra brandwachten toevoegen</label>
               <select name="brandwachtCount" id="brandwachtCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
                 <option value="0" selected>0</option>
@@ -1241,7 +1265,6 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="weatherModal">
 <div class="modal-overlay" id="weatherModal" style="z-index: 1001;">
   <div class="modal-content" style="width: 900px; max-width: 95vw;">
     <div class="modal-header">
@@ -1442,6 +1465,7 @@
         liveLogTypeFilter = document.getElementById('liveLogTypeFilter'),
         liveLogUnitFilter = document.getElementById('liveLogUnitFilter'),
         loadMoreLogsBtn = document.getElementById('loadMoreLogsBtn'),
+        weatherBtn = document.getElementById('weatherBtn'),
         exportCsvBtn = document.getElementById('exportCsvBtn'),
         printLogsBtn = document.getElementById('printLogsBtn'),
         logSearchInput = document.getElementById('logSearchInput'),
@@ -1453,6 +1477,7 @@
         showAddUnitFormBtn = document.getElementById('showAddUnitFormBtn'),
         showBulkAddUnitFormBtn = document.getElementById('showBulkAddUnitFormBtn'),
         showImportCsvFormBtn = document.getElementById('showImportCsvFormBtn'),
+        importCsvFormSection = document.getElementById('importCsvFormSection'),
         unitFormSection = document.getElementById('unitFormSection'),
         unitTypeButtons = document.querySelectorAll('.unit-type-btn'),
         unitTypeInput = document.querySelector('input[name="soort"]'),
@@ -1546,15 +1571,11 @@
   function updateThemeButtons() {
       if (!themeDarkBtn || !themeLightBtn) return;
       if (htmlElement.classList.contains('light-mode')) {
-          themeLightBtn.classList.add('btn-submit');
-          themeLightBtn.classList.remove('btn-outline');
-          themeDarkBtn.classList.add('btn-outline');
-          themeDarkBtn.classList.remove('btn-submit');
+          themeLightBtn.classList.add('active');
+          themeDarkBtn.classList.remove('active');
       } else {
-          themeDarkBtn.classList.add('btn-submit');
-          themeDarkBtn.classList.remove('btn-outline');
-          themeLightBtn.classList.add('btn-outline');
-          themeLightBtn.classList.remove('btn-submit');
+          themeDarkBtn.classList.add('active');
+          themeLightBtn.classList.remove('active');
       }
   }
   updateThemeButtons();
@@ -1754,9 +1775,9 @@
           `;
       }).join('');
 
-      if (loadMoreBtn) {
-          if (globalLogs.length < logLimit) loadMoreBtn.style.display = 'none';
-          else { loadMoreBtn.style.display = 'block'; loadMoreBtn.innerText = 'Laad meer logs...'; }
+      if (loadMoreLogsBtn) {
+          if (globalLogs.length < logLimit) loadMoreLogsBtn.style.display = 'none';
+          else { loadMoreLogsBtn.style.display = 'block'; loadMoreLogsBtn.innerText = 'Laad meer logs...'; }
       }
   }
 
@@ -1775,9 +1796,8 @@
   if (wrapper) {
       wrapper.addEventListener('scroll', () => {
           if (wrapper.scrollTop + wrapper.clientHeight >= wrapper.scrollHeight - 10) {
-              const loadBtn = document.getElementById('loadMoreLogsBtn');
-              if (loadBtn && loadBtn.style.display !== 'none' && loadBtn.innerText !== 'Laden...') {
-                  loadBtn.innerText = 'Laden...';
+              if (loadMoreLogsBtn && loadMoreLogsBtn.style.display !== 'none' && loadMoreLogsBtn.innerText !== 'Laden...') {
+                  loadMoreLogsBtn.innerText = 'Laden...';
                   loadMoreLogs();
               }
           }
@@ -2266,6 +2286,7 @@
       
       // Update rapportage statistieken
       renderRapportage();
+      renderIncidentChart();
 
       attachRowActionHandlers();
   }
@@ -2353,6 +2374,78 @@
       if (document.getElementById('rapOpen')) document.getElementById('rapOpen').innerText = rapOpen;
       if (document.getElementById('rapTotalUitruk')) document.getElementById('rapTotalUitruk').innerText = rapTotalUitruk;
       if (document.getElementById('rapTotalZelfzorg')) document.getElementById('rapTotalZelfzorg').innerText = rapTotalZelfzorg;
+  }
+
+  function renderIncidentChart() {
+      const chartContainer = document.getElementById('incidentChartContainer');
+      const labelsContainer = document.getElementById('incidentChartLabels');
+      if (!chartContainer || !labelsContainer) return;
+  
+      if (incidents.length === 0) {
+          chartContainer.innerHTML = '<div style="color:var(--text3);font-size:13px;">Nog geen meldingen om te tonen.</div>';
+          labelsContainer.innerHTML = '';
+          return;
+      }
+  
+      // Bepaal het tijdbereik van alle meldingen
+      const allTimes = incidents
+          .map(inc => {
+              if (!inc.time) return null;
+              const [h, m] = inc.time.split(':').map(Number);
+              return isNaN(h) ? null : h;
+          })
+          .filter(h => h !== null);
+  
+      if (allTimes.length === 0) return;
+  
+      const minHour = Math.min(...allTimes);
+      const maxHour = Math.max(...allTimes);
+  
+      // Maak buckets per uur
+      const hours = [];
+      for (let h = minHour; h <= maxHour; h++) hours.push(h);
+  
+      const activeCounts = hours.map(h =>
+          incidents.filter(inc => {
+              if (!inc.time) return false;
+              const [ih] = inc.time.split(':').map(Number);
+              return ih === h && !inc.status.startsWith('Afgesloten');
+          }).length
+      );
+  
+      const closedCounts = hours.map(h =>
+          incidents.filter(inc => {
+              if (!inc.time) return false;
+              const [ih] = inc.time.split(':').map(Number);
+              return ih === h && inc.status.startsWith('Afgesloten');
+          }).length
+      );
+  
+      const maxCount = Math.max(...activeCounts.map((a, i) => a + closedCounts[i]), 1);
+  
+      // Teken de gestapelde balken
+      chartContainer.innerHTML = hours.map((h, i) => {
+          const total = activeCounts[i] + closedCounts[i];
+          const activeH = (activeCounts[i] / maxCount) * 100;
+          const closedH = (closedCounts[i] / maxCount) * 100;
+  
+          return `
+              <div style="flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;"
+                   title="${h}:00 — ${total} melding(en) (${activeCounts[i]} actief, ${closedCounts[i]} afgesloten)">
+                  ${total > 0 ? `<span style="font-size:9px;color:var(--text3);margin-bottom:2px;">${total}</span>` : ''}
+                  <div style="width:80%;height:${activeH + closedH}px;display:flex;flex-direction:column;border-radius:2px 2px 0 0;overflow:hidden;">
+                      <div style="width:100%;height:${activeH}px;background:var(--blue);opacity:0.85;"></div>
+                      <div style="width:100%;height:${closedH}px;background:var(--green);opacity:0.7;"></div>
+                  </div>
+              </div>
+          `;
+      }).join('');
+  
+      // Labels
+      labelsContainer.style.display = 'flex';
+      labelsContainer.innerHTML = hours.map((h, i) => `
+          <span style="flex:1;text-align:center;">${String(h).padStart(2,'0')}:00</span>
+      `).join('');
   }
 
    let currentEscalationIncidentId = null;
@@ -2738,7 +2831,7 @@
    const freeLogForm = document.getElementById('freeLogForm');
    
    if (freeLogForm) {
-       freeLogForm.addEventListener('submit', (e) => {
+       freeLogForm.addEventListener('submit', async (e) => {
            e.preventDefault();
            let text = new FormData(freeLogForm).get('logText').trim();
            const inc = incidents.find(i => i.id === currentLogIncidentId);
@@ -2823,6 +2916,10 @@
                    } else {
                        addIncidentAudit(inc, `Lognotitie: ${text}`);
                    }
+           } else if (text) { // Global log, no incident
+               addLog('Notitie', text, '', null, '');
+               showToast('Globale lognotitie toegevoegd.');
+               freeLogModal.classList.remove('show'); freeLogForm.reset(); return;
                }
                if (parsedNotes.length > 0) addIncidentAudit(inc, `Parser updates: ${parsedNotes.join(' | ')}`);
 
@@ -2883,6 +2980,7 @@
               // Specific logic for 'view-eenheden'
               if (target === 'view-eenheden') {
                   if (unitFormSection) unitFormSection.style.display = 'none';
+                  if (importCsvFormSection) importCsvFormSection.style.display = 'none';
                   if (bulkUnitFormSection) bulkUnitFormSection.style.display = 'none';
                   resetUnitFormButtons();
                   renderDetailedUnitsTable();
@@ -2890,6 +2988,7 @@
                   if (unitFormSection) unitFormSection.style.display = 'none';
                   if (bulkUnitFormSection) bulkUnitFormSection.style.display = 'none';
               }
+              if (importCsvFormSection) importCsvFormSection.style.display = 'none';
 
               // Specific logic for 'view-posten'
               if (target === 'view-posten') {
@@ -2977,11 +3076,12 @@
             detailedForm.reset();
           });
 
-  const quickMedicalForm = document.getElementById('quickMedicalForm');
-  form.addEventListener('submit', (e) => {
+  const quickMedicalForm = document.getElementById('quickMedicalForm'); // Already cached, but for clarity
+  quickMedicalForm.addEventListener('submit', (e) => {
       e.preventDefault();
       try {
-          const formData = new FormData(form);
+          const quickMedicalModal = document.getElementById('quickMedicalModal');
+          const formData = new FormData(quickMedicalForm);
           const melder = formData.get('reporter').toLowerCase().trim();
           
           let assignedUnit = "-";
@@ -3022,8 +3122,8 @@
           renderDetailedUnitsTable();
           
           showToast(alertMsg);
-      } catch (err) {
-          console.error("Fout bij opslaan van de melding:", err);
+      } catch (error) {
+          console.error("Fout bij opslaan van de melding:", error);
           showToast('Er ging iets mis bij het aanmaken van de melding.', true);
       } finally {
           modal.classList.remove('show');
@@ -3071,6 +3171,7 @@
   // BRANDWACHT MELDING FORMULIER
   // ==========================================
   const bwForm = document.getElementById('brandwachtForm');
+  const bwModal = document.getElementById('brandwachtModal');
 
   if (bwForm) {
       bwForm.addEventListener('submit', (e) => {
@@ -3122,6 +3223,7 @@
   // LOGISTIEKE MELDING FORMULIER
   // ==========================================
   const logForm = document.getElementById('logistiekForm');
+  const logModal = document.getElementById('logistiekModal');
 
   if (logForm) {
       logForm.addEventListener('submit', (e) => {
@@ -3177,7 +3279,6 @@
   // ==========================================
   // EENHEDEN INVOER FORMULIER
   // ==========================================
-  const importCsvFormSection = document.getElementById('importCsvFormSection');
   const importCsvForm = document.getElementById('importCsvForm');
   const cancelImportCsvFormBtn = document.getElementById('cancelImportCsvFormBtn');
 
@@ -3327,8 +3428,8 @@
   if (downloadCsvTemplateBtn) {
       downloadCsvTemplateBtn.addEventListener('click', (e) => {
           e.preventDefault();
-          const headers = "Roepnummer,Soort,Locatie,Naam1,Naam2,Naam3,GekoppeldAanPost,iPadnr,Tasnummer,RadioId";
-          const exampleRow = "BLS-01,BLS,Post 1,Jan Jansen,Piet Puk,,,,,,";
+          const headers = "Roepnummer;Soort;Locatie;Naam1;Naam2;Naam3;GekoppeldAanPost;iPadnr;Tasnummer;RadioId";
+          const exampleRow = "BLS-01;BLS;Post 1;Jan Jansen;Piet Puk;;;;;";
           const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(headers + "\n" + exampleRow);
           const link = document.createElement("a");
           link.setAttribute("href", csvContent);
@@ -3673,10 +3774,10 @@
   
   function processCSV(csvText) {
       const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
-      if (lines.length < 2) return showToast('CSV-bestand is leeg of bevat alleen een kopregel.', true);
+      if (lines.length < 2) return showToast('CSV-bestand is leeg of bevat alleen een kopregel.', true); 
 
-      const headers = lines[0].split(',').map(h => h.trim());
-      const requiredHeaders = ['Roepnummer', 'Soort'];
+      const headers = lines[0].split(';').map(h => h.trim());
+      const requiredHeaders = ['Roepnummer', 'Soort']; 
       if (!requiredHeaders.every(h => headers.includes(h))) {
           return showToast(`CSV-bestand mist verplichte kolommen: ${requiredHeaders.join(', ')}.`, true);
       }
@@ -3685,7 +3786,7 @@
       let createdCount = 0;
 
       for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',');
+          const values = lines[i].split(';');
           const row = headers.reduce((obj, header, index) => {
               obj[header] = values[index] ? values[index].trim() : '';
               return obj;
@@ -3966,6 +4067,11 @@
   setupModal('quickMedicalModal', 'btnQuickMedical', 'quickMedicalForm');
   setupModal('brandwachtModal', 'btnBrandwacht', 'brandwachtForm');
   setupModal('logistiekModal', 'btnLogistiek', 'logistiekForm');
+
+  document.getElementById('btnGlobalLog')?.addEventListener('click', () => {
+    currentLogIncidentId = null; // Geen specifieke melding
+    document.getElementById('freeLogModal').classList.add('show');
+  });
   
   // ==========================================
   // DIGITALE KLOK
@@ -4004,8 +4110,6 @@
       
       const brLat = parseFloat(lat).toFixed(2);
       const brLng = parseFloat(lon).toFixed(2);
-      buienradarIframe.src = `https://gadgets.buienradar.nl/gadget/zoommap/?lat=${brLat}&lng=${brLng}&overname=2&zoom=11&size=3&v=0`;
-      buienradarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&zoom=10&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&marker=true`;
       buienradarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&zoom=10&overlay=thunder&product=radar&level=surface&lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&marker=true`;
       
       locInfo.innerHTML = 'Locatiegegevens laden...';
@@ -4223,6 +4327,7 @@
   }
 
       weatherBtn.addEventListener('click', () => {
+      weatherBtn?.addEventListener('click', () => {
           weatherModal.classList.add('show');
           if (navigator.geolocation) {
               navigator.geolocation.getCurrentPosition(
