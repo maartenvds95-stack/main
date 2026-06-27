@@ -1645,7 +1645,6 @@
           if (eenhedenNavBtn && !isPopout) eenhedenNavBtn.click();
       });
   }
-  const linkToPosten = document.getElementById('linkToPosten');
   if (linkToPosten) {
       linkToPosten.addEventListener('click', () => {
           const postenNavBtn = document.querySelector('.nav-btn[data-target="view-posten"]');
@@ -4322,7 +4321,7 @@
       closeProtocolViewBtn.addEventListener('click', () => {
           document.getElementById('protocolViewModal').classList.remove('show');
       });
-  });
+  }
 
   // Offline / Online detectie
   window.addEventListener('offline', () => {
