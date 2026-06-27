@@ -1,0 +1,15 @@
+    },
+    {
+      "title": "Gemini 1.5 Flash (Snel)",
+      "provider": "gemini",
+      "model": "gemini-1.5-flash-latest",
+      "apiKey": "AIzaSyCCki6iqQgNyyRAwr2-YWIFk4V5nSkByc0"
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "Gemini 1.5 Flash",
+    "provider": "gemini",
+    "model": "gemini-1.5-flash-latest",
+    "apiKey": "AIzaSyCCki6iqQgNyyRAwr2-YWIFk4V5nSkByc0"
+  }
+}

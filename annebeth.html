@@ -1588,12 +1588,12 @@
             // Geboortedatum: 25 april 2024 (Let op: in JavaScript beginnen maanden bij 0, dus 3 = april)
             // Pas hieronder het jaartal (2024) aan mocht dit 2023 of een ander jaartal moeten zijn!
             const birthDate = new Date(2026, 3, 25);
-            const today = new Date();
-            
-            let ageInMonths = (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth());
-            if (today.getDate() < birthDate.getDate()) {
-                ageInMonths--;
-            }
+            const today = new Date(); 
+
+            let ageInMonths = (today.getFullYear() - birthDate.getFullYear()) * 12;
+            ageInMonths -= birthDate.getMonth();
+            ageInMonths += today.getMonth();
+            if (today.getDate() < birthDate.getDate()) ageInMonths--;
             
             ageInMonths = Math.max(0, ageInMonths); // Voorkom negatieve getallen als de baby nog niet geboren is
             
