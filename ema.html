@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1920">
-<title>Evenementen meldkamer applicatie</title>
+<title>Maarten's meldkamer applicatie</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -141,6 +141,7 @@
 
   /* ── LAYOUT ── */
   .body { display: grid; grid-template-columns: 1fr 340px; min-height: calc(100vh - 162px); }
+  .body { display: grid; grid-template-columns: 1fr 340px; min-height: calc(100vh - 104px); }
   .left-container { position: relative; }
   .right { border-left: 1px solid var(--border); display: flex; flex-direction: column; background: var(--bg1); height: 100%; }
   
@@ -170,6 +171,7 @@
 
   /* ── TABELLEN ── */
   .tbl-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; }
+  .tbl-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; flex-grow: 1; }
   table { width: 100%; border-collapse: collapse; text-align: left; }
   thead th { background: var(--bg3); padding: 8px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); border-bottom: 1px solid var(--border); white-space: nowrap; }
   tbody td { padding: 6px 12px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text2); white-space: nowrap; }
@@ -206,6 +208,7 @@
 
   /* ── RECHTERPANEEL ITEMS ── */
   .rp-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 162px; z-index: 10; }
+  /* ── RECHTERPANEEL ITEMS ── */ .rp-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 104px; z-index: 10; }
   .rp-header svg { width: 15px; height: 15px; stroke: var(--text3); stroke-width: 1.8; fill: none; }
   .rp-header-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .09em; color: var(--text3); }
   .unit-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px; border-bottom: 1px solid var(--border); gap: 8px; transition: background .12s; }
@@ -246,6 +249,7 @@
   
   .mobile-only { display: none !important; }
   .panel-overlay { display: none; position: fixed; top: 104px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+  .mobile-only { display: none !important; } .panel-overlay { display: none; position: fixed; top: 104px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
   .panel-overlay.show { display: block; }
 
   @media (max-width: 1100px) {
@@ -253,6 +257,7 @@
     .mobile-only { display: flex !important; }
     .right { 
       position: fixed; right: -360px; top: 104px; bottom: 0; width: 340px; 
+      position: fixed; right: -360px; top: 104px; bottom: 0; width: 340px;
       z-index: 1000; box-shadow: -5px 0 15px rgba(0,0,0,0.5); 
       transition: right 0.3s ease; height: calc(100vh - 104px); 
       order: unset; min-height: unset; background: var(--bg1); overflow-y: auto;
@@ -264,6 +269,7 @@
   @media (max-width: 700px) {
     .actions { padding: 12px 16px; gap: 6px; }
     .ab { flex: 1 1 100%; justify-content: center; }
+    .nav { padding: 0 12px; }
   }
 
   /* ── KLIKBARE RADIO BLOKKEN ── */
@@ -310,6 +316,20 @@
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--green); }
   .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
   .btn-cancel { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+
+  /* Inline uitklap-panelen (zelfde gedrag als snelle/uitgebreide medische melding) */
+  .inline-form-panel { display: none; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 20px; overflow: hidden; transition: all 0.3s ease-in-out; }
+  .inline-form-panel.show { display: block; }
+  .inline-form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .inline-form-header h3 { font-size: 14px; font-weight: 600; color: var(--text1); }
+
+  /* Compact form styles for Quick Medical */
+  #quickMedicalForm .form-group { gap: 4px; }
+  #quickMedicalForm input[type="text"] { padding: 8px; font-size: 12px; }
+  #quickMedicalForm .radio-boxes { gap: 6px; }
+  #quickMedicalForm .radio-boxes label { padding: 6px 10px; font-size: 12px; }
+  #quickMedicalForm .modal-footer { padding-top: 8px; }
+  #quickMedicalForm .btn { padding: 7px 12px; font-size: 12px; }
 
   .assign-modal .modal-content { width: 420px; }
   .option-list { padding: 0 20px 20px; display: grid; gap: 10px; grid-template-columns: 1fr; }
@@ -390,9 +410,47 @@
   #hourlyForecastContainer::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
   
   html:not(.light-mode) .login-logo, html:not(.light-mode) .logo-img { filter: brightness(0) invert(1); }
+
+  /* Label naast veld i.p.v. eronder (meldingsformulieren) */
+  #detailedMedicalInlineContainer .form-group,
+  #quickMedicalInlineContainer .form-group,
+  #brandwachtModal .form-group,
+  #logistiekModal .form-group,
+  #freeLogModal .form-group { flex-direction: row; align-items: flex-start; gap: 10px; }
+
+  #detailedMedicalInlineContainer .form-group > .group-label,
+  #quickMedicalInlineContainer .form-group > .group-label,
+  #brandwachtModal .form-group > .group-label,
+  #logistiekModal .form-group > .group-label,
+  #freeLogModal .form-group > .group-label { flex: 0 0 150px; margin: 0; padding-top: 9px; text-align: left; }
+
+  #detailedMedicalInlineContainer .form-group > .group-label::after,
+  #quickMedicalInlineContainer .form-group > .group-label::after,
+  #brandwachtModal .form-group > .group-label::after,
+  #logistiekModal .form-group > .group-label::after,
+  #freeLogModal .form-group > .group-label::after { content: ':'; }
+
+  #detailedMedicalInlineContainer .form-group > input,
+  #detailedMedicalInlineContainer .form-group > select,
+  #detailedMedicalInlineContainer .form-group > textarea,
+  #detailedMedicalInlineContainer .form-group > .radio-boxes,
+  #quickMedicalInlineContainer .form-group > input,
+  #quickMedicalInlineContainer .form-group > select,
+  #quickMedicalInlineContainer .form-group > textarea,
+  #quickMedicalInlineContainer .form-group > .radio-boxes,
+  #brandwachtModal .form-group > input,
+  #brandwachtModal .form-group > select,
+  #brandwachtModal .form-group > textarea,
+  #brandwachtModal .form-group > .radio-boxes,
+  #logistiekModal .form-group > input,
+  #logistiekModal .form-group > select,
+  #logistiekModal .form-group > textarea,
+  #logistiekModal .form-group > .radio-boxes,
+  #freeLogModal .form-group > input,
+  #freeLogModal .form-group > select,
+  #freeLogModal .form-group > textarea,
+  #freeLogModal .form-group > .radio-boxes { flex: 1; min-width: 0; }
 </style>
-<!-- Link to user's legacy stylesheet to preserve layout; can be refined or trimmed as needed -->
-<link rel="stylesheet" href="legacy-custom.css">
 </head>
 <body>
 
@@ -404,7 +462,7 @@
   <div class="login-box">
     <div style="text-align: center; margin-bottom: 24px;">
       <img src="ems-blauw.png" alt="EMS Logo" class="login-logo" style="height: 52px; object-fit: contain; margin-bottom: 16px;">
-      <h2 style="margin-bottom: 0;">Log in bij EMA</h2>
+      <h2 style="margin-bottom: 0;">Login bij MMA</h2>
     </div>
     <form id="loginForm">
       <div class="form-group">
@@ -433,7 +491,7 @@
       <img src="ems-blauw.png" alt="EMS Logo" class="logo-img">
     </a>
     <div class="logo-text">
-      <div class="logo-title">Evenementen meldkamer applicatie</div>
+      <div class="logo-title">Maarten's meldkamer applicatie</div>
     </div>
   </div>
   <div class="topbar-right">
@@ -441,9 +499,10 @@
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
     </button>
     <select id="zoomSelect" title="Vergroot/verklein weergave" class="topbar-btn">
+      <option value="0.75" selected>75%</option>
       <option value="0.8">80%</option>
       <option value="0.9">90%</option>
-      <option value="1" selected>100%</option>
+      <option value="1">100%</option>
       <option value="1.1">110%</option>
       <option value="1.2">120%</option>
     </select>
@@ -483,6 +542,249 @@
   <button class="ab" id="btnProtocols" style="background: var(--bg3); border-color: var(--border); color: var(--text1); margin-left: auto;">
     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Protocollen
   </button>
+</div>
+
+<div id="quickMedicalInlineContainer" style="display: none; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 20px; overflow: hidden; transition: all 0.3s ease-in-out;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <h3 style="font-size: 14px; font-weight: 600; color: var(--text1);">Snelle medische melding</h3>
+    <button class="modal-close" id="closeQuickMedicalInlineBtn">&times;</button>
+  </div>
+  <form id="quickMedicalForm" style="padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px 18px;">
+    <div class="form-group">
+      <label class="group-label">Melder</label>
+      <input type="text" name="reporter" autocomplete="off" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Locatie</label>
+      <input type="text" name="location" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Omschrijving</label>
+      <input type="text" name="description" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Urgentie</label>
+      <div class="radio-boxes">
+        <input type="radio" id="urg_spoed" name="urgency" value="Spoed" required><label for="urg_spoed">Spoed</label>
+        <input type="radio" id="urg_direct" name="urgency" value="Direct Vertrekken" checked><label for="urg_direct">Direct Vertrekken</label>
+        <input type="radio" id="urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="urg_uitstel">Uitstelmogelijkheid</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Geslacht</label>
+      <div class="radio-boxes">
+        <input type="radio" id="ges_man" name="gender" value="Man" required><label for="ges_man">Man</label>
+        <input type="radio" id="ges_vrouw" name="gender" value="Vrouw"><label for="ges_vrouw">Vrouw</label>
+        <input type="radio" id="ges_x" name="gender" value="X"><label for="ges_x">X</label>
+        <input type="radio" id="ges_onb" name="gender" value="Onbekend" checked><label for="ges_onb">Onbekend</label>
+      </div>
+    </div>
+    <div class="modal-footer" style="grid-column: 1 / -1; border-top: 1px solid var(--border); justify-content: flex-start;">
+      <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
+      <button type="button" class="btn ab-b" id="openDetailedFromQuickBtn">Uitgebreide melding</button>
+      <button type="button" class="btn btn-cancel" id="cancelQuickMedicalInlineBtn">Annuleren</button>
+    </div>
+  </form>
+</div>
+
+<div id="detailedMedicalInlineContainer" style="display: none; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 20px; overflow: hidden; transition: all 0.3s ease-in-out;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <h3 style="font-size: 14px; font-weight: 600; color: var(--text1);">Frontoffice (intake SBAR) medische melding</h3>
+    <button class="modal-close" id="detailedCloseBtn">&times;</button>
+  </div>
+  <form id="detailedMedicalForm" class="detailed-form" style="padding: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px 28px; align-items: start;">
+
+      <!-- KOLOM 1: (S) Situation -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 13px; font-weight: 600; color: var(--text1); text-align: center;">(S) Situation</div>
+        <div class="form-group">
+          <label class="group-label">Melder</label>
+          <input type="text" name="reporter">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Telefoonnummer melder</label>
+          <input type="text" name="phone">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Locatie</label>
+          <input type="text" name="location">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Geslacht</label>
+          <div class="radio-boxes">
+            <input type="radio" id="det_ges_man" name="gender" value="Man"><label for="det_ges_man">Man</label>
+            <input type="radio" id="det_ges_vrouw" name="gender" value="Vrouw"><label for="det_ges_vrouw">Vrouw</label>
+            <input type="radio" id="det_ges_x" name="gender" value="X"><label for="det_ges_x">X</label>
+            <input type="radio" id="det_ges_onb" name="gender" value="Onbekend" checked><label for="det_ges_onb">Onbekend</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="group-label">Geschatte leeftijd</label>
+          <input type="text" name="age">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Deelnemersnummer</label>
+          <input type="text" name="participantNumber">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Volgnummer zorgcontact</label>
+          <input type="text" name="careContactNumber">
+        </div>
+        <div class="form-group">
+          <label class="group-label">- Airway</label>
+          <input type="text" name="airway">
+        </div>
+        <div class="form-group">
+          <label class="group-label">- Breathing</label>
+          <input type="text" name="breathing">
+        </div>
+        <div class="form-group">
+          <label class="group-label">- Circulation</label>
+          <input type="text" name="circulation">
+        </div>
+        <div class="form-group">
+          <label class="group-label">- Disability</label>
+          <div class="radio-boxes">
+            <input type="radio" id="det_dis_a" name="disability" value="A - Alert"><label for="det_dis_a">A - Alert</label>
+            <input type="radio" id="det_dis_v" name="disability" value="V - Voice"><label for="det_dis_v">V - Voice</label>
+            <input type="radio" id="det_dis_p" name="disability" value="P - Pain"><label for="det_dis_p">P - Pain</label>
+            <input type="radio" id="det_dis_u" name="disability" value="U - Unresponsive"><label for="det_dis_u">U - Unresponsive</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="group-label">- Exposure Environment</label>
+          <input type="text" name="exposure">
+        </div>
+      </div>
+
+      <!-- KOLOM 2: Omschrijving / Urgentie / Background / Assessment -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label class="group-label">Omschrijving melding</label>
+          <input type="text" name="description">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Urgentie</label>
+          <div class="radio-boxes">
+            <input type="radio" id="det_urg_spoed" name="urgency" value="Spoed"><label for="det_urg_spoed">Spoed</label>
+            <input type="radio" id="det_urg_direct" name="urgency" value="Direct Vertrekken" checked><label for="det_urg_direct">Direct Vertrekken</label>
+            <input type="radio" id="det_urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="det_urg_uitstel">Uitstelmogelijkheid</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="group-label">(B) Background</label>
+          <textarea name="background"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="group-label">(A) Assessment</label>
+          <textarea name="assessment"></textarea>
+        </div>
+      </div>
+
+      <!-- KOLOM 3: (R) Recommendation -->
+      <div class="form-group">
+        <label class="group-label">(R) Recommendation</label>
+        <div class="radio-boxes">
+          <input type="checkbox" id="rec_ehbo" name="rec" value="EHBO"><label for="rec_ehbo">EHBO</label>
+          <input type="checkbox" id="rec_ambulance" name="rec" value="Ambulance"><label for="rec_ambulance">Ambulance</label>
+          <input type="checkbox" id="rec_arts" name="rec" value="Arts"><label for="rec_arts">Arts</label>
+          <input type="checkbox" id="rec_verpleegkundige" name="rec" value="Verpleegkundige"><label for="rec_verpleegkundige">Verpleegkundige</label>
+          <input type="checkbox" id="rec_beveiliging" name="rec" value="Beveiliging"><label for="rec_beveiliging">Beveiliging</label>
+          <input type="checkbox" id="rec_politie" name="rec" value="Politie"><label for="rec_politie">Politie</label>
+          <input type="checkbox" id="rec_brandweer" name="rec" value="Brandweer"><label for="rec_brandweer">Brandweer</label>
+          <input type="checkbox" id="rec_organisatie" name="rec" value="Organisatie"><label for="rec_organisatie">Organisatie</label>
+          <input type="checkbox" id="rec_verkeer" name="rec" value="Verkeer"><label for="rec_verkeer">Verkeer</label>
+        </div>
+      </div>
+
+      <div class="modal-footer full" style="border-top: 1px solid var(--border); justify-content: flex-start;">
+        <button type="submit" class="btn btn-submit">Opslaan</button>
+        <button type="button" class="btn btn-cancel" id="detailedCancel">Annuleren</button>
+      </div>
+    </form>
+</div>
+
+<div class="inline-form-panel" id="brandwachtModal">
+  <div class="inline-form-header">
+    <h3>Brandwacht melding</h3>
+    <button class="modal-close" id="closeBrandwachtModalBtn">&times;</button>
+  </div>
+  <form id="brandwachtForm" style="padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px 18px;">
+    <div class="form-group">
+      <label class="group-label">Melder</label>
+      <input type="text" name="reporter" autocomplete="off" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Locatie</label>
+      <input type="text" name="location" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Omschrijving</label>
+      <input type="text" name="description" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Urgentie</label>
+      <div class="radio-boxes">
+        <input type="radio" id="bw_urg_spoed" name="urgency" value="Spoed" required><label for="bw_urg_spoed">Spoed</label>
+        <input type="radio" id="bw_urg_direct" name="urgency" value="Direct Vertrekken"><label for="bw_urg_direct">Direct Vertrekken</label>
+        <input type="radio" id="bw_urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="bw_urg_uitstel">Uitstelmogelijkheid</label>
+      </div>
+    </div>
+    <div class="modal-footer" style="grid-column: 1 / -1; border-top: 1px solid var(--border); justify-content: flex-start;">
+      <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
+      <button type="button" class="btn btn-cancel" id="cancelBrandwachtModalBtn">Annuleren</button>
+    </div>
+  </form>
+</div>
+
+<div class="inline-form-panel" id="logistiekModal">
+  <div class="inline-form-header">
+    <h3>Logistieke melding</h3>
+    <button class="modal-close" id="closeLogistiekModalBtn">&times;</button>
+  </div>
+  <form id="logistiekForm" style="padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px 18px;">
+    <div class="form-group">
+      <label class="group-label">Melder</label>
+      <input type="text" name="reporter" autocomplete="off" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Locatie</label>
+      <input type="text" name="location" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Gebeurtenis / Omschrijving</label>
+      <input type="text" name="description" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Urgentie</label>
+      <div class="radio-boxes">
+        <input type="radio" id="log_urg_spoed" name="urgency" value="Spoed"><label for="log_urg_spoed">Spoed</label>
+        <input type="radio" id="log_urg_normaal" name="urgency" value="Normaal" required><label for="log_urg_normaal">Normaal</label>
+        <input type="radio" id="log_urg_laag" name="urgency" value="Laag"><label for="log_urg_laag">Laag</label>
+      </div>
+    </div>
+    <div class="modal-footer" style="grid-column: 1 / -1; border-top: 1px solid var(--border); justify-content: flex-start;">
+      <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
+      <button type="button" class="btn btn-cancel" id="cancelLogistiekModalBtn">Annuleren</button>
+    </div>
+  </form>
+</div>
+
+<div class="inline-form-panel" id="freeLogModal">
+  <div class="inline-form-header">
+    <h3>Log toevoegen aan tijdlijn</h3>
+    <button class="modal-close" id="freeLogCloseBtn">&times;</button>
+  </div>
+  <form id="freeLogForm" style="padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px 18px;">
+    <div class="form-group">
+      <label class="group-label">Vrije Tekst / Gespreksverslag</label>
+      <textarea name="logText" required rows="4" placeholder="Typ hier de notitie voor het logboek..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); font-family: var(--font); resize: vertical;"></textarea>
+    </div>
+    <div class="modal-footer" style="grid-column: 1 / -1; border-top: 1px solid var(--border); justify-content: flex-start;">
+      <button type="submit" class="btn btn-submit">Toevoegen</button>
+      <button type="button" class="btn btn-cancel" id="freeLogCancelBtn">Annuleren</button>
+    </div>
+  </form>
 </div>
 
 <!-- Toast container for inline non-blocking messages -->
@@ -692,6 +994,12 @@
             <button id="themeDarkBtn">Donker</button>
             <button id="themeLightBtn">Licht</button>
           </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 24px;">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 12px;">Demo-gegevens</h3>
+          <p style="font-size: 13px; color: var(--text2); margin-bottom: 12px;">Vul de applicatie met voorbeeld-eenheden, posten en meldingen. <strong style="color: var(--red);">Let op:</strong> dit verwijdert eerst alle huidige eenheden, posten en meldingen.</p>
+          <button id="reloadDemoDataBtn" class="btn btn-outline" style="align-self: flex-start;">Demo-gegevens (opnieuw) inladen</button>
         </div>
 
       </div>
@@ -917,8 +1225,7 @@
       <button id="popoutBtn" class="btn btn-outline" style="padding: 4px 6px; margin-left: auto; border: none; font-size: 11px; height: 24px;" title="Open in nieuw venster">
           <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; margin: 0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       </button>
-    </div>
-    
+    </div>    
     <div id="rightPanelUnits"></div>
 
     <div class="rp-section">
@@ -928,225 +1235,9 @@
       </div>
       <div class="rp-content" id="rightPanelPosts"></div>
     </div>
-
-  </div> </div> <div class="modal-overlay" id="quickMedicalModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Snelle medische melding</h3>
-      <button class="modal-close" id="closeQuickMedicalModalBtn">&times;</button>
-    </div>
-    <form id="quickMedicalForm" class="form-content">
-      <div class="form-group">
-        <label class="group-label">Melder</label>
-        <input type="text" name="reporter" autocomplete="off" required>
-      </div>
-      <div class="form-group">
-        <label class="group-label">Locatie</label>
-        <input type="text" name="location" required>
-      </div>
-      <div class="form-group">
-        <label class="group-label">Omschrijving</label>
-        <input type="text" name="description" required>
-      </div>
-      
-      <div class="form-group">
-        <label class="group-label">Urgentie</label>
-        <div class="radio-boxes">
-          <input type="radio" id="urg_spoed" name="urgency" value="Spoed" required><label for="urg_spoed">Spoed</label>
-          <input type="radio" id="urg_direct" name="urgency" value="Direct Vertrekken"><label for="urg_direct">Direct Vertrekken</label>
-          <input type="radio" id="urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="urg_uitstel">Uitstelmogelijkheid</label>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label class="group-label">Geslacht</label>
-        <div class="radio-boxes">
-          <input type="radio" id="ges_man" name="gender" value="Man" required><label for="ges_man">Man</label>
-          <input type="radio" id="ges_vrouw" name="gender" value="Vrouw"><label for="ges_vrouw">Vrouw</label>
-          <input type="radio" id="ges_x" name="gender" value="X"><label for="ges_x">X</label>
-          <input type="radio" id="ges_onb" name="gender" value="Onbekend"><label for="ges_onb">Onbekend</label>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-cancel" id="cancelQuickMedicalModalBtn">Annuleren</button>
-        <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
-      </div>
-    </form>
-  </div>
-</div>
+  </div> 
+</div> 
  
-<div class="modal-overlay" id="brandwachtModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Brandwacht melding</h3>
-      <button class="modal-close" id="closeBrandwachtModalBtn">&times;</button>
-    </div>
-    <form id="brandwachtForm" class="form-content">
-      <div class="form-group">
-        <label class="group-label">Melder</label>
-        <input type="text" name="reporter" autocomplete="off" required>
-      </div>
-      <div class="form-group">
-        <label class="group-label">Locatie</label>
-        <input type="text" name="location" required>
-      </div>
-      <div class="form-group">
-        <label class="group-label">Omschrijving</label>
-        <input type="text" name="description" required>
-      </div>
-      
-      <div class="form-group">
-        <label class="group-label">Urgentie</label>
-        <div class="radio-boxes">
-          <input type="radio" id="bw_urg_spoed" name="urgency" value="Spoed" required><label for="bw_urg_spoed">Spoed</label>
-          <input type="radio" id="bw_urg_direct" name="urgency" value="Direct Vertrekken"><label for="bw_urg_direct">Direct Vertrekken</label>
-          <input type="radio" id="bw_urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="bw_urg_uitstel">Uitstelmogelijkheid</label>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-cancel" id="cancelBrandwachtModalBtn">Annuleren</button>
-        <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="modal-overlay" id="logistiekModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Logistieke melding</h3>
-      <button class="modal-close" id="closeLogistiekModalBtn">&times;</button>
-    </div>
-    <form id="logistiekForm" class="form-content">
-      <div class="form-group">
-        <label class="group-label">Melder</label>
-        <input type="text" name="reporter" autocomplete="off" required>
-      </div>
-      <div class="form-group">
-        <label class="group-label">Locatie</label>
-        <input type="text" name="location" required>
-      </div>
-      <div class="form-group">
-        <label class="group-label">Gebeurtenis / Omschrijving</label>
-        <input type="text" name="description" required>
-      </div>
-      <div class="form-group">
-        <label class="group-label">Urgentie</label>
-        <div class="radio-boxes">
-          <input type="radio" id="log_urg_spoed" name="urgency" value="Spoed"><label for="log_urg_spoed">Spoed</label>
-          <input type="radio" id="log_urg_normaal" name="urgency" value="Normaal" required><label for="log_urg_normaal">Normaal</label>
-          <input type="radio" id="log_urg_laag" name="urgency" value="Laag"><label for="log_urg_laag">Laag</label>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-cancel" id="cancelLogistiekModalBtn">Annuleren</button>
-        <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="modal-overlay detailed-modal" id="detailedMedicalModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Frontoffice (intake SBAR) medische melding</h3>
-      <button class="btn btn-outline" id="detailedCloseBtn">Sluiten</button>
-    </div>
-    <form id="detailedMedicalForm" class="form-content detailed-form">
-      <div>
-        <div class="form-group">
-          <label class="group-label">Melder</label>
-          <input type="text" name="reporter">
-        </div>
-      </div>
-      <div>
-        <div class="form-group">
-          <label class="group-label">Telefoonnummer melder</label>
-          <input type="text" name="phone">
-        </div>
-      </div>
-      <div>
-        <div class="form-group">
-          <label class="group-label">Locatie</label>
-          <input type="text" name="location">
-        </div>
-      </div>
-      <div>
-        <div class="form-group">
-          <label class="group-label">Urgentie</label>
-          <div class="radio-boxes">
-            <input type="radio" id="det_urg_direct" name="urgency" value="Direct Vertrekken" required><label for="det_urg_direct">Direct Vertrekken</label>
-            <input type="radio" id="det_urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="det_urg_uitstel">Uitstelmogelijkheid</label>
-            <input type="radio" id="det_urg_spoed" name="urgency" value="Spoed"><label for="det_urg_spoed">Spoed</label>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div class="form-group">
-          <label class="group-label">Geslacht</label>
-          <div class="radio-boxes">
-            <input type="radio" id="det_ges_man" name="gender" value="Man" required><label for="det_ges_man">Man</label>
-            <input type="radio" id="det_ges_vrouw" name="gender" value="Vrouw"><label for="det_ges_vrouw">Vrouw</label>
-            <input type="radio" id="det_ges_x" name="gender" value="X"><label for="det_ges_x">X</label>
-            <input type="radio" id="det_ges_onb" name="gender" value="Onbekend"><label for="det_ges_onb">Onbekend</label>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div class="form-group">
-          <label class="group-label">Geschatte leeftijd</label>
-          <input type="text" name="age">
-        </div>
-      </div>
-
-      <div>
-        <div class="form-group">
-          <label class="group-label">Omschrijving melding</label>
-          <textarea name="description"></textarea>
-        </div>
-      </div>
-
-      <div>
-        <div class="form-group">
-          <label class="group-label">(B) Background</label>
-          <textarea name="background"></textarea>
-        </div>
-      </div>
-
-      <div>
-        <div class="form-group">
-          <label class="group-label">(A) Assessment</label>
-          <textarea name="assessment"></textarea>
-        </div>
-      </div>
-
-      <div>
-        <div class="form-group">
-          <label class="group-label">(R) Recommendation</label>
-          <div class="radio-boxes">
-            <input type="checkbox" id="rec_ehbo" name="rec" value="EHBO"><label for="rec_ehbo">EHBO</label>
-            <input type="checkbox" id="rec_ambulance" name="rec" value="Ambulance"><label for="rec_ambulance">Ambulance</label>
-            <input type="checkbox" id="rec_arts" name="rec" value="Arts"><label for="rec_arts">Arts</label>
-            <input type="checkbox" id="rec_verpleegkundige" name="rec" value="Verpleegkundige"><label for="rec_verpleegkundige">Verpleegkundige</label>
-            <input type="checkbox" id="rec_beveiliging" name="rec" value="Beveiliging"><label for="rec_beveiliging">Beveiliging</label>
-            <input type="checkbox" id="rec_politie" name="rec" value="Politie"><label for="rec_politie">Politie</label>
-            <input type="checkbox" id="rec_brandweer" name="rec" value="Brandweer"><label for="rec_brandweer">Brandweer</label>
-            <input type="checkbox" id="rec_organisatie" name="rec" value="Organisatie"><label for="rec_organisatie">Organisatie</label>
-            <input type="checkbox" id="rec_verkeer" name="rec" value="Verkeer"><label for="rec_verkeer">Verkeer</label>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer full">
-        <button type="button" class="btn btn-outline" id="detailedCancel">Sluiten</button>
-        <button type="submit" class="btn btn-submit">Opslaan</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <div class="modal-overlay escalation-modal" id="escalationModal">
   <div class="modal-content">
     <div class="modal-header">
@@ -1213,25 +1304,6 @@
       <button type="button" class="option-btn" data-afloop="Brand meester">Brand meester</button>
       <button type="button" class="option-btn" data-afloop="Assistentie Brandweer">Assistentie Brandweer</button>
     </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="freeLogModal">
-  <div class="modal-content" style="width: 450px;">
-    <div class="modal-header">
-      <h3>Log toevoegen aan tijdlijn</h3>
-      <button class="modal-close" id="freeLogCloseBtn">&times;</button>
-    </div>
-    <form id="freeLogForm" class="form-content">
-      <div class="form-group">
-        <label class="group-label">Vrije Tekst / Gespreksverslag</label>
-        <textarea name="logText" required rows="4" placeholder="Typ hier de notitie voor het logboek..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); font-family: var(--font); resize: vertical;"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-cancel" id="freeLogCancelBtn">Annuleren</button>
-        <button type="submit" class="btn btn-submit">Toevoegen</button>
-      </div>
-    </form>
   </div>
 </div>
 
@@ -1399,7 +1471,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-  import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, limit, getDocs, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBJ3guHYxUIGQ0VkN_W7S8eGLtZhdpkjYk",
@@ -1437,6 +1509,96 @@
       
       addLog(type, action, unitId, incident.id, incident.location);
   }
+
+  async function seedDemoData() {
+      const demoUnits = [
+          { id: 'BLS-01', type: 'BLS', location: 'Tribune West', naam1: 'Jan de Vries', naam2: 'Eva Bakker', naam3: '', status: 'uitgerukt', gekoppeldAanPost: 'Post Noord', ondersteunend: false, ipadnr: 'iPad-01', tasnummer: 'Tas-A', radioId: '101' },
+          { id: 'BLS-02', type: 'BLS', location: 'Post Zuid', naam1: 'Piet Jansen', naam2: 'Klaas de Wit', naam3: '', status: 'op post', gekoppeldAanPost: 'Post Zuid', ondersteunend: false, ipadnr: 'iPad-02', tasnummer: 'Tas-B', radioId: '102' },
+          { id: 'BLS-03', type: 'BLS', location: 'Post Oost', naam1: 'Sanne Vermeer', naam2: 'Tom Hendriks', naam3: '', status: 'inzetbaar', gekoppeldAanPost: 'Post Oost', ondersteunend: false, ipadnr: 'iPad-05', tasnummer: 'Tas-E', radioId: '103' },
+          { id: 'ALS-01', type: 'ALS', location: 'Podium A', naam1: 'Dr. Smits', naam2: 'Vpk. de Boer', naam3: '', status: 'uitgerukt', gekoppeldAanPost: 'Post Noord', ondersteunend: false, ipadnr: 'iPad-03', tasnummer: 'Tas-C', radioId: '201' },
+          { id: 'ALS-02', type: 'ALS', location: 'Post Zuid', naam1: 'Dr. Visser', naam2: 'Vpk. Janssen', naam3: '', status: 'pauze', gekoppeldAanPost: 'Post Zuid', ondersteunend: false, ipadnr: 'iPad-04', tasnummer: 'Tas-D', radioId: '202' },
+          { id: 'BV-01', type: 'BLS vervoer', location: 'Post Noord', naam1: 'Ramon Koster', naam2: 'Lisa Mol', naam3: '', status: 'inzetbaar', gekoppeldAanPost: 'Post Noord', ondersteunend: false, ipadnr: 'iPad-06', tasnummer: 'Tas-F', radioId: '301' },
+          { id: 'AV-01', type: 'ALS vervoer', location: 'Post Zuid', naam1: 'Dr. Peters', naam2: 'Vpk. Aydin', naam3: '', status: 'inzetbaar', gekoppeldAanPost: 'Post Zuid', ondersteunend: false, ipadnr: 'iPad-07', tasnummer: 'Tas-G', radioId: '302' },
+          { id: 'RB-01', type: 'Reddingsbrigade', location: 'Strandzone', naam1: 'Mark de Groot', naam2: 'Iris Bos', naam3: '', status: 'op post', gekoppeldAanPost: 'Post Oost', ondersteunend: false, ipadnr: 'iPad-08', tasnummer: 'Tas-H', radioId: '401' },
+          { id: 'BW-01', type: 'Brandwacht', location: 'Backstage', naam1: 'Henk Mulder', naam2: '', naam3: '', status: 'uitgerukt', gekoppeldAanPost: 'Post Noord', ondersteunend: false, ipadnr: 'iPad-09', tasnummer: 'Tas-I', radioId: '501' },
+          { id: 'OND-01', type: 'Ondersteunend', location: 'Post Noord', naam1: 'Karin Smit', naam2: '', naam3: '', status: 'uitgerukt', gekoppeldAanPost: 'Post Noord', ondersteunend: true, ipadnr: 'iPad-10', tasnummer: 'Tas-J', radioId: '601' }
+      ];
+      const demoPosts = [
+          { id: 'P-1', naam: 'Post Noord', locatie: 'Evenemententerrein Noord', postcoordinator: 'Coördinator Noord', status: 'open' },
+          { id: 'P-2', naam: 'Post Zuid', locatie: 'Hoofdingang', postcoordinator: 'Coördinator Zuid', status: 'open' },
+          { id: 'P-3', naam: 'Post Oost', locatie: 'Camping / Strandzone', postcoordinator: 'Coördinator Oost', status: 'open' },
+          { id: 'P-4', naam: 'EHBO Hoofdpodium', locatie: 'Naast Podium A', postcoordinator: 'Hoofd EHBO', status: 'gesloten' }
+      ];
+      const demoIncidents = [
+          { id: 'M-1', status: 'Nieuw', time: '10:30', location: 'Podium A', event: 'Onwelwording', reporter: 'Bezoeker', urgency: 'Spoed', units: [], details: { gender: 'Vrouw', age: '24' }, auditTrail: [{ time: '10:30', action: 'Aangemaakt - Spoed', user: 'Systeem' }] },
+          { id: 'M-2', status: 'Nieuw', time: '10:48', location: 'Ingang Oost', event: 'Snijwond aan hand', reporter: 'Beveiliger Oost', urgency: 'Uitstelmogelijkheid', units: [], details: { gender: 'Man', age: '37' }, auditTrail: [{ time: '10:48', action: 'Aangemaakt - Uitstelmogelijkheid', user: 'Systeem' }] },
+          { id: 'M-3', status: 'Toegewezen', time: '10:35', location: 'Tribune West', event: 'Valpartij, hoofdwond', reporter: 'Beveiliging', urgency: 'Direct Vertrekken', units: ['BLS-01'], details: { gender: 'Man', age: '52' }, auditTrail: [{ time: '10:35', action: 'Aangemaakt - Direct Vertrekken', user: 'Systeem' }, { time: '10:36', action: 'Eenheid toegewezen: BLS-01', user: 'Systeem' }] },
+          { id: 'M-4', status: 'Toegewezen', time: '10:52', location: 'Podium A', event: 'Reanimatie (SBAR)', reporter: 'EHBO post', urgency: 'Spoed', units: ['ALS-01'], details: { phone: '06-12345678', age: '61', gender: 'Man', participantNumber: 'D-2045', careContactNumber: 'ZC-118', airway: 'Vrij', breathing: 'Geen ademhaling', circulation: 'Geen pols', disability: 'U - Unresponsive', exposure: 'Geen letsel zichtbaar', background: 'Bekend met hartklachten, gebruikt bloedverdunners.', assessment: 'Vermoedelijk hartstilstand, reanimatie gestart door omstanders.', recommendations: ['Ambulance', 'Arts'] }, auditTrail: [{ time: '10:52', action: 'Aangemaakt (SBAR) - Spoed', user: 'Systeem' }, { time: '10:53', action: 'Eenheid toegewezen: ALS-01', user: 'Systeem' }] },
+          { id: 'B-1', status: 'Toegewezen', time: '11:05', location: 'Backstage', event: 'Brandwacht: rookontwikkeling generator', reporter: 'Productieleider', urgency: 'Direct Vertrekken', units: ['BW-01'], details: {}, auditTrail: [{ time: '11:05', action: 'Brandwacht melding aangemaakt - Direct Vertrekken', user: 'Systeem' }, { time: '11:06', action: 'Eenheid toegewezen: BW-01', user: 'Systeem' }] },
+          { id: 'L-1', status: 'Nieuw', time: '10:40', location: 'Post Noord', event: 'Water bijvullen', reporter: 'Postcoördinator', urgency: 'Normaal', units: [], details: {}, auditTrail: [{ time: '10:40', action: 'Logistieke melding aangemaakt - Normaal', user: 'Systeem' }] },
+          { id: 'L-2', status: 'Toegewezen', time: '11:10', location: 'Post Zuid', event: 'Verbandmiddelen aanvullen', reporter: 'Coördinator Zuid', urgency: 'Laag', units: ['OND-01'], details: {}, auditTrail: [{ time: '11:10', action: 'Logistieke melding aangemaakt - Laag', user: 'Systeem' }, { time: '11:11', action: 'Eenheid toegewezen: OND-01', user: 'Systeem' }] },
+          { id: 'M-5', status: 'Afgesloten - Zorg ter plaatse', time: '09:58', location: 'Camping veld C', event: 'Insectensteek, allergische reactie', reporter: 'Kampeerder', urgency: 'Spoed', units: ['BLS-02'], details: { gender: 'Vrouw', age: '29' }, auditTrail: [{ time: '09:58', action: 'Aangemaakt - Spoed', user: 'Systeem' }, { time: '09:59', action: 'Eenheid toegewezen: BLS-02', user: 'Systeem' }, { time: '10:20', action: 'Afgesloten - Zorg ter plaatse', user: 'Systeem' }] }
+      ];
+
+      try {
+          const batch = writeBatch(db);
+          demoUnits.forEach(unit => batch.set(doc(db, "units", unit.id), unit));
+          demoPosts.forEach(post => batch.set(doc(db, "posts", post.id), post));
+          demoIncidents.forEach(incident => batch.set(doc(db, "incidents", incident.id), incident));
+          await batch.commit();
+          showToast("Demo data succesvol toegevoegd!", false, 5000);
+      } catch (e) {
+          console.error("Fout bij toevoegen demo data:", e);
+          showToast("Fout bij toevoegen demo data. Zie console.", true);
+      }
+  }
+
+  // Verwijder bestaande eenheden/posten/meldingen en laad de demo-data opnieuw in
+  async function reloadDemoData() {
+      try {
+          const deleteBatch = writeBatch(db);
+          for (const collName of ['incidents', 'units', 'posts']) {
+              const snap = await getDocs(collection(db, collName));
+              snap.docs.forEach(d => deleteBatch.delete(d.ref));
+          }
+          await deleteBatch.commit();
+          await seedDemoData();
+      } catch (e) {
+          console.error("Fout bij herladen demo-data:", e);
+          showToast("Fout bij herladen demo-data. Zie console.", true);
+      }
+  }
+
+  document.getElementById('reloadDemoDataBtn')?.addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      // Eerste klik: vraag om bevestiging via de knop zelf (confirm() wordt soms geblokkeerd)
+      if (btn.dataset.confirm !== '1') {
+          btn.dataset.confirm = '1';
+          const orig = btn.textContent;
+          btn.textContent = 'Klik nogmaals om te bevestigen (wist huidige data)';
+          btn.style.borderColor = 'var(--red)';
+          btn.style.color = 'var(--red)';
+          setTimeout(() => {
+              if (btn.dataset.confirm === '1') {
+                  btn.dataset.confirm = '';
+                  btn.textContent = orig;
+                  btn.style.borderColor = '';
+                  btn.style.color = '';
+              }
+          }, 4000);
+          return;
+      }
+      btn.dataset.confirm = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+      btn.disabled = true;
+      const oldText = btn.textContent;
+      btn.textContent = 'Bezig met inladen...';
+      showToast('Demo-gegevens worden ingeladen...');
+      await reloadDemoData();
+      btn.disabled = false;
+      btn.textContent = oldText;
+  });
 
   // ==========================================
   // 0A. LOGIN SCHERM LOGICA
@@ -1530,7 +1692,7 @@
   }
 
   // Check realtime of de gebruiker is ingelogd
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
       if (user) {
           loginScreen.style.display = 'none';
           const accountEmailEl = document.getElementById('accountEmail');
@@ -1541,21 +1703,28 @@
               snapshot.forEach(doc => incidents.push(doc.data()));
               if (typeof renderTables === 'function') renderTables();
           });
-          
+
           unsubUnits = onSnapshot(collection(db, "units"), (snapshot) => {
               units = [];
               snapshot.forEach(doc => units.push(doc.data()));
               if (typeof sortUnits === 'function') sortUnits(currentSort.col, true);
               if (typeof updateLiveLogUnitDropdown === 'function') updateLiveLogUnitDropdown();
           });
-          
+
           unsubPosts = onSnapshot(collection(db, "posts"), (snapshot) => {
               posts = [];
               snapshot.forEach(doc => posts.push(doc.data()));
               if (typeof sortPosts === 'function') sortPosts(currentPostSort.col, true);
           });
-          
+
           fetchAndRenderLogs();
+
+          // Laad automatisch demo-data in als de database leeg is (geen bevestiging nodig)
+          const unitsCollection = collection(db, "units");
+          const snapshot = await getDocs(query(unitsCollection, limit(1)));
+          if (snapshot.empty) {
+              await seedDemoData();
+          }
       } else {
           loginScreen.style.display = 'flex';
           if (unsubIncidents) unsubIncidents();
@@ -2456,6 +2625,7 @@
            openAssignModal(incidentId);
        } else if (action === 'log') {
            currentLogIncidentId = incidentId;
+           window.closeOtherInlinePanels('freeLogModal');
            document.getElementById('freeLogModal').classList.add('show');
        } else if (action === 'samenvoegen') {
            openMergeModal(incidentId);
@@ -2996,8 +3166,12 @@
       const form = formId ? document.getElementById(formId) : null;
       if (!modal || !openBtn) return;
 
-      openBtn.addEventListener('click', () => modal.classList.add('show'));
-      
+      openBtn.addEventListener('click', () => {
+          if (!modal.classList.contains('show')) window.closeOtherInlinePanels(modalId);
+          const isOpen = modal.classList.toggle('show');
+          if (isOpen) modal.querySelector('input, textarea, select')?.focus();
+      });
+
       modal.querySelectorAll('.modal-close, .btn-cancel').forEach(btn => {
           btn.addEventListener('click', () => {
               modal.classList.remove('show');
@@ -3010,12 +3184,35 @@
       overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('show'); });
   });
 
-          // Detailed SBAR modal handlers
-          const detailedModal = document.getElementById('detailedMedicalModal');
+          // Sluit alle andere inline uitklap-panelen wanneer er één geopend wordt
+          window.closeOtherInlinePanels = function(exceptId) {
+              [
+                  ['quickMedicalInlineContainer', 'display'],
+                  ['detailedMedicalInlineContainer', 'display'],
+                  ['brandwachtModal', 'class'],
+                  ['logistiekModal', 'class'],
+                  ['freeLogModal', 'class']
+              ].forEach(([id, mode]) => {
+                  if (id === exceptId) return;
+                  const el = document.getElementById(id);
+                  if (!el) return;
+                  if (mode === 'display') el.style.display = 'none';
+                  else el.classList.remove('show');
+                  el.querySelector('form')?.reset();
+              });
+          };
+
+          // Detailed SBAR inline dropdown handlers (zelfde gedrag als snelle medische melding)
+          const detailedContainer = document.getElementById('detailedMedicalInlineContainer');
           const detailedForm = document.getElementById('detailedMedicalForm');
-          document.getElementById('btnDetailedMedical').addEventListener('click', () => detailedModal.classList.add('show'));
-          document.getElementById('detailedCloseBtn').addEventListener('click', () => { detailedModal.classList.remove('show'); detailedForm.reset(); });
-          document.getElementById('detailedCancel').addEventListener('click', () => { detailedModal.classList.remove('show'); detailedForm.reset(); });
+          document.getElementById('btnDetailedMedical').addEventListener('click', () => {
+              const isOpen = detailedContainer.style.display !== 'none';
+              if (!isOpen) window.closeOtherInlinePanels('detailedMedicalInlineContainer');
+              detailedContainer.style.display = isOpen ? 'none' : 'block';
+              if (!isOpen) detailedContainer.querySelector('input[name="reporter"]')?.focus();
+          });
+          document.getElementById('detailedCloseBtn').addEventListener('click', () => { detailedContainer.style.display = 'none'; detailedForm.reset(); });
+          document.getElementById('detailedCancel').addEventListener('click', () => { detailedContainer.style.display = 'none'; detailedForm.reset(); });
 
           detailedForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -3052,6 +3249,13 @@
                 phone: fd.get('phone'),
                 age: fd.get('age'),
                 gender: fd.get('gender'),
+                participantNumber: fd.get('participantNumber'),
+                careContactNumber: fd.get('careContactNumber'),
+                airway: fd.get('airway'),
+                breathing: fd.get('breathing'),
+                circulation: fd.get('circulation'),
+                disability: fd.get('disability'),
+                exposure: fd.get('exposure'),
                 background: fd.get('background'),
                 assessment: fd.get('assessment'),
                 recommendations
@@ -3063,7 +3267,7 @@
             renderTables();
             renderUnits();
             renderDetailedUnitsTable();
-            detailedModal.classList.remove('show');
+            detailedContainer.style.display = 'none';
             detailedForm.reset();
           });
 
@@ -3999,13 +4203,13 @@
   renderTables(); 
   refreshRowActions();
 
-  // Setup all modals
-  setupModal('quickMedicalModal', 'btnQuickMedical', 'quickMedicalForm');
+  // Setup all modals (except the new inline one)
   setupModal('brandwachtModal', 'btnBrandwacht', 'brandwachtForm');
   setupModal('logistiekModal', 'btnLogistiek', 'logistiekForm');
 
   document.getElementById('btnGlobalLog')?.addEventListener('click', () => {
     currentLogIncidentId = null; // Geen specifieke melding
+    window.closeOtherInlinePanels('freeLogModal');
     document.getElementById('freeLogModal').classList.add('show');
   });
   
@@ -4299,6 +4503,7 @@
   }
   if (zoomSelect) {
       zoomSelect.addEventListener('change', (e) => applyZoom(e.target.value));
+      applyZoom(zoomSelect.value); // Pas de standaard weergave (75%) direct toe bij laden
   }
 
   if (forgotPasswordBtn) {
@@ -4423,6 +4628,7 @@
       }
 
       // Enter om formulieren op te slaan
+      // Enter om formulieren op te slaan (behalve in tekstvelden)
       if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
           const activeForm = e.target.closest('form');
           if (activeForm) {
@@ -4480,10 +4686,94 @@
   // Roep de functie aan die de temperatuur in de weer-knop laadt
   initializeWeather();
   setInterval(initializeWeather, 15 * 60 * 1000); // Ververs weer elke 15 minuten
+          // ==========================================
+          // SNELLE MEDISCHE MELDING (INLINE)
+          // ==========================================
+         const quickMedicalContainer = document.getElementById('quickMedicalInlineContainer');
+          const quickMedicalForm = document.getElementById('quickMedicalForm');
 
+          // 1. Knop opent inline formulier
+          document.getElementById('btnQuickMedical')?.addEventListener('click', () => {
+              const isOpen = quickMedicalContainer.style.display !== 'none';
+              if (!isOpen) window.closeOtherInlinePanels('quickMedicalInlineContainer');
+              quickMedicalContainer.style.display = isOpen ? 'none' : 'block';
+              if (!isOpen) {
+                  quickMedicalContainer.querySelector('input[name="reporter"]')?.focus();
+              }
+          });
+
+          // 2. Sluit knoppen
+          document.getElementById('closeQuickMedicalInlineBtn')?.addEventListener('click', () => {
+              quickMedicalContainer.style.display = 'none';
+              quickMedicalForm?.reset();
+          });
+          document.getElementById('cancelQuickMedicalInlineBtn')?.addEventListener('click', () => {
+              quickMedicalContainer.style.display = 'none';
+              quickMedicalForm?.reset();
+          });
+
+          // Wissel van snelle naar uitgebreide melding
+          document.getElementById('openDetailedFromQuickBtn')?.addEventListener('click', () => {
+              window.closeOtherInlinePanels('detailedMedicalInlineContainer');
+              const dc = document.getElementById('detailedMedicalInlineContainer');
+              if (dc) { dc.style.display = 'block'; dc.querySelector('input[name="reporter"]')?.focus(); }
+          });
+
+          // 3. Formulier verwerken
+          if (quickMedicalForm) {
+              quickMedicalForm.addEventListener('submit', (e) => {
+                  e.preventDefault();
+                  try {
+                      const formData = new FormData(quickMedicalForm);
+                      const melder = formData.get('reporter').toLowerCase().trim();
+                      
+                      let assignedUnit = "-";
+                      let alertMsg = "Snelle medische melding succesvol aangemaakt.";
+
+                      if (melder.startsWith('u') && !isNaN(melder.substring(1))) {
+                          const uNum = melder.substring(1).padStart(2, '0');
+                          assignedUnit = `Uitruk ${uNum}`;
+                          const unitToUpdate = units.find(u => u.id === assignedUnit);
+                          if (unitToUpdate) {
+                              unitToUpdate.status = "uitgerukt";
+                              unitToUpdate.location = formData.get('location');
+                              setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
+                              alertMsg = `Melding aangemaakt. Eenheid '${assignedUnit}' is herkend en de status is automatisch gezet op 'uitgerukt'.`;
+                          }
+                      }
+
+                      const nu = new Date();
+                      const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
+
+                      const newIncident = {
+                          id: "M-" + Date.now() + "-" + Math.floor(Math.random() * 999),
+                          status: assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
+                          time: tijdString,
+                          location: formData.get('location'),
+                          event: formData.get('description'),
+                          reporter: formData.get('reporter'),
+                          urgency: formData.get('urgency'),
+                          units: assignedUnit !== '-' ? [assignedUnit] : [],
+                          details: { gender: formData.get('gender') },
+                          auditTrail: []
+                      };
+
+                      incidents.push(newIncident);
+                      addIncidentAudit(newIncident, `Aangemaakt - ${formData.get('urgency')}`);
+                      setDoc(doc(db, "incidents", newIncident.id), newIncident);
+
+                      renderTables(); renderUnits(); if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+                      showToast(alertMsg);
+                  } catch (err) {
+                      console.error("Fout bij opslaan van de melding:", err);
+                      showToast('Er ging iets mis bij het aanmaken van de melding.', true);
+                  } finally {
+                      quickMedicalContainer.style.display = 'none';
+                      quickMedicalForm.reset();
+                  }
+              });
+          }
 </script>
-<!-- Link to user's legacy stylesheet to preserve layout; can be refined or trimmed as needed -->
-<link rel="stylesheet" href="legacy-custom.css">
 
 </body>
 </html>
