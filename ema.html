@@ -535,6 +535,7 @@
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
     </button>
     <select id="zoomSelect" title="Vergroot/verklein weergave" class="topbar-btn">
+      <option value="0.5">50%</option>
       <option value="0.75" selected>75%</option>
       <option value="0.8">80%</option>
       <option value="0.9">90%</option>
@@ -2992,8 +2993,24 @@
 
    // ── Hulpfunctie: positioneer een dropdown naast een element ──
    function positionDropdown(dropdown, ev) {
-       const x = ev && ev.clientX ? ev.clientX : 100;
-       const y = ev && ev.clientY ? ev.clientY : 100;
+       let zoom = parseFloat(document.body.style.zoom || 1);
+       if (isNaN(zoom) || zoom === 0) zoom = 1;
+
+       let x = 100;
+       let y = 100;
+
+       if (ev && ev.clientX !== undefined) {
+           x = ev.clientX / zoom;
+           y = ev.clientY / zoom;
+       } else if (ev && ev.getBoundingClientRect) {
+           const rect = ev.getBoundingClientRect();
+           x = rect.left / zoom;
+           y = rect.bottom / zoom;
+       }
+
+       const maxRight = (window.innerWidth / zoom) - 340;
+       if (x > maxRight) x = maxRight - 10;
+
        dropdown.style.top = (y + 4) + 'px';
        dropdown.style.left = x + 'px';
    }
@@ -3019,8 +3036,12 @@
    function openUrgencyDropdown(incidentId, anchorEl) {
        urgencyTargetId = incidentId;
        const rect = anchorEl.getBoundingClientRect();
-       urgencyDropdown.style.top = (rect.bottom + 4) + 'px';
-       urgencyDropdown.style.left = Math.min(rect.left, window.innerWidth - 230) + 'px';
+
+       let zoom = parseFloat(document.body.style.zoom || 1);
+       if (isNaN(zoom) || zoom === 0) zoom = 1;
+
+       urgencyDropdown.style.top = ((rect.bottom / zoom) + 4) + 'px';
+       urgencyDropdown.style.left = Math.min(rect.left / zoom, (window.innerWidth / zoom) - 230) + 'px';
        urgencyDropdown.classList.add('open');
    }
 
