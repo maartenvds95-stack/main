@@ -1596,20 +1596,24 @@
         // ==========================================
         const babyAgeElement = document.getElementById('babyAge');
         if (babyAgeElement) {
-            // Geboortedatum: 25 april 2024 (Let op: in JavaScript beginnen maanden bij 0, dus 3 = april)
-            // Pas hieronder het jaartal (2024) aan mocht dit 2023 of een ander jaartal moeten zijn!
-            const birthDate = new Date(2024, 3, 25);
-            const today = new Date(); 
+            // Geboortedatum: 25 april 2026 (Let op: in JavaScript beginnen maanden bij 0, dus 3 = april)
+            const birthDate = new Date(2026, 3, 25);
+            const today = new Date();
 
             let ageInMonths = (today.getFullYear() - birthDate.getFullYear()) * 12;
             ageInMonths -= birthDate.getMonth();
             ageInMonths += today.getMonth();
             if (today.getDate() < birthDate.getDate()) ageInMonths--;
-            
+
             ageInMonths = Math.max(0, ageInMonths); // Voorkom negatieve getallen als de baby nog niet geboren is
-            
+
+            const ageInDays = Math.max(0, Math.floor((today - birthDate) / (1000 * 60 * 60 * 24)));
+            const ageInWeeks = Math.floor(ageInDays / 7);
+
             if (ageInMonths < 12) {
-                babyAgeElement.textContent = ageInMonths === 1 ? '1 maand' : `${ageInMonths} maanden`;
+                const weekText = ageInWeeks === 1 ? '1 week' : `${ageInWeeks} weken`;
+                const monthText = ageInMonths === 1 ? '1 maand' : `${ageInMonths} maanden`;
+                babyAgeElement.textContent = `${weekText} (${monthText})`;
             } else {
                 const years = Math.floor(ageInMonths / 12);
                 const months = ageInMonths % 12;
@@ -3231,10 +3235,12 @@
                 weightLabel.textContent = 'Gewicht (kg)';
                 weightInput.placeholder = 'Bijv. 10,1';
                 weightInput.step = '0.1';
+                weightInput.dataset.unit = 'kg';
             } else {
                 weightLabel.textContent = 'Gewicht (gram)';
                 weightInput.placeholder = 'Bijv. 4520';
                 weightInput.step = '1';
+                weightInput.dataset.unit = 'gram';
             }
         }
 
@@ -3250,7 +3256,9 @@
         saveGrowthBtn.addEventListener('click', async () => {
             const timeVal = document.getElementById('growthTime').value;
             const lenVal = document.getElementById('growthLength').value;
-            let wgtVal = document.getElementById('growthWeight').value;
+            const growthWeightInput = document.getElementById('growthWeight');
+            let wgtVal = growthWeightInput.value;
+            const wgtUnit = growthWeightInput.dataset.unit || 'gram';
             const storedDate = growthModal.dataset.date;
 
             if (!lenVal && !wgtVal) return alert('Vul op z\'n minst een lengte of gewicht in.');
@@ -3275,8 +3283,8 @@
                 let weightInKg = null;
                 if (wgtVal) {
                     const numWgt = parseFloat(String(wgtVal).replace(',', '.'));
-                    // Als het getal groter is dan (bijv.) 200, gaan we uit van grammen.
-                    weightInKg = numWgt > 200 ? numWgt / 1000 : numWgt;
+                    // Gebruik de invoermodus van het veld (gram/kg), niet gokken op basis van het getal.
+                    weightInKg = wgtUnit === 'gram' ? numWgt / 1000 : numWgt;
                 }
 
                 const growthDataObj = {
