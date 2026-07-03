@@ -1737,6 +1737,7 @@
   }
 
   let unsubIncidents, unsubUnits, unsubPosts, unsubLogs;
+  let knownFbIncidentIds = new Set(), knownFbUnitIds = new Set(), knownFbPostIds = new Set();
   let globalLogs = [];
   let logLimit = 50;
 
@@ -1781,34 +1782,46 @@
           loginScreen.style.display = 'none';
           const accountEmailEl = document.getElementById('accountEmail');
           if (accountEmailEl) accountEmailEl.textContent = user.email;
-          
+
+          // Voorkom gestapelde listeners als onAuthStateChanged meermaals vuurt (token-refresh, meerdere tabs)
+          if (unsubIncidents) unsubIncidents();
+          if (unsubUnits) unsubUnits();
+          if (unsubPosts) unsubPosts();
+          if (unsubLogs) unsubLogs();
+
           unsubIncidents = onSnapshot(collection(db, "incidents"), (snapshot) => {
-              if (snapshot.empty) return;
               // Merge: Firebase data heeft voorrang, lokale demo-data die niet in Firebase zit blijft staan
               const fbMap = {};
               snapshot.forEach(d => { fbMap[d.data().id] = d.data(); });
-              // Vervang bekende ids, voeg nieuwe toe, houd lokale ids die niet in FB zitten
+              // Vervang bekende ids, voeg nieuwe toe, verwijder ids die eerder wel in FB zaten maar nu weg zijn, houd echt lokale ids
               const fbIds = Object.keys(fbMap);
-              incidents = incidents.filter(i => !fbIds.includes(i.id)).concat(Object.values(fbMap));
+              incidents = incidents
+                  .filter(i => !fbIds.includes(i.id) && !knownFbIncidentIds.has(i.id))
+                  .concat(Object.values(fbMap));
+              knownFbIncidentIds = new Set(fbIds);
               if (typeof renderTables === 'function') renderTables();
           });
 
           unsubUnits = onSnapshot(collection(db, "units"), (snapshot) => {
-              if (snapshot.empty) return;
               const fbMap = {};
               snapshot.forEach(d => { fbMap[d.data().id] = d.data(); });
               const fbIds = Object.keys(fbMap);
-              units = units.filter(u => !fbIds.includes(u.id)).concat(Object.values(fbMap));
+              units = units
+                  .filter(u => !fbIds.includes(u.id) && !knownFbUnitIds.has(u.id))
+                  .concat(Object.values(fbMap));
+              knownFbUnitIds = new Set(fbIds);
               if (typeof sortUnits === 'function') sortUnits(currentSort.col, true);
               if (typeof updateLiveLogUnitDropdown === 'function') updateLiveLogUnitDropdown();
           });
 
           unsubPosts = onSnapshot(collection(db, "posts"), (snapshot) => {
-              if (snapshot.empty) return;
               const fbMap = {};
               snapshot.forEach(d => { fbMap[d.data().id] = d.data(); });
               const fbIds = Object.keys(fbMap);
-              posts = posts.filter(p => !fbIds.includes(p.id)).concat(Object.values(fbMap));
+              posts = posts
+                  .filter(p => !fbIds.includes(p.id) && !knownFbPostIds.has(p.id))
+                  .concat(Object.values(fbMap));
+              knownFbPostIds = new Set(fbIds);
               if (typeof sortPosts === 'function') sortPosts(currentPostSort.col, true);
           });
 
@@ -3666,11 +3679,11 @@
             const fd = new FormData(detailedForm);
             const reporter = (fd.get('reporter') || '').toLowerCase().trim();
             let assignedUnit = "-";
-            if (reporter.startsWith('u') && !isNaN(reporter.substring(1))) {
+            if (reporter.startsWith('u') && reporter.length > 1 && !isNaN(reporter.substring(1))) {
               const uNum = reporter.substring(1).padStart(2, '0');
-              assignedUnit = `Uitruk ${uNum}`;
-              const unitToUpdate = units.find(u => u.id === assignedUnit);
+              const unitToUpdate = units.find(u => u.id === `BLS-${uNum}` || u.id === `ALS-${uNum}`);
               if (unitToUpdate) {
+                assignedUnit = unitToUpdate.id;
                 unitToUpdate.status = 'uitgerukt';
                 unitToUpdate.location = fd.get('location');
                 setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
@@ -3769,7 +3782,7 @@
           let assignedUnit = "-";
           
           // Systeem intelligentie: herken bw1, bw2 -> BW-01, BW-02
-          if (melder.startsWith('bw') && !isNaN(melder.substring(2))) {
+          if (melder.startsWith('bw') && melder.length > 2 && !isNaN(melder.substring(2))) {
               const bwNum = melder.substring(2).padStart(2, '0');
               assignedUnit = `BW-${bwNum}`;
               const unitToUpdate = units.find(u => u.id === assignedUnit);
@@ -3821,7 +3834,7 @@
           let assignedUnit = "-";
           
           // Systeem intelligentie: herken log1, log2 -> LOG-01, LOG-02 (optioneel, indien eenheden worden toegevoegd)
-          if (melder.startsWith('log') && !isNaN(melder.substring(3))) {
+          if (melder.startsWith('log') && melder.length > 3 && !isNaN(melder.substring(3))) {
               const logNum = melder.substring(3).padStart(2, '0');
               assignedUnit = `LOG-${logNum}`;
               const unitToUpdate = units.find(u => u.id === assignedUnit);
@@ -4210,7 +4223,7 @@
 
           var restore = function() {
                var val = $span.attr("data-value");
-               if (val && val.toString().trim() !== "" && val.toString().trim() !== "0") {
+               if (val !== undefined && val.toString().trim() !== "") {
                    $span.text(val);
                } else {
                    $span.html("<i>Niet ingevuld</i>");
@@ -4400,8 +4413,9 @@
           };
 
           if (existingUnitIndex > -1) {
-              // Update existing unit
-              units[existingUnitIndex] = { ...units[existingUnitIndex], ...unitData };
+              // Update existing unit: behoud de live status, importeer geen default die een actieve inzet overschrijft
+              const { status, ...unitDataNoStatus } = unitData;
+              units[existingUnitIndex] = { ...units[existingUnitIndex], ...unitDataNoStatus };
               setDoc(doc(db, "units", unitId), units[existingUnitIndex]);
               updatedCount++;
           } else {
@@ -5204,11 +5218,11 @@
                       let assignedUnit = "-";
                       let alertMsg = "Snelle medische melding succesvol aangemaakt.";
 
-                      if (melder.startsWith('u') && !isNaN(melder.substring(1))) {
+                      if (melder.startsWith('u') && melder.length > 1 && !isNaN(melder.substring(1))) {
                           const uNum = melder.substring(1).padStart(2, '0');
-                          assignedUnit = `Uitruk ${uNum}`;
-                          const unitToUpdate = units.find(u => u.id === assignedUnit);
+                          const unitToUpdate = units.find(u => u.id === `BLS-${uNum}` || u.id === `ALS-${uNum}`);
                           if (unitToUpdate) {
+                              assignedUnit = unitToUpdate.id;
                               unitToUpdate.status = "uitgerukt";
                               unitToUpdate.location = formData.get('location');
                               setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
