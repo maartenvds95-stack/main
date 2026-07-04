@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1920">
 <title>Maarten's meldkamer applicatie</title>
+<link rel="icon" type="image/png" href="ems-blauw.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1344,6 +1345,12 @@
   <button data-afloop="Inzetbaar"><span class="dd-main">Inzetbaar</span></button>
   <button data-afloop="Retour BLS"><span class="dd-main">Retour BLS</span><span class="dd-sub">Logt actie, melding blijft</span></button>
   <button data-afloop="Retour ALS"><span class="dd-main">Retour ALS</span><span class="dd-sub">Logt actie, melding blijft</span></button>
+</div>
+
+<div id="logistiekStatusDropdown" class="action-dropdown">
+  <div class="dd-title">Status</div>
+  <button data-logstatus="Aangevraagd"><span class="dd-main">Aangevraagd</span></button>
+  <button data-logstatus="Afgehandeld"><span class="dd-main">Afgehandeld</span><span class="dd-sub">Melding verdwijnt</span></button>
 </div>
 
 <!-- Samenvoegen dropdown -->
@@ -2974,6 +2981,41 @@
        mergeDropdown.classList.add('open');
    }
 
+   // ── Logistiek statusdropdown (alleen Aangevraagd / Afgehandeld) ──
+   const logistiekStatusDropdown = document.getElementById('logistiekStatusDropdown');
+   let logistiekStatusTargetId = null;
+
+   function openLogistiekStatusDropdown(incidentId, anchorEl) {
+       logistiekStatusTargetId = incidentId;
+       positionDropdown(logistiekStatusDropdown, anchorEl);
+       logistiekStatusDropdown.classList.add('open');
+   }
+
+   logistiekStatusDropdown.querySelectorAll('button[data-logstatus]').forEach(btn => {
+       btn.addEventListener('click', () => {
+           const choice = btn.getAttribute('data-logstatus');
+           const inc = incidents.find(i => i.id === logistiekStatusTargetId);
+           if (inc) {
+               if (choice === 'Afgehandeld') {
+                   const nu = new Date();
+                   inc.closedAtTime = nu.getHours().toString().padStart(2,'0')+':'+nu.getMinutes().toString().padStart(2,'0');
+                   inc.closedAtTimestamp = nu.toISOString();
+                   inc.status = 'Afgesloten: Afgehandeld';
+                   addIncidentAudit(inc, 'Logistieke melding afgehandeld');
+               } else {
+                   inc.status = 'Aangevraagd';
+                   addIncidentAudit(inc, 'Logistieke melding aangevraagd');
+               }
+               setDoc(doc(db, "incidents", inc.id), inc);
+               renderTables(); renderUnits();
+               if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+               showToast(`Status gewijzigd naar ${choice}.`);
+           }
+           logistiekStatusDropdown.classList.remove('open');
+           logistiekStatusTargetId = null;
+       });
+   });
+
    // ── Log dropdown ──
    const logDropdown = document.getElementById('logDropdown');
    let logDropdownTargetId = null;
@@ -3029,10 +3071,20 @@
    }
 
    // ── Sluit alle dropdowns bij klik buiten ──
+   function closeAllRowDropdowns() {
+       closeAssignDropdown();
+       escalationDropdown.classList.remove('open'); escalationTargetId = null;
+       afloopDropdown.classList.remove('open');
+       logistiekStatusDropdown.classList.remove('open'); logistiekStatusTargetId = null;
+       mergeDropdown.classList.remove('open');
+       logDropdown.classList.remove('open');
+   }
+
    document.addEventListener('click', (e) => {
        if (!assignDropdown.contains(e.target) && !e.target.closest('[data-action="toewijzen"]')) closeAssignDropdown();
        if (!escalationDropdown.contains(e.target) && !e.target.closest('[data-action="opschalen"]')) { escalationDropdown.classList.remove('open'); escalationTargetId = null; }
        if (!afloopDropdown.contains(e.target) && !e.target.closest('[data-action="afsluiten"]')) { afloopDropdown.classList.remove('open'); }
+       if (!logistiekStatusDropdown.contains(e.target) && !e.target.closest('[data-action="afsluiten"]')) { logistiekStatusDropdown.classList.remove('open'); logistiekStatusTargetId = null; }
        if (!mergeDropdown.contains(e.target) && !e.target.closest('[data-action="samenvoegen"]')) { mergeDropdown.classList.remove('open'); }
        if (!logDropdown.contains(e.target) && !e.target.closest('[data-action="log"]')) { logDropdown.classList.remove('open'); }
    });
@@ -3370,12 +3422,17 @@
                e.stopPropagation();
                const action = btn.getAttribute('data-action');
                const id = btn.getAttribute('data-id');
+               closeAllRowDropdowns();
                if (action === 'toewijzen') {
                    openAssignModal(id, null, e);
                } else if (action === 'opschalen') {
                    openEscalationDropdown(id, e);
                } else if (action === 'afsluiten') {
-                   openAfloopDropdown(id, e);
+                   if (id && id.startsWith('L-')) {
+                       openLogistiekStatusDropdown(id, e);
+                   } else {
+                       openAfloopDropdown(id, e);
+                   }
                } else if (action === 'samenvoegen') {
                    openMergeDropdown(id, e);
                } else if (action === 'log') {
@@ -3849,8 +3906,8 @@
           const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
 
           incidents.push({
-              id: "L-" + Date.now() + "-" + Math.floor(Math.random() * 999), 
-              status: assignedUnit && assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
+              id: "L-" + Date.now() + "-" + Math.floor(Math.random() * 999),
+              status: 'Aangevraagd',
               time: tijdString,
               location: formData.get('location'),
               event: formData.get('description'),
