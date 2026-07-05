@@ -303,7 +303,7 @@
   
   .form-group { display: flex; flex-direction: column; gap: 6px; }
   .form-group label.group-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; }
-  .form-group input[type="text"], .form-group select { background: var(--bg2); border: 1px solid var(--border); color: var(--text1); padding: 10px; border-radius: 6px; font-family: var(--font); font-size: 13px; }
+  .form-group input[type="text"], .form-group select, .form-group textarea { background: var(--bg2); border: 1px solid var(--border); color: var(--text1); padding: 10px; border-radius: 6px; font-family: var(--font); font-size: 13px; resize: vertical; }
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--green); }
   .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
   .btn-cancel { background: transparent; color: var(--text2); border: 1px solid var(--border); }

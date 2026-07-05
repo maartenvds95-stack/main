@@ -420,8 +420,8 @@ import {
       { id: 'M-3', status: 'Toegewezen', time: '10:35', location: 'Tribune West', event: 'Valpartij, hoofdwond', reporter: 'Beveiliging', urgency: 'Direct Vertrekken', units: ['BLS-01'], details: { gender: 'Man', age: '52' }, auditTrail: [{ time: '10:35', action: 'Aangemaakt - Direct Vertrekken', user: 'Systeem' }, { time: '10:36', action: 'Eenheid toegewezen: BLS-01', user: 'Systeem' }] },
       { id: 'M-4', status: 'Toegewezen', time: '10:52', location: 'Podium A', event: 'Reanimatie (SBAR)', reporter: 'EHBO post', urgency: 'Spoed', units: ['ALS-01'], details: { phone: '06-12345678', age: '61', gender: 'Man', participantNumber: 'D-2045', careContactNumber: 'ZC-118', airway: 'Vrij', breathing: 'Geen ademhaling', circulation: 'Geen pols', disability: 'U - Unresponsive', exposure: 'Geen letsel zichtbaar', background: 'Bekend met hartklachten, gebruikt bloedverdunners.', assessment: 'Vermoedelijk hartstilstand, reanimatie gestart door omstanders.', recommendations: ['Ambulance', 'Arts'] }, auditTrail: [{ time: '10:52', action: 'Aangemaakt (SBAR) - Spoed', user: 'Systeem' }, { time: '10:53', action: 'Eenheid toegewezen: ALS-01', user: 'Systeem' }] },
       { id: 'B-1', status: 'Toegewezen', time: '11:05', location: 'Backstage', event: 'Brandwacht: rookontwikkeling generator', reporter: 'Productieleider', urgency: 'Direct Vertrekken', units: ['BW-01'], details: {}, auditTrail: [{ time: '11:05', action: 'Brandwacht melding aangemaakt - Direct Vertrekken', user: 'Systeem' }, { time: '11:06', action: 'Eenheid toegewezen: BW-01', user: 'Systeem' }] },
-      { id: 'L-1', status: 'Nieuw', time: '10:40', location: 'Post Noord', event: 'Water bijvullen', reporter: 'Postcoördinator', urgency: 'Normaal', units: [], details: {}, auditTrail: [{ time: '10:40', action: 'Logistieke melding aangemaakt - Normaal', user: 'Systeem' }] },
-      { id: 'L-2', status: 'Toegewezen', time: '11:10', location: 'Post Zuid', event: 'Verbandmiddelen aanvullen', reporter: 'Coördinator Zuid', urgency: 'Laag', units: ['OND-01'], details: {}, auditTrail: [{ time: '11:10', action: 'Logistieke melding aangemaakt - Laag', user: 'Systeem' }, { time: '11:11', action: 'Eenheid toegewezen: OND-01', user: 'Systeem' }] },
+      { id: 'L-1', status: 'Aangevraagd', time: '10:40', location: 'Post Noord', event: 'Water bijvullen', reporter: 'Postcoördinator', urgency: 'Normaal', units: [], details: {}, auditTrail: [{ time: '10:40', action: 'Logistieke melding aangemaakt - Normaal', user: 'Systeem' }] },
+      { id: 'L-2', status: 'Aangevraagd', time: '11:10', location: 'Post Zuid', event: 'Verbandmiddelen aanvullen', reporter: 'Coördinator Zuid', urgency: 'Laag', units: [], details: {}, auditTrail: [{ time: '11:10', action: 'Logistieke melding aangemaakt - Laag', user: 'Systeem' }] },
       { id: 'M-5', status: 'Afgesloten - Zorg ter plaatse', time: '09:58', location: 'Camping veld C', event: 'Insectensteek, allergische reactie', reporter: 'Kampeerder', urgency: 'Spoed', units: ['BLS-02'], details: { gender: 'Vrouw', age: '29' }, auditTrail: [{ time: '09:58', action: 'Aangemaakt - Spoed', user: 'Systeem' }, { time: '09:59', action: 'Eenheid toegewezen: BLS-02', user: 'Systeem' }, { time: '10:20', action: 'Afgesloten - Zorg ter plaatse', user: 'Systeem' }] }
   ];
 
@@ -977,7 +977,6 @@ import {
               logTable.innerHTML = `<tr><td colspan="8" class="empty-table-msg">Geen logistieke meldingen...</td></tr>`;
           } else {
               logistiekActief.forEach(inc => {
-                  const eenheden = (inc.units && inc.units.length) ? inc.units.join(', ') : '-';
                   const tr = document.createElement('tr');
                   tr.innerHTML = `
                     <td><span class="pill pill-on">${inc.status}</span></td>
@@ -986,10 +985,8 @@ import {
                     <td><span class="editable-incident-field" data-id="${inc.id}" data-field="event" title="Klik om te bewerken">${inc.event || '<i>Onbekend</i>'}</span></td>
                     <td><span class="editable-incident-field" data-id="${inc.id}" data-field="reporter" title="Klik om te bewerken">${inc.reporter || '<i>Onbekend</i>'}</span></td>
                     <td><span class="urgency-badge" data-action="urgentie" data-id="${inc.id}" title="Klik om urgentie te wijzigen" style="color:var(--amber);font-weight:600;cursor:pointer;text-decoration:underline dotted;">${inc.urgency}</span></td>
-                    <td style="color:var(--blue);font-weight:600;">${eenheden}</td>
                     <td>
                       <div class="row-actions">
-                        <button type="button" class="btn btn-outline" data-action="toewijzen" data-id="${inc.id}">Toewijzen</button>
                         <button type="button" class="btn btn-outline" data-action="log" data-id="${inc.id}">Log</button>
                         <button type="button" class="btn btn-outline" data-action="afsluiten" data-id="${inc.id}">Statusen</button>
                       </div>
@@ -1377,6 +1374,41 @@ import {
        mergeDropdown.classList.add('open');
    }
 
+   // ── Logistiek statusdropdown (alleen Aangevraagd / Opgelost) ──
+   const logistiekStatusDropdown = document.getElementById('logistiekStatusDropdown');
+   let logistiekStatusTargetId = null;
+
+   function openLogistiekStatusDropdown(incidentId, anchorEl) {
+       logistiekStatusTargetId = incidentId;
+       positionDropdown(logistiekStatusDropdown, anchorEl);
+       logistiekStatusDropdown.classList.add('open');
+   }
+
+   logistiekStatusDropdown.querySelectorAll('button[data-logstatus]').forEach(btn => {
+       btn.addEventListener('click', () => {
+           const choice = btn.getAttribute('data-logstatus');
+           const inc = incidents.find(i => i.id === logistiekStatusTargetId);
+           if (inc) {
+               if (choice === 'Opgelost') {
+                   const nu = new Date();
+                   inc.closedAtTime = nu.getHours().toString().padStart(2,'0')+':'+nu.getMinutes().toString().padStart(2,'0');
+                   inc.closedAtTimestamp = nu.toISOString();
+                   inc.status = 'Afgesloten: Opgelost';
+                   addIncidentAudit(inc, 'Logistieke melding opgelost');
+               } else {
+                   inc.status = 'Aangevraagd';
+                   addIncidentAudit(inc, 'Logistieke melding aangevraagd');
+               }
+               setDoc(doc(db, "incidents", inc.id), inc);
+               renderTables(); renderUnits();
+               if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+               showToast(`Status gewijzigd naar ${choice}.`);
+           }
+           logistiekStatusDropdown.classList.remove('open');
+           logistiekStatusTargetId = null;
+       });
+   });
+
    // ── Log dropdown ──
    const logDropdown = document.getElementById('logDropdown');
    let logDropdownTargetId = null;
@@ -1432,10 +1464,20 @@ import {
    }
 
    // ── Sluit alle dropdowns bij klik buiten ──
+   function closeAllRowDropdowns() {
+       closeAssignDropdown();
+       escalationDropdown.classList.remove('open'); escalationTargetId = null;
+       afloopDropdown.classList.remove('open');
+       logistiekStatusDropdown.classList.remove('open'); logistiekStatusTargetId = null;
+       mergeDropdown.classList.remove('open');
+       logDropdown.classList.remove('open');
+   }
+
    document.addEventListener('click', (e) => {
        if (!assignDropdown.contains(e.target) && !e.target.closest('[data-action="toewijzen"]')) closeAssignDropdown();
        if (!escalationDropdown.contains(e.target) && !e.target.closest('[data-action="opschalen"]')) { escalationDropdown.classList.remove('open'); escalationTargetId = null; }
        if (!afloopDropdown.contains(e.target) && !e.target.closest('[data-action="afsluiten"]')) { afloopDropdown.classList.remove('open'); }
+       if (!logistiekStatusDropdown.contains(e.target) && !e.target.closest('[data-action="afsluiten"]')) { logistiekStatusDropdown.classList.remove('open'); logistiekStatusTargetId = null; }
        if (!mergeDropdown.contains(e.target) && !e.target.closest('[data-action="samenvoegen"]')) { mergeDropdown.classList.remove('open'); }
        if (!logDropdown.contains(e.target) && !e.target.closest('[data-action="log"]')) { logDropdown.classList.remove('open'); }
    });
@@ -1773,12 +1815,17 @@ import {
                e.stopPropagation();
                const action = btn.getAttribute('data-action');
                const id = btn.getAttribute('data-id');
+               closeAllRowDropdowns();
                if (action === 'toewijzen') {
                    openAssignModal(id, null, e);
                } else if (action === 'opschalen') {
                    openEscalationDropdown(id, e);
                } else if (action === 'afsluiten') {
-                   openAfloopDropdown(id, e);
+                   if (id && id.startsWith('L-')) {
+                       openLogistiekStatusDropdown(id, e);
+                   } else {
+                       openAfloopDropdown(id, e);
+                   }
                } else if (action === 'samenvoegen') {
                    openMergeDropdown(id, e);
                } else if (action === 'log') {
@@ -2232,34 +2279,19 @@ import {
       logForm.addEventListener('submit', (e) => {
           e.preventDefault();
           const formData = new FormData(logForm);
-          const melder = formData.get('reporter').toLowerCase().trim();
-          
-          let assignedUnit = "-";
-          
-          // Systeem intelligentie: herken log1, log2 -> LOG-01, LOG-02 (optioneel, indien eenheden worden toegevoegd)
-          if (melder.startsWith('log') && melder.length > 3 && !isNaN(melder.substring(3))) {
-              const logNum = melder.substring(3).padStart(2, '0');
-              assignedUnit = `LOG-${logNum}`;
-              const unitToUpdate = units.find(u => u.id === assignedUnit);
-              if(unitToUpdate) {
-                  unitToUpdate.status = "uitgerukt";
-                  unitToUpdate.location = formData.get('location'); 
-                  setDoc(doc(db, "units", unitToUpdate.id), unitToUpdate);
-              }
-          }
 
           const nu = new Date();
           const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
 
           incidents.push({
-              id: "L-" + Date.now() + "-" + Math.floor(Math.random() * 999), 
-              status: assignedUnit && assignedUnit !== '-' ? 'Toegewezen' : 'Nieuw',
+              id: "L-" + Date.now() + "-" + Math.floor(Math.random() * 999),
+              status: 'Aangevraagd',
               time: tijdString,
               location: formData.get('location'),
               event: formData.get('description'),
               reporter: formData.get('reporter'),
               urgency: formData.get('urgency'),
-              units: assignedUnit && assignedUnit !== '-' ? [assignedUnit] : []
+              units: []
           });
           addIncidentAudit(incidents[incidents.length - 1], `Logistieke melding aangemaakt - ${formData.get('urgency')}`);
 
@@ -3420,6 +3452,7 @@ import {
           if (data) {
               document.getElementById('protocolViewTitle').textContent = data.titel;
               document.getElementById('protocolViewContent').innerHTML = data.inhoud;
+              document.getElementById('protocolViewFooter').style.display = protId === 'vermissing' ? 'block' : 'none';
               document.getElementById('protocolListModal').classList.remove('show');
               document.getElementById('protocolViewModal').classList.add('show');
           }
@@ -3430,6 +3463,64 @@ import {
   if (closeProtocolViewBtn) {
       closeProtocolViewBtn.addEventListener('click', () => {
           document.getElementById('protocolViewModal').classList.remove('show');
+      });
+  }
+
+  // ==========================================
+  // VERMISSING PROCEDURE -> MELDING AANMAKEN
+  // ==========================================
+  const vermissingModal = document.getElementById('vermissingModal');
+  const vermissingForm = document.getElementById('vermissingForm');
+
+  document.getElementById('startVermissingProcBtn')?.addEventListener('click', () => {
+      document.getElementById('protocolViewModal').classList.remove('show');
+      vermissingModal.classList.add('show');
+  });
+
+  document.getElementById('closeVermissingModalBtn')?.addEventListener('click', () => {
+      vermissingModal.classList.remove('show');
+      vermissingForm.reset();
+  });
+  document.getElementById('cancelVermissingModalBtn')?.addEventListener('click', () => {
+      vermissingModal.classList.remove('show');
+      vermissingForm.reset();
+  });
+
+  if (vermissingForm) {
+      vermissingForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const formData = new FormData(vermissingForm);
+          const nu = new Date();
+          const tijdString = nu.getHours().toString().padStart(2, '0') + ":" + nu.getMinutes().toString().padStart(2, '0');
+
+          const newIncident = {
+              id: "M-" + Date.now() + "-" + Math.floor(Math.random() * 999),
+              status: 'Nieuw',
+              time: tijdString,
+              location: formData.get('location'),
+              event: 'Vermissing',
+              reporter: formData.get('reporter'),
+              urgency: 'Normaal',
+              units: [],
+              details: {
+                  naam: formData.get('naam'),
+                  kenmerken: formData.get('kenmerken'),
+                  situatie: formData.get('situatie'),
+                  foto: formData.get('foto')
+              },
+              auditTrail: []
+          };
+
+          incidents.push(newIncident);
+          addIncidentAudit(newIncident, 'Aangemaakt via protocol Vermissing');
+          setDoc(doc(db, "incidents", newIncident.id), newIncident);
+
+          renderTables(); renderUnits();
+          if (typeof renderDetailedUnitsTable === 'function') renderDetailedUnitsTable();
+
+          vermissingModal.classList.remove('show');
+          vermissingForm.reset();
+          showToast('Melding "Vermissing" succesvol aangemaakt.');
       });
   }
 

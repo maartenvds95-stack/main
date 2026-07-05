@@ -428,7 +428,6 @@
                 <th>Omschrijving</th>
                 <th>Melder</th>
                 <th>Urg</th>
-                <th>Eenheid</th>
                 <th>Acties</th>
               </tr>
             </thead>
@@ -866,6 +865,12 @@
   <button data-afloop="Retour ALS"><span class="dd-main">Retour ALS</span><span class="dd-sub">Logt actie, melding blijft</span></button>
 </div>
 
+<div id="logistiekStatusDropdown" class="action-dropdown">
+  <div class="dd-title">Status</div>
+  <button data-logstatus="Aangevraagd"><span class="dd-main">Aangevraagd</span></button>
+  <button data-logstatus="Opgelost"><span class="dd-main">Opgelost</span><span class="dd-sub">Melding verdwijnt</span></button>
+</div>
+
 <!-- Samenvoegen dropdown -->
 <div id="mergeDropdown" class="action-dropdown">
   <div class="dd-title">Samenvoegen met…</div>
@@ -1096,6 +1101,36 @@
       <button class="modal-close" id="closeProtocolViewModalBtn">&times;</button>
     </div>
     <div style="padding: 24px; max-height: calc(100vh - 120px); overflow-y: auto; background: var(--bg2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; font-size: 14px; line-height: 1.6;" id="protocolViewContent"></div>
+    <div id="protocolViewFooter" style="display:none; padding: 16px 24px; background: var(--bg2); border-top: 1px solid var(--border); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+      <button type="button" class="btn btn-submit" id="startVermissingProcBtn" style="width:100%;">Procedure opstarten &amp; melding aanmaken</button>
+    </div>
+  </div>
+</div>
+
+<!-- Vermissing procedure formulier -->
+<div class="modal-overlay" id="vermissingModal">
+  <div class="modal-content" style="width: 550px; max-width: 95vw;">
+    <div class="modal-header">
+      <h3>Vermissing — procedure opstarten</h3>
+      <button class="modal-close" id="closeVermissingModalBtn">&times;</button>
+    </div>
+    <form id="vermissingForm" style="padding: 24px; display: grid; grid-template-columns: 1fr; gap: 12px 18px; max-height: calc(100vh - 160px); overflow-y: auto;">
+      <div class="form-group"><label class="group-label">Locatie</label><input type="text" name="location" required></div>
+      <div class="form-group"><label class="group-label">Melder</label><input type="text" name="reporter" required></div>
+      <div class="form-group"><label class="group-label">Naam &amp; geboortedatum vermiste persoon</label><input type="text" name="naam" required></div>
+      <div class="form-group"><label class="group-label">Uiterlijke kenmerken &amp; kleding</label><textarea name="kenmerken" rows="2" required></textarea></div>
+      <div class="form-group"><label class="group-label">Omschrijving situatie (laatst gezien, bijzonderheden)</label><textarea name="situatie" rows="3" required></textarea></div>
+      <div class="form-group"><label class="group-label">Recente foto beschikbaar?</label>
+        <select name="foto">
+          <option value="Ja">Ja</option>
+          <option value="Nee">Nee</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
+        <button type="button" class="btn btn-cancel" id="cancelVermissingModalBtn">Annuleren</button>
+        <button type="submit" class="btn btn-submit">Melding aanmaken</button>
+      </div>
+    </form>
   </div>
 </div>
 
