@@ -156,7 +156,7 @@
         <div style="font-size: 13px; font-weight: 600; color: var(--text1); text-align: center;">(S) Situation</div>
         <div class="form-group">
           <label class="group-label">Melder</label>
-          <input type="text" name="reporter">
+          <input type="text" name="reporter" required>
         </div>
         <div class="form-group">
           <label class="group-label">Telefoonnummer melder</label>
@@ -164,7 +164,7 @@
         </div>
         <div class="form-group">
           <label class="group-label">Locatie</label>
-          <input type="text" name="location">
+          <input type="text" name="location" required>
         </div>
         <div class="form-group">
           <label class="group-label">Geslacht</label>
@@ -218,12 +218,12 @@
       <div style="display: flex; flex-direction: column; gap: 12px;">
         <div class="form-group">
           <label class="group-label">Omschrijving melding</label>
-          <input type="text" name="description">
+          <input type="text" name="description" required>
         </div>
         <div class="form-group">
           <label class="group-label">Urgentie</label>
           <div class="radio-boxes">
-            <input type="radio" id="det_urg_spoed" name="urgency" value="Spoed"><label for="det_urg_spoed">Spoed</label>
+            <input type="radio" id="det_urg_spoed" name="urgency" value="Spoed" required><label for="det_urg_spoed">Spoed</label>
             <input type="radio" id="det_urg_direct" name="urgency" value="Direct Vertrekken" checked><label for="det_urg_direct">Direct Vertrekken</label>
             <input type="radio" id="det_urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="det_urg_uitstel">Uitstelmogelijkheid</label>
           </div>
@@ -910,7 +910,7 @@
       </div>
       <button class="modal-close" id="assignCloseBtn">&times;</button>
     </div>
-    <div class="option-list" id="assignUnitList"></div>
+    <div class="option-list" id="assignModalUnitList"></div>
   </div>
 </div>
 

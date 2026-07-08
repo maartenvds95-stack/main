@@ -4,14 +4,27 @@ import {
   collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, limit, getDocs, where, writeBatch
 } from './firebase.js';
 
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+  let _logSeq = 0;
+
   function addLog(type, message, unitId, incidentId, location) {
       const user = auth.currentUser ? auth.currentUser.email.split('@')[0] : 'Systeem';
-      const logEntry = { id: 'LOG-' + Date.now() + '-' + Math.floor(Math.random()*1000), timestamp: new Date().toISOString(), type, message, unitId, incidentId, location, user };
+      const logEntry = { id: 'LOG-' + Date.now() + '-' + (++_logSeq) + '-' + Math.floor(Math.random()*999), timestamp: new Date().toISOString(), type, message, unitId, incidentId, location, user };
       setDoc(doc(db, "logs", logEntry.id), logEntry).catch(e => console.warn(e));
   }
   
   function addIncidentAudit(incident, action, unitId = '') {
-      const timeStr = new Date().getHours().toString().padStart(2,'0')+':'+new Date().getMinutes().toString().padStart(2,'0');
+      const now = new Date();
+      const timeStr = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
       incident.auditTrail = incident.auditTrail || [];
       const user = auth.currentUser ? auth.currentUser.email.split('@')[0] : 'Systeem';
       incident.auditTrail.push({ time: timeStr, action, user: user });
@@ -153,10 +166,10 @@ import {
       let qConstraints = [orderBy("timestamp", "desc")];
 
       if (startDate) {
-          qConstraints.push(where("timestamp", ">=", startDate + 'T00:00:00.000Z'));
+          qConstraints.push(where("timestamp", ">=", new Date(startDate + 'T00:00:00').toISOString()));
       }
       if (endDate) {
-          qConstraints.push(where("timestamp", "<=", endDate + 'T23:59:59.999Z'));
+          qConstraints.push(where("timestamp", "<=", new Date(endDate + 'T23:59:59.999').toISOString()));
       }
 
       // If a date range is active, we don't limit. Otherwise, we use the incremental limit.
@@ -450,7 +463,7 @@ import {
       
       const sortedUnits = [...units].sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
       sortedUnits.forEach(u => {
-          html += `<option value="${u.id}">${u.id}</option>`;
+          html += `<option value="${escapeHtml(u.id)}">${escapeHtml(u.id)}</option>`;
       });
       
       select.innerHTML = html;
@@ -503,10 +516,10 @@ import {
           const d = new Date(log.timestamp);
           const timeStr = d.toLocaleDateString('nl-NL', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
           const style = getLogTypeStyle(log.type);
-          const typePill = `<span class="pill" style="background:${style.bg}; color:${style.color}; border:1px solid ${style.color};">${log.type || 'Systeem'}</span>`;
-          
-          const incidentLink = log.incidentId ? `<a href="#" class="log-incident-link" data-id="${log.incidentId}" style="color:var(--blue); font-weight:600; text-decoration:none;">${log.incidentId}</a>` : '-';
-          const unitLink = log.unitId ? `<a href="#" class="log-unit-link" data-id="${log.unitId}" style="color:var(--text1); font-weight:600; text-decoration:none;">${log.unitId}</a>` : '-';
+          const typePill = `<span class="pill" style="background:${style.bg}; color:${style.color}; border:1px solid ${style.color};">${escapeHtml(log.type) || 'Systeem'}</span>`;
+
+          const incidentLink = log.incidentId ? `<a href="#" class="log-incident-link" data-id="${escapeHtml(log.incidentId)}" style="color:var(--blue); font-weight:600; text-decoration:none;">${escapeHtml(log.incidentId)}</a>` : '-';
+          const unitLink = log.unitId ? `<a href="#" class="log-unit-link" data-id="${escapeHtml(log.unitId)}" style="color:var(--text1); font-weight:600; text-decoration:none;">${escapeHtml(log.unitId)}</a>` : '-';
 
           return `
               <tr>
@@ -514,8 +527,8 @@ import {
                   <td>${typePill}</td>
                   <td>${incidentLink}</td>
                   <td>${unitLink}</td>
-                  <td style="white-space:normal;">${log.message}</td>
-                  <td><span style="color:var(--text2); font-size:12px;">${log.user || 'Systeem'}</span></td>
+                  <td style="white-space:normal;">${escapeHtml(log.message)}</td>
+                  <td><span style="color:var(--text2); font-size:12px;">${escapeHtml(log.user) || 'Systeem'}</span></td>
               </tr>
           `;
       }).join('');
@@ -623,9 +636,9 @@ import {
           unitLogs.forEach(entry => {
               const d = new Date(entry.timestamp);
               const timeStr = d.toLocaleDateString('nl-NL', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'});
-              const userStr = entry.user ? `<div class="timeline-user"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;margin-right:4px;"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>${entry.user}</div>` : '';
-              const incStr = entry.incidentId ? `<div style="font-size:11px; color:var(--blue); margin-bottom:2px;">Melding: ${entry.incidentId}</div>` : '';
-              html += `<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-time">${timeStr}</div>${incStr}<div class="timeline-action">${entry.message}</div>${userStr}</div></div>`;
+              const userStr = entry.user ? `<div class="timeline-user"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;margin-right:4px;"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>${escapeHtml(entry.user)}</div>` : '';
+              const incStr = entry.incidentId ? `<div style="font-size:11px; color:var(--blue); margin-bottom:2px;">Melding: ${escapeHtml(entry.incidentId)}</div>` : '';
+              html += `<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-time">${timeStr}</div>${incStr}<div class="timeline-action">${escapeHtml(entry.message)}</div>${userStr}</div></div>`;
           });
           html += '</div>';
           content.innerHTML = html;
@@ -670,7 +683,12 @@ import {
       if (!unit || !incident) return;
 
       // Controleer of de eenheid al is toegewezen aan deze specifieke melding
-      if (incident.units && incident.units.some(u => u === unit.id || u.endsWith(': ' + unit.id))) {
+      // Extract unit ID from any label (e.g. "Opschaling: BLS-01" → "BLS-01")
+      const alreadyAssigned = (incident.units || []).some(label => {
+          const idFromLabel = label.includes(':') ? label.split(':')[1].trim() : label;
+          return idFromLabel === unitId;
+      });
+      if (alreadyAssigned) {
           showToast(`Eenheid ${unit.id} is al gekoppeld aan deze melding.`, true);
           return;
       }
@@ -764,10 +782,10 @@ import {
                 <span class="unit-dot ${style.dot}"></span>
                 <div>
                     <div>
-                        <a href="#" class="unit-name log-unit-link" data-id="${u.id}" style="text-decoration:none; cursor:pointer;">${u.id}</a>
-                        <span class="unit-type">${u.type}</span>
+                        <a href="#" class="unit-name log-unit-link" data-id="${escapeHtml(u.id)}" style="text-decoration:none; cursor:pointer;">${escapeHtml(u.id)}</a>
+                        <span class="unit-type">${escapeHtml(u.type)}</span>
                     </div>
-                    <div class="unit-loc">Locatie: ${u.location}</div>
+                    <div class="unit-loc">Locatie: ${escapeHtml(u.location)}</div>
                 </div>
             </div>
             <select class="status-dropdown-base unit-status-select ${style.bg}">
@@ -882,9 +900,9 @@ import {
                   trNew.innerHTML = `
                     <td><span class="pill pill-on">${inc.status}</span></td>
                     <td class="col-time" style="color:var(--text3);font-size:11px">${inc.time}</td>
-                    <td><span class="editable-incident-field" data-id="${inc.id}" data-field="location" title="Klik om te bewerken">${inc.location || '<i>Onbekend</i>'}</span></td>
-                    <td><span class="editable-incident-field" data-id="${inc.id}" data-field="event" title="Klik om te bewerken">${inc.event || '<i>Onbekend</i>'}</span></td>
-                    <td><span class="editable-incident-field" data-id="${inc.id}" data-field="reporter" title="Klik om te bewerken">${inc.reporter || '<i>Onbekend</i>'}</span></td>
+                    <td><span class="editable-incident-field" data-id="${inc.id}" data-field="location" title="Klik om te bewerken">${inc.location ? escapeHtml(inc.location) : '<i>Onbekend</i>'}</span></td>
+                    <td><span class="editable-incident-field" data-id="${inc.id}" data-field="event" title="Klik om te bewerken">${inc.event ? escapeHtml(inc.event) : '<i>Onbekend</i>'}</span></td>
+                    <td><span class="editable-incident-field" data-id="${inc.id}" data-field="reporter" title="Klik om te bewerken">${inc.reporter ? escapeHtml(inc.reporter) : '<i>Onbekend</i>'}</span></td>
                     <td><span class="urgency-badge" data-action="urgentie" data-id="${inc.id}" title="Klik om urgentie te wijzigen" style="color:var(--amber);font-weight:600;cursor:pointer;text-decoration:underline dotted;">${inc.urgency}</span></td>
                     <td><span style="color:var(--blue);font-weight:600;">${assignedUnits}</span></td>
                     <td>
@@ -1418,7 +1436,11 @@ import {
        document.getElementById('logDropdownText').value = '';
        positionDropdown(logDropdown, anchorEl);
        logDropdown.classList.add('open');
-       setTimeout(() => document.getElementById('logDropdownText').focus(), 50);
+       // Focus after dropdown is rendered visible
+       setTimeout(() => {
+           const el = document.getElementById('logDropdownText');
+           if (el) el.focus();
+       }, 100);
    }
 
    document.getElementById('logDropdownSave').addEventListener('click', () => {
@@ -1668,6 +1690,20 @@ import {
        source.status = 'Afgesloten: Dubbele melding';
        addIncidentAudit(source, `Samengevoegd in melding ${target.id}`);
        setDoc(doc(db, "incidents", source.id), source);
+
+       // Reset eenheden die aan de gesplitste bron-incident waren gekoppeld
+       if (source.units) {
+           source.units.forEach(uidStr => {
+               const uName = uidStr.includes(':') ? uidStr.split(':')[1].trim() : uidStr;
+               const unitObj = units.find(u => u.id === uName);
+               if (unitObj && unitObj.status === 'uitgerukt') {
+                   unitObj.status = 'retour post';
+                   if (unitObj.gekoppeldAanPost) unitObj.location = unitObj.gekoppeldAanPost;
+                   setDoc(doc(db, "units", unitObj.id), unitObj);
+                   addLog('Status', 'Eenheid retour na samenvoegen', unitObj.id, source.id, source.location);
+               }
+           });
+       }
        
        document.getElementById('mergeModal').classList.remove('show');
        currentMergeIncidentId = null;
@@ -1697,8 +1733,8 @@ import {
            return;
        }
 
-       // Zorg ter plaatse / Retour BLS/ALS: alleen loggen, melding blijft staan
-       const logOnly = ['Zorg ter plaatse', 'Retour BLS', 'Retour ALS'];
+       // Zorg ter plaatse / Retour BLS/ALS / Brand meester / Assistentie Brandweer: alleen loggen, melding blijft staan
+       const logOnly = ['Zorg ter plaatse', 'Retour BLS', 'Retour ALS', 'Brand meester', 'Assistentie Brandweer'];
        if (logOnly.includes(reason)) {
            incident.status = reason;
            addIncidentAudit(incident, `${reason} geregistreerd`);
@@ -1924,11 +1960,11 @@ import {
        const ambMatch = text.match(/(^|\s)-a([012])\b/i);
        if (ambMatch) { parsedNotes.push(`Ambulance urgentie: A${ambMatch[2]}`); text = text.replace(/(^|\s)-a[012]\b/gi, '').trim(); }
 
-       // -ehtp / tp → status "Ter plaatse"
-       if (/(^|\s)-ehtp\b|(^|\s)\btp\b/i.test(text)) {
+       // -ehtp → status "Ter plaatse"
+       if (/(^|\s)-ehtp\b/i.test(text)) {
            inc.status = 'Ter plaatse';
            parsedNotes.push('Status → Ter plaatse');
-           text = text.replace(/(^|\s)-ehtp\b/gi, '').replace(/(^|\s)\btp\b/gi, '').trim();
+           text = text.replace(/(^|\s)-ehtp\b/gi, '').trim();
        }
 
        // -nb (Nader Bericht)
@@ -1947,13 +1983,13 @@ import {
            return null;
        };
 
-       const urgVal = extractVal(/(^|\s)-urg\s+([123])/i);
+       const urgVal = extractVal(/(^|\s)-urg\s+([123])\b/i);
        if (urgVal) { const urgMap = { '1': 'Spoed', '2': 'Direct Vertrekken', '3': 'Uitstelmogelijkheid' }; inc.urgency = urgMap[urgVal]; parsedNotes.push(`Urgentie gewijzigd naar: ${inc.urgency}`); }
 
-       const gesVal = extractVal(/(^|\s)-ges\s+([mv])/i);
+       const gesVal = extractVal(/(^|\s)-ges\s+([mv])\b/i);
        if (gesVal) { const g = gesVal.toLowerCase() === 'm' ? 'Man' : 'Vrouw'; inc.details.gender = g; parsedNotes.push(`Geslacht: ${g}`); }
 
-       const dVal = extractVal(/(^|\s)-d\s+([avpu])/i);
+       const dVal = extractVal(/(^|\s)-d\s+([avpu])\b/i);
        if (dVal) { const dMap = { 'a': 'Alert', 'v': 'Verbal', 'p': 'Pain', 'u': 'Unresponsive' }; inc.details.disability = dMap[dVal.toLowerCase()]; parsedNotes.push(`Disability (D): ${inc.details.disability}`); }
 
        const fields = [ { key: 'dnr', prop: 'dnr', label: 'Deelnemersnummer', inDetails: true }, { key: 'loc', prop: 'location', label: 'Locatie', inDetails: false }, { key: 'geb', prop: 'event', label: 'Gebeurtenis', inDetails: false }, { key: 'melder', prop: 'reporter', label: 'Melder', inDetails: false }, { key: 'xps', prop: 'xps', label: 'XPS', inDetails: true }, { key: 'a', prop: 'airway', label: 'Airway (A)', inDetails: true }, { key: 'b', prop: 'breathing', label: 'Breathing (B)', inDetails: true }, { key: 'c', prop: 'circulation', label: 'Circulation (C)', inDetails: true }, { key: 'e', prop: 'exposure', label: 'Exposure (E)', inDetails: true } ];
@@ -1964,8 +2000,9 @@ import {
 
        if (text.length > 0) {
            if (isNaderBericht) {
+               const now = new Date();
+               const timeStr = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
                addLog('Nader bericht', text, '', inc.id, inc.location);
-               const timeStr = new Date().getHours().toString().padStart(2,'0')+':'+new Date().getMinutes().toString().padStart(2,'0');
                const user = auth.currentUser ? auth.currentUser.email.split('@')[0] : 'Systeem';
                inc.auditTrail = inc.auditTrail || [];
                inc.auditTrail.push({ time: timeStr, action: `Nader bericht: ${text}`, user: user });
@@ -2079,7 +2116,9 @@ import {
           if (isOpen) modal.querySelector('input, textarea, select')?.focus();
       });
 
+      // Bind close/cancel buttons, but skip any with data-skip-auto="true" (handled elsewhere)
       modal.querySelectorAll('.modal-close, .btn-cancel').forEach(btn => {
+          if (btn.getAttribute('data-skip-auto') === 'true') return;
           btn.addEventListener('click', () => {
               modal.classList.remove('show');
               if (form) form.reset();
@@ -2498,6 +2537,11 @@ import {
 
           if (!newUnit.type) {
               alert('Kies eerst een eenheidstype.');
+              return;
+          }
+
+          if (!newUnit.id) {
+              alert('Vul een geldig roepnummer in.');
               return;
           }
 
@@ -3043,6 +3087,7 @@ import {
       document.querySelectorAll('[data-delete-post]').forEach(btn => {
           btn.addEventListener('click', () => {
               const postId = btn.getAttribute('data-delete-post');
+              if (!confirm(`Weet je zeker dat je post "${postId}" wilt verwijderen?`)) return;
               const idx = posts.findIndex(x => x.id === postId);
               if (idx !== -1) { posts.splice(idx, 1); deleteDoc(doc(db, "posts", postId)); renderPosts(); renderDetailedPostsTable(); }
           });
