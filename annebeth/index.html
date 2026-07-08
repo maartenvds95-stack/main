@@ -715,23 +715,20 @@
         <p style="color: var(--text-light); margin: 0; font-size: 14px;">Log in om het dagboek te openen</p>
     </div>
 
-    <form id="loginForm" style="padding: 20px;">
+    <div style="padding: 20px;">
         <div class="input-group">
             <label class="input-label">E-mailadres</label>
-            <input type="email" class="input-field" id="loginUsername" placeholder="Bijv. mama@email.nl" autocomplete="username" required style="background-color: var(--card-bg); border-color: #e5e5ea;">
+            <input type="email" class="input-field" id="loginUsername" placeholder="Bijv. mama@email.nl" style="background-color: var(--card-bg); border-color: #e5e5ea;">
         </div>
 
         <div class="input-group">
             <label class="input-label">Wachtwoord</label>
-            <input type="password" class="input-field" id="loginPassword" placeholder="Je wachtwoord" autocomplete="current-password" required style="background-color: var(--card-bg); border-color: #e5e5ea;">
+            <input type="password" class="input-field" id="loginPassword" placeholder="Je wachtwoord" style="background-color: var(--card-bg); border-color: #e5e5ea;">
         </div>
 
         <div style="margin-top: 40px;">
-            <button type="submit" class="save-btn" id="loginBtn">Inloggen</button>
+            <button class="save-btn" id="loginBtn">Inloggen</button>
         </div>
-    </form>
-    <div style="text-align: center; margin-top: 15px;">
-        <button type="button" id="forgotPasswordBtn" style="background: transparent; border: none; color: var(--icon-purple); font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: underline;">Wachtwoord vergeten?</button>
     </div>
 </div>
 
@@ -888,7 +885,7 @@
             <div class="segmented-control" id="diaperTypeControl" style="background-color: #fcefd0;">
                 <button class="segment-btn active" style="color: var(--icon-yellow);"><i class="fa-solid fa-droplet"></i> Plas</button>
                 <button class="segment-btn" style="color: var(--icon-yellow);"><i class="fa-solid fa-poop"></i> Poep</button>
-                <button class="segment-btn" style="color: var(--icon-yellow);"><i class="fa-solid fa-droplet" style="font-size: 0.9em;"></i><i class="fa-solid fa-poop" style="margin-left: 2px; font-size: 0.9em;"></i> Beide</button>
+                <button class="segment-btn" style="color: var(--icon-yellow);"><i class="fa-solid fa-asterisk"></i> Beide</button>
             </div>
 
             <div class="input-group">
@@ -1128,7 +1125,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyChofc8PhMI4zIwk43Ld_R1OZMDEt_hGlU",
@@ -1438,7 +1435,6 @@
         // ==========================================
         const loginScreen = document.getElementById('loginScreen');
         const mainApp = document.getElementById('mainApp');
-        const loginForm = document.getElementById('loginForm');
         const loginBtn = document.getElementById('loginBtn');
         const loginUsername = document.getElementById('loginUsername');
         const loginPassword = document.getElementById('loginPassword');
@@ -1515,9 +1511,8 @@
             }
         });
 
-        // Actie bij versturen van het "Inloggen" formulier
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Actie bij klikken op "Inloggen"
+        loginBtn.addEventListener('click', async () => {
             const email = loginUsername.value.trim();
             const password = loginPassword.value.trim();
             
@@ -1527,6 +1522,16 @@
                 } catch (error) {
                     alert('Inloggen mislukt. Controleer je e-mailadres en wachtwoord.');
                     console.error("Fout bij inloggen:", error);
+                }
+                if (!activeBreastTimerUnsubscribe) {
+                    activeBreastTimerUnsubscribe = onSnapshot(doc(db, "active_state", "breastTimer"), (docSnap) => {
+                        if (docSnap.exists() && typeof syncBreastTimerFromFirebase === 'function') syncBreastTimerFromFirebase(docSnap.data());
+                    });
+                }
+                if (!activePumpTimerUnsubscribe) {
+                    activePumpTimerUnsubscribe = onSnapshot(doc(db, "active_state", "pumpTimer"), (docSnap) => {
+                        if (docSnap.exists() && typeof syncPumpTimerFromFirebase === 'function') syncPumpTimerFromFirebase(docSnap.data());
+                    });
                 }
             } else {
                 alert('Vul alsjeblieft een e-mailadres en wachtwoord in.');
@@ -1710,7 +1715,6 @@
                 `;
                 timeline.appendChild(newItem);
             });
-            updateSleepBanner();
         }
         
         // --- Verwijder en Bewerken functionaliteit voor tijdlijn items ---
@@ -1751,6 +1755,7 @@
                     const endDateTime = new Date(item.timestamp);
                     
                     // Extract duration from subtitle "HH:MM, HH:MM:SS geslapen", "01:30 uur geslapen", or "45 min geslapen"
+                    const subtitle = item.subtitle || '';
                     const durationMatch3 = subtitle.match(/(\d{2}):(\d{2}):(\d{2})/);
                     const durationMatch2 = subtitle.match(/(\d{2}):(\d{2})\s*uur/);
                     const durationMatchMin = subtitle.match(/(\d+)\s*min/);
@@ -1778,6 +1783,9 @@
             
                     endDateTime.setMinutes(endDateTime.getMinutes() - endDateTime.getTimezoneOffset());
                     const formattedEndTime = endDateTime.toISOString();
+
+                    const notesParts = subtitle.split(' - ');
+                    const notes = notesParts.length > 1 ? notesParts.slice(1).join(' - ') : '';
             
                     document.getElementById('saveBtn').innerHTML = 'Bijwerken';
                     document.getElementById('deleteSleepBtn').style.display = 'block';
@@ -1846,6 +1854,14 @@
                     document.getElementById('noteModal').classList.add('active');
                     document.body.style.overflow = 'hidden';
                 }
+                if (activeBreastTimerUnsubscribe) {
+                    activeBreastTimerUnsubscribe();
+                    activeBreastTimerUnsubscribe = null;
+                }
+                if (activePumpTimerUnsubscribe) {
+                    activePumpTimerUnsubscribe();
+                    activePumpTimerUnsubscribe = null;
+                }
             }
         });
 
@@ -1898,7 +1914,7 @@
                 
                 if (!lastSleep && titleLower === 'slapen') lastSleep = item.timestamp;
                 if (!lastBreast && titleLower.includes('borst')) lastBreast = item.timestamp;
-                if (!lastDiaper && (titleLower.includes('luier') || titleLower === 'verschonen')) lastDiaper = item.timestamp;
+                if (!lastDiaper && titleLower.includes('luier')) lastDiaper = item.timestamp;
                 if (!lastBottle && titleLower.includes('fles')) lastBottle = item.timestamp;
                 if (!lastPump && titleLower.includes('kolv')) lastPump = item.timestamp;
                 if (!lastNote && titleLower.includes('notitie')) lastNote = item.timestamp;
@@ -2027,7 +2043,7 @@
         }
 
         if (isTimerRunning && sleepTimerStartTime) {
-            const savedDate = localStorage.getItem('sleepTimerDate') || getCurrentDateTime().slice(0, 10);
+            const savedDate = localStorage.getItem('sleepTimerDate');
             const savedStartVal = localStorage.getItem('sleepTimerStartValue');
             if (savedDate) sleepModal.dataset.date = savedDate;
             
@@ -2147,7 +2163,7 @@
             
             const startVal = document.getElementById('sleepStart').value;
             const endVal = document.getElementById('sleepEnd').value;
-            const storedDate = sleepModal.dataset.date || getCurrentDateTime().slice(0, 10);
+            const storedDate = sleepModal.dataset.date;
             
             if (startVal && endVal && storedDate) {
                 const startDateTime = new Date(`${storedDate}T${startVal}`);
@@ -2182,19 +2198,10 @@
         document.getElementById('sleepStart').addEventListener('input', () => {
             if (isTimerRunning || (!isTimerRunning && timerSeconds > 0 && !document.getElementById('sleepEnd').value)) {
                 const newStartVal = document.getElementById('sleepStart').value;
-                let storedDate = sleepModal.dataset.date;
+                const storedDate = sleepModal.dataset.date;
                 if (!newStartVal || !storedDate) return;
                 
-                let newStartTime = new Date(`${storedDate}T${newStartVal}`).getTime();
-                if (newStartTime > Date.now()) {
-                    newStartTime -= 24 * 60 * 60 * 1000;
-                    const prevDate = new Date(newStartTime);
-                    prevDate.setMinutes(prevDate.getMinutes() - prevDate.getTimezoneOffset());
-                    storedDate = prevDate.toISOString().slice(0, 10);
-                    sleepModal.dataset.date = storedDate;
-                    localStorage.setItem('sleepTimerDate', storedDate);
-                }
-                newStartTime = new Date(`${storedDate}T${newStartVal}`).getTime();
+                const newStartTime = new Date(`${storedDate}T${newStartVal}`).getTime();
                 if (newStartTime > Date.now()) return;
                 
                 sleepTimerStartTime = newStartTime;
@@ -2207,8 +2214,7 @@
                 
                 updateFirebaseSleepTimer({
                     startTime: sleepTimerStartTime,
-                    startValue: newStartVal,
-                    startDate: storedDate
+                    startValue: newStartVal
                 });
             } else {
                 calculateAndDisplaySleepDuration();
@@ -2411,8 +2417,7 @@
             // Icoon dynamisch bepalen afhankelijk van het type luier
             let diaperIcon = 'fa-baby';
             if (activeTab === 'Plas') diaperIcon = 'fa-droplet';
-            if (activeTab === 'Poep') diaperIcon = 'fa-poop';
-            if (activeTab === 'Beide') diaperIcon = 'fa-droplet" style="font-size: 0.85em;"></i><i class="fa-solid fa-poop" style="margin-left: 2px; font-size: 0.85em;';
+            if (activeTab === 'Poep' || activeTab === 'Beide') diaperIcon = 'fa-poop';
 
             const itemTimestamp = timeObj.toISOString();
 
@@ -3247,7 +3252,6 @@
         const closeGrowthModal = () => {
             growthModal.classList.remove('active');
             document.body.style.overflow = '';
-            currentEditGrowthId = null;
         };
 
         closeGrowthModalBtn.addEventListener('click', closeGrowthModal);
@@ -3268,12 +3272,6 @@
                 const combinedDateTime = `${storedDate}T${timeVal}`;
                 const parsedDate = new Date(combinedDateTime);
                 if (!isNaN(parsedDate.getTime())) timeObj = parsedDate;
-                if (!isNaN(parsedDate.getTime())) {
-                    timeObj = parsedDate;
-                    if (timeObj.getTime() > Date.now()) {
-                        timeObj.setDate(timeObj.getDate() - 1);
-                    }
-                }
             }
 
             try {

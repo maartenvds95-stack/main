@@ -53,14 +53,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            min-height: 60px;
-            flex-wrap: wrap;
-            gap: 15px;
+            height: 60px;
         }
 
         header h1 {
             margin: 0;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             color: var(--text-light);
             font-weight: 600;
         }
@@ -69,29 +67,13 @@
             display: flex;
             gap: 12px;
             align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .toolbar-group {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background-color: var(--bg-dark);
-            padding: 6px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        
-        .toolbar-group label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-main);
         }
 
         /* Main Workspace Layout */
         .workspace {
             display: flex;
             flex: 1;
+            height: calc(100vh - 60px);
             overflow: hidden;
         }
 
@@ -136,7 +118,6 @@
             border-radius: 6px;
             padding: 12px;
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .panel-title {
@@ -148,7 +129,6 @@
             font-weight: bold;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 5px;
-            user-select: none;
         }
 
         .btn-grid {
@@ -167,7 +147,7 @@
             color: var(--text-light);
             border: 1px solid var(--border-color);
             padding: 8px 12px;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 0.85rem;
             transition: all 0.2s ease;
@@ -274,78 +254,23 @@
         .context-menu button.danger-btn {
             color: var(--danger);
         }
-
-        /* Full Page Login Overlay */
-        .login-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: var(--bg-dark); z-index: 9999;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .login-box {
-            background-color: var(--sidebar-bg);
-            padding: 30px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        }
-
-        /* Custom Scrollbars */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg-dark);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-main);
-        }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="display:flex; flex-direction:column; gap:2px;">
-        <h1>Technische Bouwtekening & Installatie Editor</h1>
-        <span style="font-size: 0.75rem; color: var(--text-main);">Professionele CAD Light Software</span>
-    </div>
+    <h1>Technische Bouwtekening & Installatie Editor (CAD Light)</h1>
     <div class="file-actions">
-        <!-- Algemene Opties -->
-        <div class="toolbar-group">
-            <button id="themeToggleBtn">🌗 Thema</button>
-            <button id="helpBtn">❓ Help</button>
-            <button id="undoBtn">↩ Undo</button>
-            <button id="clearCanvas" class="danger-btn">Wis Alles</button>
-        </div>
-        
-        <!-- Bestand Beheer -->
-        <div class="toolbar-group">
-            <label for="fileLoader">Inladen: </label>
-            <input type="file" id="fileLoader" accept="image/*,.json" multiple style="width: auto; max-width: 180px; padding: 2px;">
-            <button id="saveProjectBtn">💾 Opslaan (.json)</button>
-        </div>
-
-        <!-- Cloud -->
-        <div class="toolbar-group" style="border-color: var(--accent);">
-            <span id="userInfo" style="display:none; color: var(--accent); font-size: 0.85rem; font-weight: bold;"></span>
-            <button id="authBtn" style="color: var(--accent);">🔒 Inloggen</button>
-            <button onclick="window.saveToCloud()" style="color: var(--accent);">☁️ Cloud Opslaan</button>
-            <button onclick="window.loadFromCloud()" style="color: var(--accent);">📂 Projecten</button>
-        </div>
-
-        <!-- Export -->
-        <div class="toolbar-group" style="border-color: var(--success);">
-            <span style="font-size: 0.8rem; font-weight: 600; color: var(--success);">Export:</span>
-            <button id="exportImage" style="background-color: var(--success); color: #11111b; font-weight: bold;">Afbeelding</button>
-            <button id="exportSvgBtn" style="background-color: var(--success); color: #11111b; font-weight: bold;">SVG</button>
-            <button id="exportPdfBtn" style="background-color: var(--success); color: #11111b; font-weight: bold;">PDF</button>
-        </div>
+        <button id="themeToggleBtn" style="background-color: var(--panel-bg);">🌗 Thema</button>
+        <button id="helpBtn" style="background-color: var(--panel-bg);">❓ Help</button>
+        <label style="font-size:0.85rem;" for="fileLoader">Inladen: </label>
+        <input type="file" id="fileLoader" accept="image/*,.json" style="width: auto; max-width: 200px;">
+        <button id="saveProjectBtn" style="background-color: var(--panel-bg);">💾 Opslaan (.json)</button>
+        <button id="undoBtn" style="background-color: var(--panel-bg);">↩ Undo</button>
+        <button id="clearCanvas" class="danger-btn">Wis Alles</button>
+        <button id="exportImage" style="background-color: var(--success); color: #11111b; font-weight: bold;">Afbeelding</button>
+        <button id="exportSvgBtn" style="background-color: var(--success); color: #11111b; font-weight: bold;">SVG</button>
+        <button id="exportPdfBtn" style="background-color: var(--success); color: #11111b; font-weight: bold;">PDF</button>
     </div>
 </header>
 
@@ -356,7 +281,6 @@
             <div class="btn-grid">
                 <button id="tool-select" class="active" onclick="switchTool('select')">Selecteer</button>
                 <button id="tool-pan" onclick="switchTool('pan')">Pan / Versleep</button>
-                <button id="tool-room" class="btn-full" onclick="switchTool('room')" style="border-color: var(--accent); color: var(--accent);">🏠 Ruimte / Kamer Tekenen</button>
                 <button id="tool-line" onclick="switchTool('line')">Rechte Lijn</button>
                 <button id="tool-curve" onclick="switchTool('curve')">〰️ Flexibele Buis</button>
                 <button id="tool-rect" onclick="switchTool('rect')">🟩 Rechthoek</button>
@@ -442,12 +366,9 @@
     </div>
 
     <div class="sidebar right-sidebar">
-        <div class="panel-section">
-            <div class="panel-title">Symbool Eigenschappen</div>
-            <div class="input-group">
-                <label for="symbolScale">Symbool Grootte (<span id="symScaleVal">100</span>%):</label>
-                <input type="range" id="symbolScale" min="50" max="200" value="100" oninput="document.getElementById('symScaleVal').innerText=this.value">
-            </div>
+        <div class="input-group" style="background: var(--panel-bg); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 10px;">
+            <label for="symbolScale">Symbool Grootte (<span id="symScaleVal">100</span>%):</label>
+            <input type="range" id="symbolScale" min="50" max="200" value="100" oninput="document.getElementById('symScaleVal').innerText=this.value">
         </div>
 
         <div class="panel-section">
@@ -504,13 +425,6 @@
         </div>
 
         <div class="panel-section">
-            <div class="panel-title">Lijst van Objecten</div>
-            <div id="objectListContainer" style="display:flex; flex-direction:column; gap:5px; max-height: 250px; overflow-y: auto; font-size: 0.85rem;">
-                <div style="text-align:center; color: var(--text-main); font-style: italic; padding: 10px 0;">Geen objecten</div>
-            </div>
-        </div>
-
-        <div class="panel-section">
             <div class="panel-title">Eigen Stempels</div>
             <button class="btn-full" onclick="saveCustomStamp()" style="margin-bottom: 8px;">➕ Selectie opslaan als stempel</button>
             <div id="customStampsContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
@@ -522,7 +436,6 @@
                 <button onclick="changeOrder('front')">Breng naar Voren</button>
                 <button onclick="changeOrder('back')">Breng naar Achteren</button>
                 <button onclick="toggleLock()" style="background-color: #a9b1d6; color: #1a1b26;">🔏 Vastzetten / Losmaken</button>
-                <button onclick="createArray()">🔠 Maak Patroon (Array)</button>
                 <button id="deleteObject" class="danger-btn">🗑️ Verwijder Selectie</button>
             </div>
             <div style="font-size: 0.75rem; margin-top: 10px; color: var(--text-main); text-align: center;">
@@ -532,7 +445,6 @@
         
         <div class="panel-section">
             <div class="panel-title">Hulpmiddelen</div>
-            <button class="btn-full" id="tool-crop" onclick="startCropMode()" style="margin-bottom: 8px; background-color: var(--panel-bg);">✂️ Afbeelding Bijsnijden</button>
             <button class="btn-full" onclick="generateLegend()">📝 Genereer Legenda</button>
             <div style="display: flex; gap: 8px; margin-top: 8px;">
                 <button style="flex:1;" onclick="generateBOM()">📋 Toon BOM</button>
@@ -565,89 +477,10 @@
     <button onclick="contextAction('back')">Naar Achteren</button>
     <button onclick="contextAction('lock')">🔏 Vastzetten/Losmaken</button>
     <button onclick="contextAction('clone')">Kopiëren</button>
-    <button onclick="contextAction('array')">🔠 Maak Patroon</button>
     <button onclick="contextAction('delete')" class="danger-btn">Verwijderen</button>
 </div>
 
-<!-- Het schermvullende inlogscherm -->
-<div class="login-overlay" id="loginScreen">
-    <div class="login-box">
-        <h2 style="margin-top:0; text-align:center; color:var(--text-light);">🔒 Inloggen</h2>
-        <p style="text-align:center; font-size:0.85rem; color:var(--text-main); margin-bottom: 20px;">Log in om de applicatie te gebruiken.</p>
-        <div class="input-group">
-            <label>E-mailadres</label>
-            <input type="email" id="loginEmail" placeholder="naam@email.nl">
-        </div>
-        <div class="input-group">
-            <label>Wachtwoord</label>
-            <input type="password" id="loginPassword" placeholder="Wachtwoord">
-        </div>
-        <div style="margin-top: 20px;">
-            <button id="loginSubmitBtn" style="width: 100%; padding: 10px; background-color: var(--success); color: #111; font-weight: bold; font-size: 1rem;">Inloggen</button>
-        </div>
-    </div>
-</div>
-
-<!-- Het venster voor Cloud Projecten -->
-<div class="modal-overlay" id="projectsModal">
-    <div class="modal-content" style="width: 500px;">
-        <h2>☁️ Opgeslagen Projecten (Firebase)</h2>
-        <div id="projectsList" style="max-height: 350px; overflow-y: auto; margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
-            <p>Laden...</p>
-        </div>
-        <button onclick="document.getElementById('projectsModal').style.display='none'" style="width:100%; padding:10px; font-weight:bold; margin-top: 15px;">Sluiten</button>
-    </div>
-</div>
-
 <script>
-    // --- UI Verbeteringen: Inklapbare Panelen (Accordions) ---
-    document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll('.panel-section').forEach((section) => {
-            const title = section.querySelector('.panel-title');
-            if (!title) return;
-            
-            title.style.cursor = 'pointer';
-            title.style.display = 'flex';
-            title.style.justifyContent = 'space-between';
-            title.style.alignItems = 'center';
-            title.innerHTML += '<span class="toggle-icon" style="font-size:0.7rem; transition: transform 0.2s;">▼</span>';
-            
-            // Panelen die we standaard willen inklappen voor een rustiger overzicht
-            const collapseByDefault = [
-                'Sanitair & Verwarming', 
-                'Bouwkundig & Data', 
-                'Meubilair & Inrichting', 
-                'Uitlijnen (Meerdere objecten)', 
-                'Lijst van Objecten', 
-                'Eigen Stempels', 
-                'Hulpmiddelen'
-            ];
-            
-            const isCollapsibleDefault = collapseByDefault.some(name => title.innerText.includes(name));
-            
-            function togglePanel(collapse) {
-                if (collapse) {
-                    title.classList.add('collapsed');
-                    title.querySelector('.toggle-icon').style.transform = 'rotate(-90deg)';
-                } else {
-                    title.classList.remove('collapsed');
-                    title.querySelector('.toggle-icon').style.transform = 'rotate(0deg)';
-                }
-                
-                Array.from(section.children).forEach(child => {
-                    if (child !== title) child.style.display = collapse ? 'none' : '';
-                });
-            }
-
-            if (isCollapsibleDefault) togglePanel(true);
-
-            title.addEventListener('click', () => {
-                const isCollapsed = title.classList.contains('collapsed');
-                togglePanel(!isCollapsed);
-            });
-        });
-    });
-
     // Initialiseer Fabric Canvas
     const canvas = new fabric.Canvas('cadCanvas', {
         width: 1000,
@@ -667,7 +500,7 @@
     function saveState() {
         if (isUndoing) return; // Sla niet op tijdens het undo-proces
         try {
-            const jsonState = JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType']));
+            const jsonState = JSON.stringify(canvas.toJSON(['cadType']));
             
             // Voorkom identieke opeenvolgende opnames in de geschiedenis
             if (historyStack.length > 0 && historyStack[historyStack.length - 1] === jsonState) return;
@@ -702,7 +535,6 @@
     // Omschakelen naar Licht/Donker thema
     document.getElementById('themeToggleBtn').addEventListener('click', () => {
         document.documentElement.classList.toggle('light-mode');
-        canvas.requestRenderAll(); // Zorg dat de liniaal direct de nieuwe kleuren overneemt
     });
 
     // Pipet tool voor kleur selectie
@@ -760,110 +592,6 @@
         canvas.on('object:modified', saveState);
         canvas.on('object:removed', saveState);
         canvas.on('path:created', saveState);
-        
-        canvas.on('object:added', updateObjectList);
-        canvas.on('object:removed', updateObjectList);
-        canvas.on('selection:created', updateObjectList);
-        canvas.on('selection:updated', updateObjectList);
-        canvas.on('selection:cleared', updateObjectList);
-        canvas.on('object:modified', updateObjectList);
-    }
-
-    let listUpdateTimeout = null;
-    function updateObjectList() {
-        if (isUndoing) return;
-        clearTimeout(listUpdateTimeout);
-        listUpdateTimeout = setTimeout(() => {
-            const container = document.getElementById('objectListContainer');
-            if (!container) return;
-            container.innerHTML = '';
-            
-            let objects = canvas.getObjects();
-            let addedCount = 0;
-            for (let i = objects.length - 1; i >= 0; i--) {
-                let obj = objects[i];
-                if (obj.excludeFromExport) continue; // Sla hulplijnen over
-                if (!obj.id) obj.id = 'obj_' + Date.now() + '_' + Math.floor(Math.random() * 1000) + i;
-                if (!obj.customName) {
-                    let defaultName = obj.symbolType || obj.cadType || obj.type || 'Object';
-                    obj.customName = defaultName.charAt(0).toUpperCase() + defaultName.slice(1);
-                }
-                
-                let div = document.createElement('div');
-                div.style.display = 'flex';
-                div.style.justifyContent = 'space-between';
-                div.style.alignItems = 'center';
-                div.style.background = 'var(--bg-dark)';
-                div.style.padding = '4px 6px';
-                div.style.border = '1px solid var(--border-color)';
-                div.style.borderRadius = '4px';
-                
-                if (canvas.getActiveObjects().includes(obj)) {
-                    div.style.borderColor = 'var(--accent)';
-                }
-                
-                let nameSpan = document.createElement('span');
-                nameSpan.innerText = obj.customName;
-                nameSpan.style.flex = '1';
-                nameSpan.style.cursor = 'pointer';
-                nameSpan.style.overflow = 'hidden';
-                nameSpan.style.textOverflow = 'ellipsis';
-                nameSpan.style.whiteSpace = 'nowrap';
-                nameSpan.style.opacity = (obj.opacity === 0 || obj.visible === false) ? '0.5' : '1';
-                nameSpan.onclick = () => {
-                    canvas.discardActiveObject();
-                    if (obj.selectable !== false) {
-                        canvas.setActiveObject(obj);
-                    }
-                    canvas.requestRenderAll();
-                    updateObjectList();
-                };
-                
-                let renameBtn = document.createElement('button');
-                renameBtn.innerText = '✏️';
-                renameBtn.style.padding = '2px 4px';
-                renameBtn.style.marginRight = '4px';
-                renameBtn.style.background = 'transparent';
-                renameBtn.style.border = 'none';
-                renameBtn.title = "Hernoemen";
-                renameBtn.onclick = () => {
-                    let newName = prompt('Nieuwe naam voor dit object:', obj.customName);
-                    if (newName) {
-                        obj.customName = newName;
-                        saveState();
-                        updateObjectList();
-                    }
-                };
-                
-                let visBtn = document.createElement('button');
-                let isVisible = !(obj.opacity === 0 || obj.visible === false);
-                visBtn.innerText = isVisible ? '👁️' : '🙈';
-                visBtn.style.padding = '2px 4px';
-                visBtn.style.background = 'transparent';
-                visBtn.style.border = 'none';
-                visBtn.title = "Verbergen / Tonen";
-                visBtn.onclick = () => {
-                    if (isVisible) {
-                        obj.set({ opacity: 0, selectable: false, evented: false });
-                    } else {
-                        obj.set({ opacity: 1, selectable: true, evented: true });
-                    }
-                    canvas.discardActiveObject();
-                    canvas.requestRenderAll();
-                    saveState();
-                    updateObjectList();
-                };
-                
-                div.appendChild(nameSpan);
-                div.appendChild(renameBtn);
-                div.appendChild(visBtn);
-                container.appendChild(div);
-                addedCount++;
-            }
-            if (addedCount === 0) {
-                container.innerHTML = '<div style="text-align:center; color: var(--text-main); font-style: italic; padding: 10px 0;">Geen objecten</div>';
-            }
-        }, 100);
     }
 
     const savedData = localStorage.getItem('cadDrawingState');
@@ -874,19 +602,16 @@
                 historyStack.push(savedData); // Start de geschiedenis met de geladen data
                 setupAutoSave();
                 updateStatus();
-                updateObjectList();
                 if (gridEnabled) updateVisualGrid(); // Herlaad het raster
             });
         } catch(e) {
             console.error("Kon opgeslagen data niet laden", e);
-            historyStack.push(JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType'])));
+            historyStack.push(JSON.stringify(canvas.toJSON(['cadType'])));
             setupAutoSave();
-            updateObjectList();
         }
     } else {
-        historyStack.push(JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType'])));
+        historyStack.push(JSON.stringify(canvas.toJSON(['cadType'])));
         setupAutoSave();
-        updateObjectList();
     }
 
     // Reset Zoom en Pan naar originele positie
@@ -910,13 +635,6 @@
     // Area tools
     let areaPoints = [];
     let areaLines = [];
-    let roomPoints = [];
-    let roomLines = [];
-
-    // Crop tools
-    let isCropping = false;
-    let cropRect = null;
-    let targetImageToCrop = null;
 
     // Status elementen
     const statusBar = document.getElementById('statusBar');
@@ -964,7 +682,7 @@
         gridLines = [];
         if (gridEnabled) {
             isUndoing = true; // Zorg dat raster niet in Undo history komt
-            const w = 20000, h = 20000; // Grootte van de map flink vergroot
+            const w = 4000, h = 4000; // Grootte van de map
             for (let i = -w/2; i <= w/2; i += gridSize) {
                 let vLine = new fabric.Line([i, -h/2, i, h/2], { stroke: 'rgba(65, 72, 104, 0.4)', strokeWidth: 1, selectable: false, evented: false, excludeFromExport: true });
                 let hLine = new fabric.Line([-w/2, i, w/2, i], { stroke: 'rgba(65, 72, 104, 0.4)', strokeWidth: 1, selectable: false, evented: false, excludeFromExport: true });
@@ -973,9 +691,6 @@
                 vLine.sendToBack();
                 hLine.sendToBack();
             }
-            canvas.getObjects().forEach(obj => {
-                if (obj.cadType === 'blueprint') obj.sendToBack();
-            });
             if (canvas.backgroundImage) canvas.backgroundImage.sendToBack();
             isUndoing = false;
         }
@@ -983,16 +698,10 @@
     }
     
     function updateBgOpacity(val) {
-        let opacity = parseInt(val) / 100;
         if (canvas.backgroundImage) {
-            canvas.backgroundImage.opacity = opacity;
+            canvas.backgroundImage.opacity = parseInt(val) / 100;
+            canvas.requestRenderAll();
         }
-        canvas.getObjects().forEach(obj => {
-            if (obj.cadType === 'blueprint') {
-                obj.opacity = opacity;
-            }
-        });
-        canvas.requestRenderAll();
     }
 
     // Detecteer spatiebalk voor tijdelijk pannen
@@ -1034,68 +743,6 @@
         });
     }
 
-    function createArray() {
-        let activeObj = canvas.getActiveObject();
-        if (!activeObj) {
-            alert("Selecteer eerst een object of groep om een patroon te maken.");
-            return;
-        }
-
-        let rc = prompt("Aantal rijen en kolommen (bijv. 3,4):", "2,2");
-        if (!rc) return;
-        let [rows, cols] = rc.split(',').map(n => parseInt(n ? n.trim() : '1'));
-        if (isNaN(rows)) rows = 1;
-        if (isNaN(cols)) cols = 1;
-
-        let sp = prompt("Tussenruimte in pixels horizontaal en verticaal (X,Y) (bijv. 20,20):", "20,20");
-        if (!sp) return;
-        let [spaceX, spaceY] = sp.split(',').map(n => parseInt(n ? n.trim() : '0'));
-        if (isNaN(spaceX)) spaceX = 0;
-        if (isNaN(spaceY)) spaceY = 0;
-
-        isUndoing = true; // pauzeer auto-save tijdens kopiëren
-        let clonesExpected = (rows * cols) - 1;
-        let clonesCompleted = 0;
-
-        if (clonesExpected <= 0) { isUndoing = false; return; }
-
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                if (r === 0 && c === 0) continue; // originele overslaan
-
-                activeObj.clone(function(clonedObj) {
-                    let w = activeObj.width * activeObj.scaleX;
-                    let h = activeObj.height * activeObj.scaleY;
-
-                    clonedObj.set({
-                        left: activeObj.left + (c * (w + spaceX)),
-                        top: activeObj.top + (r * (h + spaceY)),
-                        evented: true,
-                        selectable: true
-                    });
-
-                    if (clonedObj.type === 'activeSelection') {
-                        clonedObj.canvas = canvas;
-                        clonedObj.forEachObject(function(obj) {
-                            canvas.add(obj);
-                        });
-                        clonedObj.setCoords();
-                    } else {
-                        canvas.add(clonedObj);
-                    }
-
-                    clonesCompleted++;
-                    if (clonesCompleted === clonesExpected) {
-                        isUndoing = false;
-                        canvas.discardActiveObject();
-                        canvas.requestRenderAll();
-                        saveState(); // Sla alles als één stap op
-                    }
-                });
-            }
-        }
-    }
-
     window.addEventListener('keydown', function(e) {
         if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
             spacePressed = true;
@@ -1118,7 +765,6 @@
         }
         if (e.key === 'Enter' || e.key === 'Escape') {
             if (currentTool === 'area' && areaPoints.length > 2) finishArea();
-            if (currentTool === 'room' && roomPoints.length > 2) finishRoom();
         }
         // Copy / Paste (Ctrl+C / Ctrl+V)
         if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C') && document.activeElement.tagName !== 'INPUT') {
@@ -1143,46 +789,21 @@
         }
     });
 
-    let smartGuides = [];
-    function clearSmartGuides() {
-        if (smartGuides.length > 0) {
-            smartGuides.forEach(guide => canvas.remove(guide));
-            smartGuides = [];
-            canvas.requestRenderAll();
-        }
-    }
-
     // Snappen naar het raster tijdens het verplaatsen van objecten
     canvas.on('object:moving', function(options) {
-        clearSmartGuides();
         if (gridEnabled) {
             options.target.set({
                 left: Math.round(options.target.left / gridSize) * gridSize,
                 top: Math.round(options.target.top / gridSize) * gridSize
             });
         } else if (document.getElementById('snapObjectsCheck').checked) {
+            // Snap to other objects
             let target = options.target;
             let snapDist = 15;
-            let snappedX = false;
-            let snappedY = false;
-            
             canvas.getObjects().forEach(obj => {
-                if (obj === target || obj.excludeFromExport || obj.cadType === 'blueprint' || smartGuides.includes(obj)) return;
-                
-                if (!snappedX && Math.abs(target.left - obj.left) < snapDist) {
-                    target.set({ left: obj.left });
-                    snappedX = true;
-                    let vGuide = new fabric.Line([obj.left, -4000, obj.left, 4000], { stroke: '#bb9af3', strokeWidth: 1, strokeDashArray: [5, 5], selectable: false, evented: false, excludeFromExport: true, opacity: 0.8 });
-                    smartGuides.push(vGuide);
-                    canvas.add(vGuide);
-                }
-                
-                if (!snappedY && Math.abs(target.top - obj.top) < snapDist) {
-                    target.set({ top: obj.top });
-                    snappedY = true;
-                    let hGuide = new fabric.Line([-4000, obj.top, 4000, obj.top], { stroke: '#bb9af3', strokeWidth: 1, strokeDashArray: [5, 5], selectable: false, evented: false, excludeFromExport: true, opacity: 0.8 });
-                    smartGuides.push(hGuide);
-                    canvas.add(hGuide);
+                if (obj === target || obj.excludeFromExport) return;
+                if (Math.abs(target.left - obj.left) < snapDist && Math.abs(target.top - obj.top) < snapDist) {
+                    target.set({ left: obj.left, top: obj.top });
                 }
             });
         }
@@ -1208,10 +829,6 @@
                 canvas.add(cloned);
                 canvas.setActiveObject(cloned);
             });
-        }
-        if (action === 'array') {
-            canvas.setActiveObject(contextTarget);
-            createArray();
         }
         canvas.requestRenderAll();
         document.getElementById('contextMenu').style.display = 'none';
@@ -1450,8 +1067,6 @@
     });
 
     canvas.on('mouse:up', function(o) {
-        clearSmartGuides();
-        
         if (isPanning) {
             isPanning = false;
             canvas.selection = (currentTool === 'select');
@@ -1459,7 +1074,7 @@
             return;
         }
         
-        if (currentTool === 'area' || currentTool === 'room') {
+        if (currentTool === 'area') {
             return; // Gebruiker moet op Enter drukken om vlak te sluiten
         }
 
@@ -1536,127 +1151,11 @@
         if (currentTool === 'area' && areaPoints.length > 2) {
             finishArea();
         }
-        if (currentTool === 'room' && roomPoints.length > 2) {
-            finishRoom();
-        }
     });
-    
-    function finishArea() {
-        if (areaPoints.length < 3) return cleanupArea();
-        
-        let areaPx = 0;
-        let j = areaPoints.length - 1;
-        for (let i = 0; i < areaPoints.length; i++) {
-            areaPx += (areaPoints[j].x + areaPoints[i].x) * (areaPoints[j].y - areaPoints[i].y);
-            j = i;
-        }
-        areaPx = Math.abs(areaPx / 2);
-        
-        let scale = parseFloat(document.getElementById('scaleInput').value) || 100;
-        let areaM2 = (areaPx / (scale * scale)).toFixed(2);
-        
-        let poly = new fabric.Polygon(areaPoints, {
-            fill: 'rgba(158, 206, 106, 0.3)', stroke: '#9ece6a', strokeWidth: 2, strokeDashArray: [5,5], selectable: false, evented: false
-        });
-        
-        let minX = Math.min(...areaPoints.map(p => p.x)), maxX = Math.max(...areaPoints.map(p => p.x));
-        let minY = Math.min(...areaPoints.map(p => p.y)), maxY = Math.max(...areaPoints.map(p => p.y));
-        
-        let text = new fabric.Text(areaM2 + ' m²', {
-            left: minX + (maxX - minX)/2, top: minY + (maxY - minY)/2,
-            fontSize: parseInt(document.getElementById('fontSize').value) || 16,
-            fill: '#9ece6a', backgroundColor: 'rgba(26,27,38,0.8)',
-            originX: 'center', originY: 'center', selectable: false, evented: false
-        });
-        
-        let group = new fabric.Group([poly, text], { cadType: 'text', selectable: true, hasControls: true });
-        
-        isUndoing = true;
-        areaLines.forEach(l => canvas.remove(l));
-        if (activeLine) canvas.remove(activeLine);
-        canvas.add(group);
-        isUndoing = false;
-        
-        cleanupArea(); saveState(); switchTool('select');
-    }
-
-    function cleanupArea() {
-        areaPoints = [];
-        areaLines.forEach(l => canvas.remove(l));
-        areaLines = [];
-        if (activeLine) canvas.remove(activeLine);
-        activeLine = null;
-        isDrawingLine = false;
-    }
-
-    function finishRoom() {
-        if (roomPoints.length < 3) return cleanupRoom();
-        
-        let roomName = prompt("Naam van de ruimte (bijv. Woonkamer):", "Kamer");
-        if (!roomName) { cleanupRoom(); switchTool('select'); return; }
-
-        let hexColor = customColor.value;
-        let r = parseInt(hexColor.slice(1,3), 16), g = parseInt(hexColor.slice(3,5), 16), b = parseInt(hexColor.slice(5,7), 16);
-        let fillRgba = `rgba(${r}, ${g}, ${b}, 0.15)`;
-
-        let poly = new fabric.Polygon(roomPoints, {
-            fill: fillRgba, stroke: hexColor, strokeWidth: parseInt(customWidth.value) || 4, selectable: false, evented: false
-        });
-        
-        let minX = Math.min(...roomPoints.map(p => p.x)), maxX = Math.max(...roomPoints.map(p => p.x));
-        let minY = Math.min(...roomPoints.map(p => p.y)), maxY = Math.max(...roomPoints.map(p => p.y));
-        
-        let areaPx = 0; let j = roomPoints.length - 1;
-        for (let i = 0; i < roomPoints.length; i++) {
-            areaPx += (roomPoints[j].x + roomPoints[i].x) * (roomPoints[j].y - roomPoints[i].y);
-            j = i;
-        }
-        areaPx = Math.abs(areaPx / 2);
-        let scale = parseFloat(document.getElementById('scaleInput').value) || 100;
-        let areaM2 = (areaPx / (scale * scale)).toFixed(2);
-        
-        let textTitle = new fabric.Text(roomName, {
-            fontSize: parseInt(document.getElementById('fontSize').value) || 20, fill: hexColor,
-            originX: 'center', originY: 'center', fontWeight: 'bold', top: -10
-        });
-        
-        let textArea = new fabric.Text(areaM2 + ' m²', {
-            fontSize: (parseInt(document.getElementById('fontSize').value) || 20) * 0.7, fill: hexColor,
-            originX: 'center', originY: 'center', top: 15
-        });
-        
-        let textGroup = new fabric.Group([textTitle, textArea], {
-            left: minX + (maxX - minX)/2, top: minY + (maxY - minY)/2,
-            originX: 'center', originY: 'center', selectable: false, evented: false
-        });
-
-        let group = new fabric.Group([poly, textGroup], {
-            cadType: 'shape', customName: roomName, selectable: true, hasControls: true
-        });
-        
-        isUndoing = true;
-        roomLines.forEach(l => canvas.remove(l));
-        if (activeLine) canvas.remove(activeLine);
-        canvas.add(group);
-        isUndoing = false;
-        
-        cleanupRoom(); saveState(); switchTool('select');
-    }
-    
-    function cleanupRoom() {
-        roomPoints = [];
-        roomLines.forEach(l => canvas.remove(l));
-        roomLines = [];
-        if (activeLine) canvas.remove(activeLine);
-        activeLine = null;
-        isDrawingLine = false;
-    }
 
     // 2. Switchen van Modus & Gereedschap
     function switchTool(toolName) {
         currentTool = toolName;
-        if (typeof cleanupArea === 'function') cleanupArea();
-        if (typeof cleanupRoom === 'function') cleanupRoom();
         
         // Deactiveer alle actieve buttons in de zijbalk
         document.querySelectorAll('.sidebar button').forEach(btn => btn.classList.remove('active'));
@@ -1683,12 +1182,7 @@
         // Selecteerbaarheid aanpassen op basis van modus
         if (toolName === 'select') {
             canvas.selection = true;
-            canvas.forEachObject(o => { 
-                if (o.cadType !== 'blueprint' && !o.excludeFromExport) {
-                    o.selectable = true; 
-                    o.evented = true; 
-                }
-            });
+            canvas.forEachObject(o => { o.selectable = true; o.evented = true; });
             canvas.setCursor('default');
         } else {
             canvas.selection = false;
@@ -1815,8 +1309,7 @@
                 cornerColor: 'white',
                 cornerSize: 8,
                 transparentCorners: false,
-                cadType: 'symbol',
-                symbolType: type
+                cadType: 'symbol'
             });
             canvas.add(symbolGroup);
             canvas.setActiveObject(symbolGroup);
@@ -1881,222 +1374,47 @@
     // 4. Afbeeldingen / Funda Bouwtekeningen Inladen lokaal
     const fileLoader = document.getElementById('fileLoader');
     fileLoader.addEventListener('change', function(e) {
-        let files = e.target.files;
-        if (!files || files.length === 0) return;
-        
-        // Check if there is a json file among them
-        for (let i = 0; i < files.length; i++) {
-            let file = files[i];
-            if (file.name.endsWith('.json')) {
-                let reader = new FileReader();
-                reader.onload = function(f) {
-                    canvas.loadFromJSON(f.target.result, function() {
-                        canvas.renderAll();
-                        historyStack.push(JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType'])));
-                        saveState();
-                        updateStatus();
-                    });
-                };
-                reader.readAsText(file);
-                e.target.value = '';
-                return;
-            }
-        }
-        
-        let currentRight = 0;
-        let currentBottom = 0;
-        
-        canvas.getObjects().forEach(obj => {
-            if (obj.cadType === 'blueprint') {
-                let rightEdge = obj.left + (obj.width * obj.scaleX);
-                let bottomEdge = obj.top + (obj.height * obj.scaleY);
-                if (rightEdge > currentRight) currentRight = rightEdge;
-                if (bottomEdge > currentBottom) currentBottom = bottomEdge;
-            }
-        });
+        let file = e.target.files[0];
+        if (!file) return;
 
-        if (canvas.backgroundImage) {
-             let rightEdge = canvas.backgroundImage.width * canvas.backgroundImage.scaleX;
-             let bottomEdge = canvas.backgroundImage.height * canvas.backgroundImage.scaleY;
-             if (rightEdge > currentRight) currentRight = rightEdge;
-             if (bottomEdge > currentBottom) currentBottom = bottomEdge;
-        }
-
-        let filesToLoad = Array.from(files);
+        let reader = new FileReader();
         
-        const loadImage = (file) => {
-            return new Promise((resolve) => {
-                let reader = new FileReader();
-                reader.onload = function(f) {
-                    let data = f.target.result;
-                    fabric.Image.fromURL(data, function(img) {
-                        resolve(img);
-                    });
-                };
-                reader.readAsDataURL(file);
-            });
-        };
-
-        const loadAllImages = async () => {
-            for (let i = 0; i < filesToLoad.length; i++) {
-                let img = await loadImage(filesToLoad[i]);
-                img.set({
-                    left: currentRight > 0 ? currentRight + 20 : 0,
-                    top: 0,
-                    selectable: false,
-                    evented: false,
-                    cadType: 'blueprint',
-                    opacity: parseInt(document.getElementById('bgOpacity').value) / 100
+        if (file.name.endsWith('.json')) {
+            reader.onload = function(f) {
+                canvas.loadFromJSON(f.target.result, function() {
+                    canvas.renderAll();
+                    historyStack.push(JSON.stringify(canvas.toJSON(['cadType'])));
+                    saveState();
+                    updateStatus();
                 });
-                canvas.add(img);
-                img.sendToBack();
-                
-                currentRight = img.left + (img.width * img.scaleX);
-                let bottomEdge = img.top + (img.height * img.scaleY);
-                if (bottomEdge > currentBottom) currentBottom = bottomEdge;
-            }
-            
-            let newWidth = Math.max(window.innerWidth - 300, currentRight + 50);
-            let newHeight = Math.max(window.innerHeight - 100, currentBottom + 50);
-            
-            if (canvas.width < newWidth) canvas.setWidth(newWidth);
-            if (canvas.height < newHeight) canvas.setHeight(newHeight);
-            
-            canvas.setZoom(1);
-            canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
-            updateStatus();
-            saveState();
-            
-            if (gridEnabled) updateVisualGrid();
-        };
-
-        loadAllImages();
-        e.target.value = '';
-    });
-
-    // 4b. Afbeeldingen Bijsnijden (Crop)
-    function startCropMode() {
-        let activeObj = canvas.getActiveObject();
-        if (!activeObj || activeObj.cadType !== 'blueprint') {
-            let found = false;
-            canvas.getObjects().forEach(obj => {
-                if (obj.cadType === 'blueprint') {
-                    obj.set({ selectable: true, evented: true });
-                    found = true;
-                }
-            });
-            if (found) {
-                alert("Klik op de afbeelding die je wilt bijsnijden om deze te selecteren, en klik daarna nogmaals op deze knop.");
-                switchTool('select');
-            } else {
-                alert("Er zijn geen afbeeldingen ingeladen om bij te snijden.");
-            }
+            };
+            reader.readAsText(file);
             return;
         }
-
-        targetImageToCrop = activeObj;
-        targetImageToCrop.set('angle', 0);
         
-        let cropWidth = targetImageToCrop.width * targetImageToCrop.scaleX;
-        let cropHeight = targetImageToCrop.height * targetImageToCrop.scaleY;
+        reader.onload = function(f) {
+            let data = f.target.result;
+            fabric.Image.fromURL(data, function(img) {
+                // Optimaliseer canvas grootte naar de blauwdruk resolutie
+                canvas.setWidth(img.width > window.innerWidth ? img.width : window.innerWidth - 600);
+                canvas.setHeight(img.height > window.innerHeight ? img.height : window.innerHeight - 100);
+                
+                // Stel afbeelding in als niet-selecteerbare achtergrondlaag
+                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+                    scaleX: 1,
+                    scaleY: 1
+                });
+                
+                // Reset zoom
+                canvas.setZoom(1);
+                canvas.viewportTransform = [1, 0, 0, 1, 0, 0];
+                updateStatus();
+                saveState(); // Bewaar de ingeladen achtergrond meteen
+            });
+        };
+        reader.readAsDataURL(file);
+    });
 
-        cropRect = new fabric.Rect({
-            left: targetImageToCrop.left,
-            top: targetImageToCrop.top,
-            width: cropWidth,
-            height: cropHeight,
-            fill: 'rgba(0,0,0,0.3)',
-            stroke: 'red',
-            strokeWidth: 2,
-            strokeDashArray: [5, 5],
-            cornerColor: 'red',
-            cornerSize: 12,
-            transparentCorners: false,
-            hasRotatingPoint: false,
-            cadType: 'cropRect'
-        });
-
-        canvas.add(cropRect);
-        canvas.setActiveObject(cropRect);
-        isCropping = true;
-
-        let cropBtn = document.getElementById('tool-crop');
-        if (cropBtn) {
-            cropBtn.innerHTML = "✅ Bevestig Bijsnijden";
-            cropBtn.style.backgroundColor = "var(--success)";
-            cropBtn.style.color = "#111";
-            cropBtn.onclick = applyCrop;
-        }
-        
-        document.getElementById('statusBar').innerText = "Pas het rode kader aan en klik op 'Bevestig Bijsnijden' of druk op Enter. Druk op ESC om te annuleren.";
-    }
-
-    function applyCrop() {
-        if (!isCropping || !cropRect || !targetImageToCrop) return;
-
-        let scaleX = targetImageToCrop.scaleX;
-        let scaleY = targetImageToCrop.scaleY;
-
-        let rectLeft = cropRect.left;
-        let rectTop = cropRect.top;
-        let rectWidth = cropRect.width * cropRect.scaleX;
-        let rectHeight = cropRect.height * cropRect.scaleY;
-
-        if (rectLeft < targetImageToCrop.left) rectLeft = targetImageToCrop.left;
-        if (rectTop < targetImageToCrop.top) rectTop = targetImageToCrop.top;
-        
-        let cropX = (rectLeft - targetImageToCrop.left) / scaleX;
-        let cropY = (rectTop - targetImageToCrop.top) / scaleY;
-        let newWidth = rectWidth / scaleX;
-        let newHeight = rectHeight / scaleY;
-
-        let actualCropX = (targetImageToCrop.cropX || 0) + cropX;
-        let actualCropY = (targetImageToCrop.cropY || 0) + cropY;
-
-        isUndoing = true;
-        targetImageToCrop.set({
-            cropX: actualCropX,
-            cropY: actualCropY,
-            width: Math.max(1, newWidth),
-            height: Math.max(1, newHeight),
-            left: rectLeft,
-            top: rectTop
-        });
-
-        cleanupCrop();
-    }
-
-    function cancelCrop() {
-        if (!isCropping) return;
-        cleanupCrop();
-    }
-
-    function cleanupCrop() {
-        if (cropRect) canvas.remove(cropRect);
-        cropRect = null;
-        isCropping = false;
-        targetImageToCrop = null;
-        
-        canvas.getObjects().forEach(obj => {
-            if (obj.cadType === 'blueprint') {
-                obj.set({ selectable: false, evented: false });
-            }
-        });
-        
-        isUndoing = false;
-        canvas.discardActiveObject();
-        canvas.requestRenderAll();
-        saveState();
-        
-        let cropBtn = document.getElementById('tool-crop');
-        if (cropBtn) {
-            cropBtn.innerHTML = "✂️ Afbeelding Bijsnijden";
-            cropBtn.style.backgroundColor = "var(--panel-bg)";
-            cropBtn.style.color = "var(--text-light)";
-            cropBtn.onclick = startCropMode;
-        }
-        updateStatus();
-    }
 
     // 5. Object Beheer Acties (Wissen, Lagenvolgorde)
     document.getElementById('deleteObject').addEventListener('click', deleteSelected);
@@ -2144,16 +1462,8 @@
     }
 
     function toggleLayer(type, isVisible) {
-        if (type === 'bg') {
-            let opacityVal = parseInt(document.getElementById('bgOpacity').value) / 100;
-            if (canvas.backgroundImage) {
-                canvas.backgroundImage.opacity = isVisible ? opacityVal : 0;
-            }
-            canvas.getObjects().forEach(obj => {
-                if (obj.cadType === 'blueprint') {
-                    obj.opacity = isVisible ? opacityVal : 0;
-                }
-            });
+        if (type === 'bg' && canvas.backgroundImage) {
+            canvas.backgroundImage.opacity = isVisible ? 1 : 0;
         } else {
             canvas.getObjects().forEach(obj => {
                 if (obj.cadType === type) {
@@ -2165,7 +1475,6 @@
         }
         canvas.discardActiveObject();
         canvas.requestRenderAll();
-        updateObjectList();
     }
 
     document.getElementById('undoBtn').addEventListener('click', undo);
@@ -2186,7 +1495,7 @@
     });
 
     document.getElementById('saveProjectBtn').addEventListener('click', () => {
-        const json = JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType'])); 
+        const json = JSON.stringify(canvas.toJSON(['cadType'])); 
         const blob = new Blob([json], {type: "application/json"});
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -2297,187 +1606,6 @@
         dlLink.href = dataURL;
         dlLink.click();
     });
-</script>
-
-<script type="module">
-    // ==========================================
-    // FIREBASE CLOUD OPSLAAN & LADEN
-    // ==========================================
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
-    // Let op: Vervang deze configuratie met je EIGEN Firebase project instellingen!
-    const firebaseConfig = {
-        apiKey: "AIzaSyBNT6u9donKGO5Az3nVQPTk-hVc7CItLw4",
-        authDomain: "tekenen-4ec47.firebaseapp.com",
-        projectId: "tekenen-4ec47",
-        storageBucket: "tekenen-4ec47.firebasestorage.app",
-        messagingSenderId: "600382244481",
-        appId: "1:600382244481:web:cb2165e6dfa2fcd4242f80",
-        measurementId: "G-X88GWP4R8L"
-    };
-
-    let app, analytics, db, auth;
-    let currentUser = null;
-
-    try {
-        app = initializeApp(firebaseConfig);
-        analytics = getAnalytics(app);
-        db = getFirestore(app);
-        auth = getAuth(app);
-    } catch(e) {
-        console.warn("Firebase niet ingesteld. Zorg dat je de juiste config hierboven invult.");
-    }
-
-    if (auth) {
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            const authBtn = document.getElementById('authBtn');
-            const userInfo = document.getElementById('userInfo');
-            const loginScreen = document.getElementById('loginScreen');
-            if (user) {
-                loginScreen.style.display = 'none';
-                userInfo.style.display = 'inline-block';
-                userInfo.innerText = user.email;
-                authBtn.innerText = '🔓 Uitloggen';
-            } else {
-                loginScreen.style.display = 'flex';
-                userInfo.style.display = 'none';
-                userInfo.innerText = '';
-                authBtn.innerText = '🔒 Inloggen';
-            }
-        });
-
-        document.getElementById('authBtn').addEventListener('click', () => {
-            if (currentUser) {
-                signOut(auth).then(() => alert("Succesvol uitgelogd."));
-            }
-        });
-
-        document.getElementById('loginSubmitBtn').addEventListener('click', async () => {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            if (!email || !password) return alert("Vul e-mail en wachtwoord in.");
-            try {
-                document.getElementById('loginSubmitBtn').innerText = 'Laden...';
-                await signInWithEmailAndPassword(auth, email, password);
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPassword').value = '';
-            } catch (e) {
-                alert("Inloggen mislukt: Controleer je e-mailadres en wachtwoord.");
-            } finally {
-                document.getElementById('loginSubmitBtn').innerText = 'Inloggen';
-            }
-        });
-    }
-
-    window.saveToCloud = async function() {
-        if (!db) return alert("Firebase is nog niet geconfigureerd in de code!");
-        if (!currentUser) return alert("Je moet ingelogd zijn om projecten in de cloud op te slaan.");
-        let projectName = prompt("Geef het project een naam:", "Nieuw Project");
-        if (!projectName) return;
-
-        let jsonState = JSON.stringify(canvas.toJSON(['cadType', 'id', 'customName', 'symbolType']));
-        
-        try {
-            document.getElementById('statusBar').innerText = "Project opslaan naar cloud...";
-            await addDoc(collection(db, "projects"), {
-                name: projectName,
-                data: jsonState,
-                timestamp: new Date().toISOString()
-            });
-            alert("Project succesvol opgeslagen in de cloud!");
-            document.getElementById('statusBar').innerText = "Project opgeslagen in Firebase.";
-        } catch (e) {
-            console.error(e);
-            alert("Fout bij opslaan. Check de console en je database regels (Rules).");
-            document.getElementById('statusBar').innerText = "Opslaan mislukt.";
-        }
-    };
-
-    window.loadFromCloud = async function() {
-        if (!db) return alert("Firebase is nog niet geconfigureerd in de code!");
-        if (!currentUser) return alert("Je moet ingelogd zijn om cloud projecten te bekijken.");
-        document.getElementById('projectsModal').style.display = 'flex';
-        const list = document.getElementById('projectsList');
-        list.innerHTML = '<p>Projecten laden...</p>';
-        
-        try {
-            const q = query(collection(db, "projects"), orderBy("timestamp", "desc"));
-            const querySnapshot = await getDocs(q);
-            list.innerHTML = '';
-            if (querySnapshot.empty) {
-                list.innerHTML = '<p style="color:var(--text-main);">Geen projecten gevonden in de cloud.</p>';
-                return;
-            }
-            
-            querySnapshot.forEach((docSnap) => {
-                let project = docSnap.data();
-                let div = document.createElement('div');
-                div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:var(--panel-bg); padding:10px; border-radius:4px; border:1px solid var(--border-color);';
-                
-                let nameSpan = document.createElement('span');
-                nameSpan.innerText = project.name || 'Naamloos';
-                nameSpan.style.cssText = 'color:var(--text-light); font-weight:bold; font-size:0.95rem;';
-                
-                let dateSpan = document.createElement('div');
-                let d = new Date(project.timestamp);
-                dateSpan.innerText = d.toLocaleDateString('nl-NL') + ' ' + d.toLocaleTimeString('nl-NL');
-                dateSpan.style.cssText = 'font-size:0.75rem; color:var(--text-main); margin-top:3px;';
-                
-                let btnGroup = document.createElement('div');
-                btnGroup.style.cssText = 'display:flex; gap:8px;';
-                
-                let loadBtn = document.createElement('button');
-                loadBtn.innerHTML = '📂 Inladen';
-                loadBtn.onclick = () => {
-                    if(confirm(`Weet je zeker dat je '${project.name}' wilt inladen? Dit overschrijft je huidige canvas.`)) {
-                        canvas.loadFromJSON(project.data, function() {
-                            canvas.renderAll();
-                            historyStack.push(project.data);
-                            saveState();
-                            document.getElementById('projectsModal').style.display = 'none';
-                            updateObjectList();
-                            if (document.getElementById('toggleGridBtn').classList.contains('active')) {
-                                updateVisualGrid();
-                            }
-                        });
-                    }
-                };
-                
-                let delBtn = document.createElement('button');
-                delBtn.innerHTML = '🗑️';
-                delBtn.className = 'danger-btn';
-                delBtn.title = 'Verwijderen';
-                delBtn.onclick = async () => {
-                    if (confirm(`Weet je zeker dat je het project '${project.name}' voor altijd wilt verwijderen uit de cloud?`)) {
-                        await deleteDoc(doc(db, "projects", docSnap.id));
-                        window.loadFromCloud(); // Ververs de lijst
-                    }
-                };
-                
-                btnGroup.appendChild(loadBtn);
-                btnGroup.appendChild(delBtn);
-                
-                let infoGroup = document.createElement('div');
-                infoGroup.appendChild(nameSpan);
-                infoGroup.appendChild(dateSpan);
-                
-                div.appendChild(infoGroup);
-                div.appendChild(btnGroup);
-                list.appendChild(div);
-            });
-        } catch (e) {
-            console.error(e);
-            if(e.code === 'failed-precondition' || e.message.includes('index')) {
-                 list.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">Fout: Firebase Index ontbreekt (of database rules weigeren).<br><br>${e.message}</p>`;
-            } else {
-                 list.innerHTML = '<p style="color:var(--danger);">Fout bij het laden van projecten.</p>';
-            }
-        }
-    };
 </script>
 
 </body>
