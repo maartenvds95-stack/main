@@ -194,9 +194,14 @@
                 <a href="#informatie">INFORMATIE</a> | 
                 <a href="#contact">CONTACT</a>
             </p>
-            <p>&copy; 2026 Schroei - Vurig entertainment. Volg ons op <a href="https://www.instagram.com/fire.performance.schroei/" target="_blank">Instagram</a>.</p>
+            <p>&copy; <span id="copyright-year">2026</span> Schroei - Vurig entertainment. Volg ons op <a href="https://www.instagram.com/fire.performance.schroei/" target="_blank">Instagram</a>.</p>
         </div>
     </footer>
+
+    <script>
+        // Zorgt ervoor dat het copyright-jaar altijd up-to-date is.
+        document.getElementById('copyright-year').textContent = new Date().getFullYear();
+    </script>
 
 </body>
 </html>

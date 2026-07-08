@@ -111,13 +111,17 @@
         <h1>Familie van der Steenhoven</h1>
         <p>Samen de natuur in, bergen beklimmen en herinneringen maken die een leven lang meegaan.</p>
         <div class="button-group">
-            <a href="http://steenhovenfam.nl/annebeth" class="btn-avontuur">Naar Annebeth's Avonturen</a>
+            <a href="annebeth/" class="btn-avontuur">Annebeth</a>
         </div>
     </header>
 
     <footer>
-        <p>&copy; 2026 Familie van der Steenhoven. Alle rechten voorbehouden.</p>
+        <p>&copy; <span id="copyright-year">2026</span> Familie van der Steenhoven. Alle rechten voorbehouden.</p>
     </footer>
 
+    <script>
+        // Zorgt ervoor dat het copyright-jaar altijd up-to-date is.
+        document.getElementById('copyright-year').textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>

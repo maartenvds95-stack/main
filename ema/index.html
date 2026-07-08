@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Maarten's meldkamer applicatie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="offlineBanner" style="position: fixed; top: 0; left: 0; right: 0; background: var(--amber); color: #000; text-align: center; font-weight: 600; font-size: 13px; padding: 6px; z-index: 10001; display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+  Verbinding verbroken. Je werkt nu lokaal, data synchroniseert zodra de verbinding is hersteld.
+</div>
+
+<div class="login-overlay" id="loginScreen">
+  <div class="login-box">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <img src="assets/ems-blauw.png" alt="EMS Logo" class="login-logo" style="height: 52px; object-fit: contain; margin-bottom: 16px;">
+      <h2 style="margin-bottom: 0;">Login bij MMA</h2>
+    </div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>E-mailadres</label>
+        <input type="email" id="loginUsername" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Wachtwoord</label>
+        <input type="password" id="loginPassword" required autocomplete="current-password">
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; margin: 16px 0;">
+        <input type="checkbox" id="rememberMe" style="width: 16px; height: 16px; accent-color: var(--green);">
+        <label for="rememberMe" style="font-size: 13px; color: var(--text2); font-weight: normal; cursor: pointer; user-select: none;">Onthoud e-mailadres</label>
+      </div>
+      <button type="submit" class="btn btn-submit" style="width: 100%;">Inloggen</button>
+      <div style="text-align: center; margin-top: 16px;">
+        <button type="button" id="forgotPasswordBtn" style="background:none; border:none; color:var(--blue); font-size:12px; cursor:pointer; text-decoration:underline;">Wachtwoord vergeten?</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="logo">
+    <a href="https://www.ems.nl/" target="_blank" class="logo-img-link" title="Ga naar EMS.nl">
+      <img src="assets/ems-blauw.png" alt="EMS Logo" class="logo-img">
+    </a>
+    <div class="logo-text">
+      <div class="logo-title">Maarten's meldkamer applicatie</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button id="toggleRightPanelBtn" class="theme-toggle mobile-only" title="Toon/Verberg Eenheden">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+    </button>
+    <select id="zoomSelect" title="Vergroot/verklein weergave" class="topbar-btn">
+      <option value="0.5">50%</option>
+      <option value="0.75" selected>75%</option>
+      <option value="0.8">80%</option>
+      <option value="0.9">90%</option>
+      <option value="1">100%</option>
+      <option value="1.1">110%</option>
+      <option value="1.2">120%</option>
+    </select>
+    <button id="themeToggle" class="topbar-btn" title="Donker/Licht modus" style="padding: 0; width: 36px;">
+      <svg class="theme-icon-dark" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="theme-icon-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+    <button id="weatherBtn" title="Lokale Buienradar" class="topbar-btn" style="gap: 6px; min-width: 110px;">
+      <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+      Weer <span id="weatherBtnTemp" style="margin-left: 6px; color: var(--text2); font-weight: 400;"></span>
+    </button>
+    <div id="digitalClock" class="topbar-btn" style="font-variant-numeric: tabular-nums; letter-spacing: 1px; color: var(--text1); cursor: default;">00:00:00</div>
+    <div id="connectionStatus" style="display:flex;align-items:center;gap:7px;">
+      <span id="connectionDot" style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green); transition: all 0.3s;"></span>
+      <span id="connectionText" style="color:var(--green);font-weight:500; transition: color 0.3s;">Live</span>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" data-target="view-home"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Home</button>
+  <button class="nav-btn" data-target="view-meldingen"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg> Meldingen</button>
+  <button class="nav-btn" data-target="view-eenheden"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h6m-3-3v6M1 20l4-4m0 0h10a2 2 0 002-2V8"/></svg> Eenheden</button>
+  <button class="nav-btn" data-target="view-posten"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h16"/></svg> Posten</button>
+  <button class="nav-btn" data-target="view-logging"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h10"/><path d="M18 18V6"/></svg> Logging</button>
+  <button class="nav-btn" data-target="view-rapportage"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg> Rapportage</button>
+  <button class="nav-btn" data-target="view-account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5.5 20a6.5 6.5 0 0113 0"/></svg> Accountinstellingen</button>
+  <button class="nav-btn" data-action="uitloggen"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg> Uitloggen</button>
+</nav>
+
+<div class="actions">
+  <button class="ab ab-g" id="btnQuickMedical" title="Sneltoets: Alt + N"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Snelle medische melding</button>
+  <button id="btnDetailedMedical" class="ab ab-b" title="Sneltoets: Alt + S"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Uitgebreide medische melding</button>
+  <button class="ab ab-o" id="btnBrandwacht" title="Sneltoets: Alt + B"><svg viewBox="0 0 24 24"><path d="M9 3h6a2 2 0 012 2v14a2 2 0 01-2 2H9a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M9 8h6"/></svg> Brandwacht melding</button>
+  <button class="ab ab-p" id="btnLogistiek" title="Sneltoets: Alt + L"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> Logistieke melding</button>
+  <button class="ab ab-a" id="btnGlobalLog"><svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M12 4v16"/></svg> Logging toevoegen</button>
+  <button class="ab" id="btnProtocols" style="background: var(--bg3); border-color: var(--border); color: var(--text1); margin-left: auto;">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Protocollen
+  </button>
+</div>
+
+<div id="quickMedicalInlineContainer" style="display: none; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 20px; overflow: hidden; transition: all 0.3s ease-in-out;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <h3 style="font-size: 14px; font-weight: 600; color: var(--text1);">Snelle medische melding</h3>
+    <button class="modal-close" id="closeQuickMedicalInlineBtn">&times;</button>
+  </div>
+  <form id="quickMedicalForm" style="padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px 18px;">
+    <div class="form-group">
+      <label class="group-label">Melder</label>
+      <input type="text" name="reporter" autocomplete="off" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Locatie</label>
+      <input type="text" name="location" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Omschrijving</label>
+      <input type="text" name="description" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Urgentie</label>
+      <div class="radio-boxes">
+        <input type="radio" id="urg_spoed" name="urgency" value="Spoed" required><label for="urg_spoed">Spoed</label>
+        <input type="radio" id="urg_direct" name="urgency" value="Direct Vertrekken" checked><label for="urg_direct">Direct Vertrekken</label>
+        <input type="radio" id="urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="urg_uitstel">Uitstelmogelijkheid</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Geslacht</label>
+      <div class="radio-boxes">
+        <input type="radio" id="ges_man" name="gender" value="Man" required><label for="ges_man">Man</label>
+        <input type="radio" id="ges_vrouw" name="gender" value="Vrouw"><label for="ges_vrouw">Vrouw</label>
+        <input type="radio" id="ges_x" name="gender" value="X"><label for="ges_x">X</label>
+        <input type="radio" id="ges_onb" name="gender" value="Onbekend" checked><label for="ges_onb">Onbekend</label>
+      </div>
+    </div>
+    <div class="modal-footer" style="grid-column: 1 / -1; border-top: 1px solid var(--border); justify-content: flex-start;">
+      <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
+      <button type="button" class="btn ab-b" id="openDetailedFromQuickBtn">Uitgebreide melding</button>
+      <button type="button" class="btn btn-cancel" id="cancelQuickMedicalInlineBtn">Annuleren</button>
+    </div>
+  </form>
+</div>
+
+<div id="detailedMedicalInlineContainer" style="display: none; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 20px; overflow: hidden; transition: all 0.3s ease-in-out;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <h3 style="font-size: 14px; font-weight: 600; color: var(--text1);">Frontoffice (intake SBAR) medische melding</h3>
+    <button class="modal-close" id="detailedCloseBtn">&times;</button>
+  </div>
+  <form id="detailedMedicalForm" class="detailed-form" style="padding: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px 28px; align-items: start;">
+
+      <!-- KOLOM 1: (S) Situation -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 13px; font-weight: 600; color: var(--text1); text-align: center;">(S) Situation</div>
+        <div class="form-group">
+          <label class="group-label">Melder</label>
+          <input type="text" name="reporter">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Telefoonnummer melder</label>
+          <input type="text" name="phone">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Locatie</label>
+          <input type="text" name="location">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Geslacht</label>
+          <div class="radio-boxes">
+            <input type="radio" id="det_ges_man" name="gender" value="Man"><label for="det_ges_man">Man</label>
+            <input type="radio" id="det_ges_vrouw" name="gender" value="Vrouw"><label for="det_ges_vrouw">Vrouw</label>
+            <input type="radio" id="det_ges_x" name="gender" value="X"><label for="det_ges_x">X</label>
+            <input type="radio" id="det_ges_onb" name="gender" value="Onbekend" checked><label for="det_ges_onb">Onbekend</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="group-label">Geschatte leeftijd</label>
+          <input type="text" name="age">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Deelnemersnummer</label>
+          <input type="text" name="participantNumber">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Volgnummer zorgcontact</label>
+          <input type="text" name="careContactNumber">
+        </div>
+        <div class="form-group">
+          <label class="group-label">- Airway</label>
+          <input type="text" name="airway">
+        </div>
+        <div class="form-group">
+          <label class="group-label">- Breathing</label>
+          <input type="text" name="breathing">
+        </div>
+        <div class="form-group">
+          <label class="group-label">- Circulation</label>
+          <input type="text" name="circulation">
+        </div>
+        <div class="form-group">
+          <label class="group-label">- Disability</label>
+          <div class="radio-boxes">
+            <input type="radio" id="det_dis_a" name="disability" value="A - Alert"><label for="det_dis_a">A - Alert</label>
+            <input type="radio" id="det_dis_v" name="disability" value="V - Voice"><label for="det_dis_v">V - Voice</label>
+            <input type="radio" id="det_dis_p" name="disability" value="P - Pain"><label for="det_dis_p">P - Pain</label>
+            <input type="radio" id="det_dis_u" name="disability" value="U - Unresponsive"><label for="det_dis_u">U - Unresponsive</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="group-label">- Exposure Environment</label>
+          <input type="text" name="exposure">
+        </div>
+      </div>
+
+      <!-- KOLOM 2: Omschrijving / Urgentie / Background / Assessment -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label class="group-label">Omschrijving melding</label>
+          <input type="text" name="description">
+        </div>
+        <div class="form-group">
+          <label class="group-label">Urgentie</label>
+          <div class="radio-boxes">
+            <input type="radio" id="det_urg_spoed" name="urgency" value="Spoed"><label for="det_urg_spoed">Spoed</label>
+            <input type="radio" id="det_urg_direct" name="urgency" value="Direct Vertrekken" checked><label for="det_urg_direct">Direct Vertrekken</label>
+            <input type="radio" id="det_urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="det_urg_uitstel">Uitstelmogelijkheid</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="group-label">(B) Background</label>
+          <textarea name="background"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="group-label">(A) Assessment</label>
+          <textarea name="assessment"></textarea>
+        </div>
+      </div>
+
+      <!-- KOLOM 3: (R) Recommendation -->
+      <div class="form-group">
+        <label class="group-label">(R) Recommendation</label>
+        <div class="radio-boxes">
+          <input type="checkbox" id="rec_ehbo" name="rec" value="EHBO"><label for="rec_ehbo">EHBO</label>
+          <input type="checkbox" id="rec_ambulance" name="rec" value="Ambulance"><label for="rec_ambulance">Ambulance</label>
+          <input type="checkbox" id="rec_arts" name="rec" value="Arts"><label for="rec_arts">Arts</label>
+          <input type="checkbox" id="rec_verpleegkundige" name="rec" value="Verpleegkundige"><label for="rec_verpleegkundige">Verpleegkundige</label>
+          <input type="checkbox" id="rec_beveiliging" name="rec" value="Beveiliging"><label for="rec_beveiliging">Beveiliging</label>
+          <input type="checkbox" id="rec_politie" name="rec" value="Politie"><label for="rec_politie">Politie</label>
+          <input type="checkbox" id="rec_brandweer" name="rec" value="Brandweer"><label for="rec_brandweer">Brandweer</label>
+          <input type="checkbox" id="rec_organisatie" name="rec" value="Organisatie"><label for="rec_organisatie">Organisatie</label>
+          <input type="checkbox" id="rec_verkeer" name="rec" value="Verkeer"><label for="rec_verkeer">Verkeer</label>
+        </div>
+      </div>
+
+      <div class="modal-footer full" style="border-top: 1px solid var(--border); justify-content: flex-start;">
+        <button type="submit" class="btn btn-submit">Opslaan</button>
+        <button type="button" class="btn btn-cancel" id="detailedCancel">Annuleren</button>
+      </div>
+    </form>
+</div>
+
+<div class="inline-form-panel" id="brandwachtModal">
+  <div class="inline-form-header">
+    <h3>Brandwacht melding</h3>
+    <button class="modal-close" id="closeBrandwachtModalBtn">&times;</button>
+  </div>
+  <form id="brandwachtForm" style="padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px 18px;">
+    <div class="form-group">
+      <label class="group-label">Melder</label>
+      <input type="text" name="reporter" autocomplete="off" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Locatie</label>
+      <input type="text" name="location" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Omschrijving</label>
+      <input type="text" name="description" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Urgentie</label>
+      <div class="radio-boxes">
+        <input type="radio" id="bw_urg_spoed" name="urgency" value="Spoed" required><label for="bw_urg_spoed">Spoed</label>
+        <input type="radio" id="bw_urg_direct" name="urgency" value="Direct Vertrekken"><label for="bw_urg_direct">Direct Vertrekken</label>
+        <input type="radio" id="bw_urg_uitstel" name="urgency" value="Uitstelmogelijkheid"><label for="bw_urg_uitstel">Uitstelmogelijkheid</label>
+      </div>
+    </div>
+    <div class="modal-footer" style="grid-column: 1 / -1; border-top: 1px solid var(--border); justify-content: flex-start;">
+      <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
+      <button type="button" class="btn btn-cancel" id="cancelBrandwachtModalBtn">Annuleren</button>
+    </div>
+  </form>
+</div>
+
+<div class="inline-form-panel" id="logistiekModal">
+  <div class="inline-form-header">
+    <h3>Logistieke melding</h3>
+    <button class="modal-close" id="closeLogistiekModalBtn">&times;</button>
+  </div>
+  <form id="logistiekForm" style="padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px 18px;">
+    <div class="form-group">
+      <label class="group-label">Melder</label>
+      <input type="text" name="reporter" autocomplete="off" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Locatie</label>
+      <input type="text" name="location" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Gebeurtenis / Omschrijving</label>
+      <input type="text" name="description" required>
+    </div>
+    <div class="form-group">
+      <label class="group-label">Urgentie</label>
+      <div class="radio-boxes">
+        <input type="radio" id="log_urg_spoed" name="urgency" value="Spoed"><label for="log_urg_spoed">Spoed</label>
+        <input type="radio" id="log_urg_normaal" name="urgency" value="Normaal" required><label for="log_urg_normaal">Normaal</label>
+        <input type="radio" id="log_urg_laag" name="urgency" value="Laag"><label for="log_urg_laag">Laag</label>
+      </div>
+    </div>
+    <div class="modal-footer" style="grid-column: 1 / -1; border-top: 1px solid var(--border); justify-content: flex-start;">
+      <button type="submit" class="btn btn-submit">Melding Aanmaken</button>
+      <button type="button" class="btn btn-cancel" id="cancelLogistiekModalBtn">Annuleren</button>
+    </div>
+  </form>
+</div>
+
+<div class="inline-form-panel" id="freeLogModal">
+  <div class="inline-form-header">
+    <h3>Log toevoegen aan tijdlijn</h3>
+    <button class="modal-close" id="freeLogCloseBtn">&times;</button>
+  </div>
+  <form id="freeLogForm" style="padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px 18px;">
+    <div class="form-group">
+      <label class="group-label">Vrije Tekst / Gespreksverslag</label>
+      <textarea name="logText" required rows="4" placeholder="Typ hier de notitie voor het logboek..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); font-family: var(--font); resize: vertical;"></textarea>
+    </div>
+    <div class="modal-footer" style="grid-column: 1 / -1; border-top: 1px solid var(--border); justify-content: flex-start;">
+      <button type="submit" class="btn btn-submit">Toevoegen</button>
+      <button type="button" class="btn btn-cancel" id="freeLogCancelBtn">Annuleren</button>
+    </div>
+  </form>
+</div>
+
+<!-- Toast container for inline non-blocking messages -->
+<div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+<div class="panel-overlay" id="panelOverlay"></div>
+<div class="body">
+
+  <div class="left-container">
+    <div class="view active" id="view-home">
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-icon r"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+          <div><div class="stat-val r" id="countNew">0</div><div class="stat-lbl">Nieuwe meldingen</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon a"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div><div class="stat-val a" id="countActive">0</div><div class="stat-lbl">Uitgegeven meldingen</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon g"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div><div class="stat-val g" id="countLogistiek">0</div><div class="stat-lbl">Logistieke meldingen</div></div>
+        </div>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <div class="section-hdr">
+          <span class="section-title">Nieuwe Meldingen</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th class="col-time">Tijdstip melding</th>
+                <th>Locatie</th>
+                <th>Gebeurtenis</th>
+                <th>Melder</th>
+                <th>Urg</th>
+                <th>Roep n.r / Post</th>
+                <th>Acties</th>
+              </tr>
+            </thead>
+            <tbody id="newIncidentsTable">
+              </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <div class="section-hdr">
+          <span class="section-title">Lopende Meldingen</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th class="col-time">Tijdstip melding</th>
+                <th>Locatie</th>
+                <th>Gebeurtenis</th>
+                <th>Melder</th>
+                <th>Urg</th>
+                <th>Roep n.r / Post</th>
+                <th>Acties</th>
+              </tr>
+            </thead>
+            <tbody id="homeIncidentsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <div class="section-hdr">
+          <span class="section-title">Logistieke Meldingen</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th class="col-time">Tijdstip</th>
+                <th>Locatie</th>
+                <th>Omschrijving</th>
+                <th>Melder</th>
+                <th>Urg</th>
+                <th>Acties</th>
+              </tr>
+            </thead>
+            <tbody id="logistiekIncidentsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-meldingen">
+      <div class="section-hdr"><span class="section-title">Alle Lopende Meldingen</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Status</th><th class="col-time">Tijdstip</th><th>Locatie</th><th>Gebeurtenis</th><th>Melder</th><th>Roep n.r / Post</th><th>Acties</th></tr>
+          </thead>
+          <tbody id="allIncidentsTable">
+            </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-logging">
+      <div class="section-hdr"><span class="section-title">Logboek / Audit Trail</span></div>
+      
+      <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+        <input type="text" id="liveLogSearchInput" placeholder="🔍 Zoek op bericht, incident..." style="flex: 1; max-width: 350px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+        <label for="logStartDate" style="font-size: 11px; color: var(--text3);">Van:</label>
+        <input type="date" id="logStartDate" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+        <label for="logEndDate" style="font-size: 11px; color: var(--text3);">Tot:</label>
+        <input type="date" id="logEndDate" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+        <select id="liveLogTypeFilter" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+          <option value="">Alle soorten</option>
+          <option value="Status">Status</option>
+          <option value="Wijziging">Wijziging</option>
+          <option value="Toegevoegd">Toegevoegd</option>
+          <option value="Afloop">Afloop</option>
+          <option value="Notitie">Notitie / Nader bericht</option>
+        </select>
+        <select id="liveLogUnitFilter" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text1); outline: none;">
+          <option value="">Alle eenheden</option>
+        </select>
+        <button class="btn btn-outline" id="exportCsvBtn" style="margin-left: auto;" title="Exporteer actieve weergave naar CSV"><svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg> CSV</button>
+        <button class="btn btn-outline" id="printLogsBtn" title="Print of bewaar als PDF"><svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print/PDF</button>
+      </div>
+
+      <div class="tbl-wrap" id="actueleLoggingWrapper" style="max-height: calc(100vh - 320px); overflow-y: auto;">
+        <table>
+          <thead style="position: sticky; top: 0; z-index: 10;">
+            <tr><th style="width:120px;">Tijd</th><th>Soort</th><th>Melding</th><th>Eenheid</th><th>Actie / Notitie</th><th>Gebruiker</th></tr>
+          </thead>
+          <tbody id="actueleLoggingBody">
+          </tbody>
+        </table>
+        <div id="loadMoreLogsBtn" style="text-align: center; padding: 15px; cursor: pointer; color: var(--blue); font-weight: 600; display: none;">Laad meer logs...</div>
+      </div>
+    </div>
+
+    <div class="view" id="view-rapportage">
+      <div class="section-hdr"><span class="section-title">Rapportage & Statistieken</span></div>
+      <div class="stats" style="margin-bottom: 20px;">
+        <div class="stat-card">
+          <div class="stat-icon b"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg></div>
+          <div><div class="stat-val b" id="rapTotalClosed">0</div><div class="stat-lbl">Afgesloten Meldingen</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon p"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div><div class="stat-val p" id="rapAvgTime">-</div><div class="stat-lbl">Gem. Afhandeltijd</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon g"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div><div class="stat-val g" id="rapTopUnit">-</div><div class="stat-lbl">Meest Ingezette Eenheid</div></div>
+        </div>
+      </div>
+      
+      <div style="background: var(--bg2); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
+        <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 16px;">Type uitrukmeldingen</h3>
+        <div class="tbl-wrap" style="border: 1px solid var(--border); border-radius: 8px;">
+          <table>
+            <thead>
+              <tr><th>Type uitrukmeldingen</th><th style="width: 150px; text-align: right; padding-right: 24px;">Aantal</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Retour BLS</td><td style="text-align: right; padding-right: 24px;" id="rapRetourBLS">0</td></tr>
+              <tr><td>Retour ALS</td><td style="text-align: right; padding-right: 24px;" id="rapRetourALS">0</td></tr>
+              <tr><td>Loze meldingen</td><td style="text-align: right; padding-right: 24px;" id="rapLoze">0</td></tr>
+              <tr><td>Zorg ter plaatse</td><td style="text-align: right; padding-right: 24px;" id="rapZorg">0</td></tr>
+              <tr><td>Dubbele meldingen</td><td style="text-align: right; padding-right: 24px;" id="rapDubbel">0</td></tr>
+              <tr><td>Onbekend / nog openstaande meldingen</td><td style="text-align: right; padding-right: 24px;" id="rapOpen">0</td></tr>
+              <tr style="font-weight: 600; background: var(--bg3);"><td>Totaal aantal uitrukmeldingen</td><td style="text-align: right; padding-right: 24px; color: var(--blue);" id="rapTotalUitruk">0</td></tr>
+              <tr style="font-weight: 600; background: var(--bg3);"><td>Totaal aantal zelfzorgcontacten</td><td style="text-align: right; padding-right: 24px; color: var(--green);" id="rapTotalZelfzorg">0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="background: var(--bg2); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
+        <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 16px;">Meldingen per uur</h3>
+        <div id="incidentChartContainer" style="display: flex; align-items: flex-end; height: 120px; gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 5px;"></div>
+        <div id="incidentChartLabels" style="display: flex; font-size: 10px; color: var(--text3); margin-top: 6px;"></div>
+        <div style="display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--text2);">
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--blue);border-radius:2px;margin-right:4px;"></span>Actief</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:2px;margin-right:4px;"></span>Afgesloten</span>
+        </div>
+      </div>
+
+      <div style="background: var(--bg2); padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
+         <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 10px;">Toelichting Dashboard</h3>
+         <p style="color: var(--text2); font-size: 13px; line-height: 1.6;">Dit overzicht toont real-time statistieken op basis van de afgesloten incidenten uit deze meldkamer post. De gemiddelde afhandeltijd wordt automatisch berekend door het verschil in minuten te nemen tussen het tijdstip van binnenkomst en het moment van definitief afsluiten van de afloop.</p>
+      </div>
+    </div>
+
+    <div class="view" id="view-account">
+      <div class="section-hdr"><span class="section-title">Accountinstellingen</span></div>
+      
+      <div style="background: var(--bg2); padding: 24px; border-radius: 12px; border: 1px solid var(--border); max-width: 600px; display: flex; flex-direction: column; gap: 24px;">
+        
+        <div>
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 6px;">Profiel</h3>
+          <p style="font-size: 13px; color: var(--text2); margin-bottom: 12px;">Je bent ingelogd als: <strong id="accountEmail" style="color: var(--text1);">...</strong></p>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 24px;">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 12px;">Wachtwoord wijzigen</h3>
+          <form id="changePasswordForm" style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label style="font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; display: block; margin-bottom: 6px;">Nieuw wachtwoord (min. 6 tekens)</label>
+              <input type="password" id="newPassword" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg3); color: var(--text1); font-family: var(--font); font-size: 13px;">
+            </div>
+            <div>
+              <label style="font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; display: block; margin-bottom: 6px;">Herhaal nieuw wachtwoord</label>
+              <input type="password" id="newPasswordConfirm" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg3); color: var(--text1); font-family: var(--font); font-size: 13px;">
+            </div>
+            <button type="submit" class="btn btn-submit" style="align-self: flex-start; margin-top: 4px;">Wachtwoord opslaan</button>
+          </form>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 24px;">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 12px;">Weergave</h3>
+          <p style="font-size: 13px; color: var(--text2); margin-bottom: 12px;">Kies het thema van de applicatie. Dit wordt opgeslagen op dit apparaat.</p>
+          <div class="segmented-control-theme">
+            <button id="themeDarkBtn">Donker</button>
+            <button id="themeLightBtn">Licht</button>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 24px;">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--text1); margin-bottom: 12px;">Demo-gegevens</h3>
+          <p style="font-size: 13px; color: var(--text2); margin-bottom: 12px;">Vul de applicatie met voorbeeld-eenheden, posten en meldingen. <strong style="color: var(--red);">Let op:</strong> dit verwijdert eerst alle huidige eenheden, posten en meldingen.</p>
+          <button id="reloadDemoDataBtn" class="btn btn-outline" style="align-self: flex-start; border-color: var(--red); color: var(--red);">Reset naar demo-gegevens</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="view" id="view-eenheden">
+      <div class="section-hdr"><span class="section-title">Eenheden Beheer</span></div>
+      
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+        <button id="showAddUnitFormBtn" class="btn btn-outline">Nieuwe eenheid toevoegen</button>
+        <button id="showBulkAddUnitFormBtn" class="btn btn-outline">Bulk eenheden toevoegen</button>
+        <button id="showImportCsvFormBtn" class="btn btn-outline" style="margin-left: auto;">CSV Rooster Importeren</button>
+      </div>
+
+      <div id="unitFormSection" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;">
+        <h3 style="font-size:16px;font-weight:600;color:var(--text1);margin-bottom:20px;">Invoeren Eenheid</h3>
+        <form id="addUnitForm" style="display:flex;flex-direction:column;gap:16px;">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Roepnummer *</label>
+            <input type="text" name="roepnummer" required style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Soort *</label>
+            <div class="unit-type-group" id="unitTypeGroup" style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="BLS">BLS</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="ALS">ALS</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="BLS vervoer">BLS vervoer</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="ALS vervoer">ALS vervoer</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="Reddingsbrigade">Reddingsbrigade</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="Brandwacht">Brandwacht</button>
+              <button type="button" class="btn btn-outline unit-type-btn" data-value="Ondersteunend">Ondersteunend</button>
+            </div>
+            <input type="hidden" name="soort" required>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Locatie</label>
+            <input type="text" name="locatie" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Naam medewerker 1</label>
+            <input type="text" name="naam1" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Naam medewerker 2</label>
+            <input type="text" name="naam2" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Naam medewerker 3</label>
+            <input type="text" name="naam3" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Status *</label>
+            <select name="status" required style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+              <option value="inzetbaar">inzetbaar</option>
+              <option value="op post">op post</option>
+              <option value="retour post">retour post</option>
+              <option value="pauze">pauze</option>
+              <option value="uitgemeld">uitgemeld</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Gekoppeld aan post</label>
+            <input type="text" name="gekoppeldAanPost" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">iPadnr</label>
+            <input type="text" name="ipadnr" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Tasnummer</label>
+            <input type="text" name="tasnummer" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Portofoon nummer</label>
+            <input type="text" name="radioId" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+          </div>
+                    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+            <button type="submit" class="btn btn-submit" style="flex:1;min-width:140px;">Eenheid Invoeren</button>
+            <button type="button" id="cancelUnitFormBtn" class="btn btn-outline" style="flex:1;min-width:140px;">Annuleren</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="bulkUnitFormSection" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:600;color:var(--text1);margin-bottom:20px;">Meerdere Eenheden Toevoegen</h3>
+        <form id="bulkAddUnitForm">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra BLS teams toevoegen</label>
+              <select name="blsCount" id="blsCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+                <option value="0" selected>0</option>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra ALS teams toevoegen</label>
+              <select name="alsCount" id="alsCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+                <option value="0" selected>0</option>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Extra brandwachten toevoegen</label>
+              <select name="brandwachtCount" id="brandwachtCount" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+                <option value="0" selected>0</option>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+              </select>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-submit" style="flex:1;min-width:140px;">Eenheden Toevoegen</button>
+              <button type="button" id="cancelBulkAddUnitFormBtn" class="btn btn-outline" style="flex:1;min-width:140px;">Annuleren</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div id="importCsvFormSection" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:600;color:var(--text1);margin-bottom:10px;">Rooster Importeren via CSV</h3>
+        <p style="font-size:12px; color:var(--text2); line-height:1.6; margin-bottom:20px;">
+          Upload een CSV-bestand (komma-gescheiden) met de volgende kolomkoppen in de eerste rij: <strong>Roepnummer, Soort, Locatie, Naam1, Naam2, Naam3, GekoppeldAanPost, iPadnr, Tasnummer, RadioId</strong>.
+          Bestaande eenheden met hetzelfde roepnummer worden bijgewerkt, nieuwe worden aangemaakt.
+          <a href="#" id="downloadCsvTemplate" style="color: var(--green); text-decoration: underline;">Download CSV-sjabloon</a>.
+        </p>
+        <form id="importCsvForm">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <input type="file" id="csvFileInput" accept=".csv" required style="padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);">
+            <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-submit" style="flex:1;min-width:140px;">Importeren</button>
+              <button type="button" id="cancelImportCsvFormBtn" class="btn btn-outline" style="flex:1;min-width:140px;">Annuleren</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+    <div id="view-eenheden-overzicht" style="margin-top: 10px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;">
+      <div class="rp-header" style="position: static; border-bottom: 1px solid var(--border);">
+        <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h6m-3-3v6M1 20l4-4"/></svg>
+        <span class="rp-header-title">Gedetailleerd Eenheden Overzicht</span>
+      </div>
+      <div class="tbl-wrap" style="border: none; border-radius: 0;">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th class="sort-header" data-sort="id">Roepnummer <span class="sort-icon">↕</span></th>
+              <th class="sort-header" data-sort="type">Soort <span class="sort-icon">↕</span></th>
+              <th class="sort-header" data-sort="location">Locatie <span class="sort-icon">↕</span></th>
+              <th>Medewerker 1</th>
+              <th>Medewerker 2</th>
+              <th>Medewerker 3</th>
+              <th class="sort-header" data-sort="gekoppeldAanPost">Gekoppeld aan post <span class="sort-icon">↕</span></th>
+              <th>Ondersteunend</th>
+              <th class="sort-header" data-sort="status">Status <span class="sort-icon">↕</span></th>
+              <th class="col-editable-cell">iPadnr</th>
+              <th class="col-editable-cell">Tasnummer</th>
+              <th class="col-editable-cell">Portofoon nummer</th>
+            </tr>
+          </thead>
+          <tbody id="detailedUnitsTableBody">
+            <!-- Eenheden worden hier dynamisch geladen -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div> <!-- End of view-eenheden -->
+
+  <div class="view" id="view-posten">
+    <div class="section-hdr"><span class="section-title">Posten Beheer</span></div>
+    
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+      <button id="showAddPostFormBtn" class="btn btn-outline">Nieuwe post toevoegen</button>
+    </div>
+
+    <div id="postFormSection" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;margin-bottom:20px;">
+      <h3 style="font-size:16px;font-weight:600;color:var(--text1);margin-bottom:20px;">Invoeren Post</h3>
+      <form id="addPostForm" style="display:flex;flex-direction:column;gap:16px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Naam Post *</label>
+          <input type="text" name="naam" required style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Locatie *</label>
+          <input type="text" name="locatie" required style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Postcoördinator</label>
+          <input type="text" name="postcoordinator" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:6px;">Status *</label>
+          <select name="status" required style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-family:var(--font);font-size:13px;">
+            <option value="open">open</option>
+            <option value="gesloten">gesloten</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+          <button type="submit" class="btn btn-submit" style="flex:1;min-width:140px;">Post Invoeren</button>
+          <button type="button" id="cancelPostFormBtn" class="btn btn-outline" style="flex:1;min-width:140px;">Annuleren</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="view-posten-overzicht" style="margin-top: 10px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;">
+      <div class="rp-header" style="position: static; border-bottom: 1px solid var(--border);">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 10h16"/></svg>
+        <span class="rp-header-title">Gedetailleerd Posten Overzicht</span>
+      </div>
+      <div class="tbl-wrap" style="border: none; border-radius: 0;">
+        <table>
+          <thead><tr><th></th><th class="sort-header-post" data-sort="naam">Naam Post <span class="sort-icon-post">↕</span></th><th class="sort-header-post" data-sort="locatie">Locatie <span class="sort-icon-post">↕</span></th><th class="sort-header-post" data-sort="postcoordinator">Postcoördinator <span class="sort-icon-post">↕</span></th><th class="sort-header-post" data-sort="status">Status <span class="sort-icon-post">↕</span></th><th>Gekoppeld aan eenheden</th><th>Acties</th></tr></thead>
+          <tbody id="detailedPostsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="right">
+    <div class="rp-header">
+      <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h6m-3-3v6M1 20l4-4"/></svg>
+      <span class="rp-header-title" id="linkToEenheden" style="cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--text1)'" onmouseout="this.style.color='var(--text3)'" title="Ga naar Eenheden Beheer">Operationele eenheden</span>
+      <button id="popoutBtn" class="btn btn-outline" style="padding: 4px 6px; margin-left: auto; border: none; font-size: 11px; height: 24px;" title="Open in nieuw venster">
+          <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; margin: 0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </button>
+    </div>    
+    <div id="rightPanelUnits"></div>
+
+    <div class="rp-section">
+      <div class="rp-header">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 10h16"/></svg>
+        <span class="rp-header-title" id="linkToPosten" style="cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--text1)'" onmouseout="this.style.color='var(--text3)'" title="Ga naar Posten Beheer">Posten</span>
+      </div>
+      <div class="rp-content" id="rightPanelPosts"></div>
+    </div>
+  </div> 
+</div> 
+ 
+<div class="modal-overlay escalation-modal" id="escalationModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Opschalen</h3>
+      <button class="modal-close" id="escalationCloseBtn">&times;</button>
+    </div>
+    <div class="option-list">
+      <button type="button" class="option-btn" data-escalation="Assistentie ALS">Assistentie ALS</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie 2e BLS team">Assistentie 2e BLS team</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie BLS vervoer">Assistentie BLS vervoer</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie ALS vervoer">Assistentie ALS vervoer</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie (P)CO">Assistentie (P)CO</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie beveiliging">Assistentie beveiliging</button>
+      <button type="button" class="option-btn" data-escalation="Assistentie reddingsbrigade">Assistentie reddingsbrigade</button>
+    </div>
+    <div style="padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+      <h4 style="font-size: 13px; color: var(--text1); margin-bottom: 8px;">Externe Hulpdienst (112)</h4>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="externalUnitInput" placeholder="Bijv. Ambulance 09-112 of Politie" style="flex:1; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg1); color: var(--text1); font-size: 13px; outline: none;">
+        <button type="button" class="btn btn-submit" id="externalUnitBtn" style="padding: 8px 12px;">Registreren</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Opschalen dropdown -->
+<div id="escalationDropdown" class="action-dropdown">
+  <div class="dd-title">Opschalen</div>
+  <button data-escalation="Assistentie ALS"><span class="dd-main">Assistentie ALS</span></button>
+  <button data-escalation="Assistentie 2e BLS team"><span class="dd-main">Assistentie 2e BLS team</span></button>
+  <button data-escalation="Assistentie BLS vervoer"><span class="dd-main">Assistentie BLS vervoer</span></button>
+  <button data-escalation="Assistentie ALS vervoer"><span class="dd-main">Assistentie ALS vervoer</span></button>
+  <button data-escalation="Assistentie (P)CO"><span class="dd-main">Assistentie (P)CO</span></button>
+  <button data-escalation="Assistentie beveiliging"><span class="dd-main">Assistentie beveiliging</span></button>
+  <button data-escalation="Assistentie reddingsbrigade"><span class="dd-main">Assistentie reddingsbrigade</span></button>
+</div>
+
+<!-- Statusen / afloop dropdown -->
+<div id="afloopDropdown" class="action-dropdown">
+  <div class="dd-title">Status / Afloop</div>
+  <button data-afloop="Dubbele melding"><span class="dd-main">Dubbele melding</span><span class="dd-sub">Melding verdwijnt</span></button>
+  <button data-afloop="Loze melding"><span class="dd-main">Loze melding</span><span class="dd-sub">Melding verdwijnt</span></button>
+  <button data-afloop="Zorg ter plaatse"><span class="dd-main">Zorg ter plaatse</span><span class="dd-sub">Logt actie, melding blijft</span></button>
+  <button data-afloop="Ter plaatse"><span class="dd-main">Ter plaatse</span><span class="dd-sub">Logt actie, melding blijft</span></button>
+  <button data-afloop="Inzetbaar"><span class="dd-main">Inzetbaar</span></button>
+  <button data-afloop="Retour BLS"><span class="dd-main">Retour BLS</span><span class="dd-sub">Logt actie, melding blijft</span></button>
+  <button data-afloop="Retour ALS"><span class="dd-main">Retour ALS</span><span class="dd-sub">Logt actie, melding blijft</span></button>
+</div>
+
+<div id="logistiekStatusDropdown" class="action-dropdown">
+  <div class="dd-title">Status</div>
+  <button data-logstatus="Aangevraagd"><span class="dd-main">Aangevraagd</span></button>
+  <button data-logstatus="Opgelost"><span class="dd-main">Opgelost</span><span class="dd-sub">Melding verdwijnt</span></button>
+</div>
+
+<!-- Samenvoegen dropdown -->
+<div id="mergeDropdown" class="action-dropdown">
+  <div class="dd-title">Samenvoegen met…</div>
+  <div id="mergeDropdownList"></div>
+</div>
+
+<!-- Log dropdown -->
+<div id="logDropdown" class="action-dropdown">
+  <div class="dd-title">Log toevoegen</div>
+  <div class="dd-log-area">
+    <textarea id="logDropdownText" placeholder="Typ je notitie…"></textarea>
+    <button id="logDropdownSave">Opslaan</button>
+  </div>
+</div>
+
+<!-- Kleine urgentie-dropdown (positioneert zichzelf naast het geklikte element) -->
+<div id="urgencyDropdown">
+  <button data-urgency="Spoed"><span class="urg-label">Spoed</span><span class="urg-sub">Directe levensbedreiging</span></button>
+  <button data-urgency="Direct Vertrekken"><span class="urg-label">Direct Vertrekken</span><span class="urg-sub">Urgent, geen direct levensgevaar</span></button>
+  <button data-urgency="Uitstelmogelijkheid"><span class="urg-label">Uitstelmogelijkheid</span><span class="urg-sub">Kan even wachten</span></button>
+  <button data-urgency="Normaal"><span class="urg-label">Normaal</span><span class="urg-sub">Logistiek / niet-medisch</span></button>
+  <button data-urgency="Laag"><span class="urg-label">Laag</span><span class="urg-sub">Lage prioriteit</span></button>
+</div>
+
+<!-- Kleine dropdown voor toewijzen eenheden -->
+<div id="assignDropdown">
+  <div class="assign-dd-title" id="assignDropdownTitle">Eenheid toewijzen</div>
+  <div id="assignUnitList"></div>
+</div>
+
+<div class="modal-overlay assign-modal" id="assignModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <h3>Beschikbare operationele eenheden</h3>
+        <p id="assignModalSubtitle" class="modal-subtitle">Kies een beschikbare operationele eenheid.</p>
+      </div>
+      <button class="modal-close" id="assignCloseBtn">&times;</button>
+    </div>
+    <div class="option-list" id="assignUnitList"></div>
+  </div>
+</div>
+
+<div class="modal-overlay assign-modal" id="mergeModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <h3>Incident Samenvoegen</h3>
+      </div>
+      <button class="modal-close" id="mergeCloseBtn">&times;</button>
+    </div>
+    <div class="option-list" id="mergeOptionList" style="padding-top: 16px;"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="afloopModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Statusen</h3>
+      <button class="modal-close" id="afloopCloseBtn">&times;</button>
+    </div>
+    <div class="option-list" id="afloopOptionList">
+      <button type="button" class="option-btn" data-afloop="Loze melding">Loze melding</button>
+      <button type="button" class="option-btn" data-afloop="Zorg ter plaatse">Zorg ter plaatse</button>
+      <button type="button" class="option-btn" data-afloop="Inzetbaar">Inzetbaar</button>
+      <button type="button" class="option-btn" data-afloop="Retour BLS">Retour BLS</button>
+      <button type="button" class="option-btn" data-afloop="Retour ALS">Retour ALS</button>
+      <button type="button" class="option-btn" data-afloop="Dubbele melding">Dubbele melding</button>
+      <button type="button" class="option-btn" data-afloop="Brand meester">Brand meester</button>
+      <button type="button" class="option-btn" data-afloop="Assistentie Brandweer">Assistentie Brandweer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="timelineModal">
+  <div class="modal-content" style="width: 500px;">
+    <div class="modal-header">
+      <h3>Tijdlijn voor melding <span id="timelineIncidentId"></span></h3>
+      <button class="modal-close" id="timelineCloseBtn">&times;</button>
+    </div>
+    <div id="timelineContent" style="padding: 24px; max-height: calc(100vh - 120px); overflow-y: auto; background: var(--bg2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; font-size: 14px; line-height: 1.6;">
+      <!-- Content wordt hier dynamisch geladen -->
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="unitTimelineModal">
+  <div class="modal-content" style="width: 500px;">
+    <div class="modal-header">
+      <h3>Tijdlijn voor eenheid <span id="unitTimelineUnitId"></span></h3>
+      <button class="modal-close" id="unitTimelineCloseBtn">&times;</button>
+    </div>
+    <div id="unitTimelineContent" style="padding: 24px; max-height: calc(100vh - 120px); overflow-y: auto; background: var(--bg2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; font-size: 14px; line-height: 1.6;">
+      <!-- Content wordt hier dynamisch geladen -->
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="weatherModal" style="z-index: 1001;">
+  <div class="modal-content" style="width: 900px; max-width: 95vw;">
+    <div class="modal-header">
+      <button id="weatherPopoutBtn" class="btn btn-outline" style="padding: 4px 6px; border: none; font-size: 11px; height: 24px; margin-right: auto;" title="Open in nieuw venster">
+          <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; margin: 0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </button>
+      <h3>Lokaal Weer & Neerslagradar</h3>
+      <button class="modal-close" id="weatherCloseBtn">&times;</button>
+    </div>
+    <div style="background: var(--bg2); padding: 24px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; max-height: calc(100vh - 80px); overflow-y: auto;">
+      
+      <!-- ALERTS BANNER -->
+      <div id="weatherAlertsContainer" style="display: none; margin-bottom: 20px;"></div>
+      
+      <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px;">
+        <div style="flex: 1; min-width: 300px; background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+           <h4 style="margin-bottom: 16px; color: var(--text1); font-size: 15px; font-weight: 600;">Actuele Weergegevens</h4>
+           <div id="weatherLocationInfo" style="font-size: 13px; color: var(--text2); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+             <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+             <span>Locatie aan het ophalen...</span>
+           </div>
+           
+           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <!-- Basis -->
+              <div style="background: var(--bg2); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 20px; font-weight: 600; color: var(--blue);" id="weatherTemp">-- °C</div>
+                 <div style="font-size: 10px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Temperatuur</div>
+              </div>
+              <div style="background: var(--bg2); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 20px; font-weight: 600; color: var(--amber);" id="weatherWind">-- Bft</div>
+                 <div style="font-size: 10px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;" id="weatherWindDir">Windrichting</div>
+              </div>
+              <div style="background: var(--bg2); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 20px; font-weight: 600; color: var(--green);" id="weatherRain">-- mm</div>
+                 <div style="font-size: 10px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Neerslag</div>
+              </div>
+              <div style="background: var(--bg2); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                 <div style="font-size: 20px; font-weight: 600; color: var(--purple);" id="weatherGusts">-- km/u</div>
+                 <div style="font-size: 10px; color: var(--text3); text-transform: uppercase; margin-top: 4px; font-weight: 600;">Windstoten</div>
+              </div>
+           </div>
+
+           <!-- Extra Gegevens (EHBO / Logistiek) -->
+           <h4 style="margin-top: 20px; margin-bottom: 12px; color: var(--text1); font-size: 13px; font-weight: 600;">Gezondheid & Logistiek</h4>
+           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div style="background: var(--bg2); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                 <span style="font-size: 11px; color: var(--text3);">Gevoelstemp.</span>
+                 <strong style="color: var(--text1); font-size: 13px;" id="weatherApparentTemp">-- °C</strong>
+              </div>
+              <div style="background: var(--bg2); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                 <span style="font-size: 11px; color: var(--text3);">Luchtvocht.</span>
+                 <strong style="color: var(--text1); font-size: 13px;" id="weatherHumidity">-- %</strong>
+              </div>
+              <div style="background: var(--bg2); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                 <span style="font-size: 11px; color: var(--text3);">UV-Index</span>
+                 <strong style="color: var(--text1); font-size: 13px;" id="weatherUV">--</strong>
+              </div>
+              <div style="background: var(--bg2); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                 <span style="font-size: 11px; color: var(--text3);">Zon (op/onder)</span>
+                 <strong style="color: var(--text1); font-size: 13px;" id="weatherSun">--:-- / --:--</strong>
+              </div>
+           </div>
+
+        </div>
+
+        <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+           <iframe id="buienradarIframe" src="about:blank" scrolling="no" width="100%" height="330" frameborder="no" style="border: 1px solid var(--border); border-radius: 12px; background: var(--bg2); max-width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></iframe>
+           <div style="font-size: 11px; color: var(--text3); margin-top: 12px; text-align: center;">Bron radar: Windy. Bron weerdata: Open-Meteo.</div>
+        </div>
+      </div>
+      
+      <!-- 5-MINUTEN REGENGRAFIEK -->
+      <div style="background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+        <h4 style="margin-bottom: 16px; color: var(--text1); font-size: 15px; font-weight: 600;">Regenverwachting (Komende 2 uur, per 5 minuten)</h4>
+        <div id="rainChartContainer" style="display: flex; align-items: flex-end; height: 100px; gap: 2px; border-bottom: 1px solid var(--border); padding-bottom: 5px;">
+            <div style="color: var(--text3); font-size: 13px;">Regengrafiek laden...</div>
+        </div>
+        <div id="rainChartLabels" style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); margin-top: 5px;"></div>
+      </div>
+
+      <!-- UURLIJKSE VOORSPELLING -->
+      <div style="background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+        <h4 style="margin-bottom: 16px; color: var(--text1); font-size: 15px; font-weight: 600;">Verwachting (Komende 12 uur)</h4>
+        <div id="hourlyForecastContainer" style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px;">
+            <div style="color: var(--text3); font-size: 13px;">Voorspelling laden...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Protocollen Overzicht Modal -->
+<div class="modal-overlay" id="protocolListModal">
+  <div class="modal-content" style="width: 400px;">
+    <div class="modal-header">
+      <h3>Kies een Protocol</h3>
+      <button class="modal-close" id="closeProtocolListModalBtn">&times;</button>
+    </div>
+    <div class="option-list" style="padding-top: 20px;">
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="reanimatie">
+        <strong>Reanimatie (BLS / AED)</strong>
+        <span>Protocol voor hartstilstand</span>
+      </button>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="ontruiming">
+        <strong>Ontruiming / Calamiteit</strong>
+        <span>Protocol bij grootschalige ontruiming</span>
+      </button>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="agressie">
+        <strong>Agressie / Vechtpartij</strong>
+        <span>Protocol bij escalatie of geweld</span>
+      </button>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="vermissing">
+        <strong>Vermissing op evenementen</strong>
+        <span>Protocol omgaan met vermiste personen</span>
+      </button>
+      <button type="button" class="option-btn protocol-select-btn" data-protocol="ingrijpend">
+        <strong>Ingrijpende Gebeurtenis</strong>
+        <span>Protocol voor schokkende incidenten</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Protocol Document Modal -->
+<div class="modal-overlay" id="protocolViewModal">
+  <div class="modal-content" style="width: 750px; max-width: 95vw;">
+    <div class="modal-header">
+      <h3 id="protocolViewTitle">Protocol</h3>
+      <button class="modal-close" id="closeProtocolViewModalBtn">&times;</button>
+    </div>
+    <div style="padding: 24px; max-height: calc(100vh - 120px); overflow-y: auto; background: var(--bg2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; font-size: 14px; line-height: 1.6;" id="protocolViewContent"></div>
+    <div id="protocolViewFooter" style="display:none; padding: 16px 24px; background: var(--bg2); border-top: 1px solid var(--border); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+      <button type="button" class="btn btn-submit" id="startVermissingProcBtn" style="width:100%;">Procedure opstarten &amp; melding aanmaken</button>
+    </div>
+  </div>
+</div>
+
+<!-- Vermissing procedure formulier -->
+<div class="modal-overlay" id="vermissingModal">
+  <div class="modal-content" style="width: 550px; max-width: 95vw;">
+    <div class="modal-header">
+      <h3>Vermissing — procedure opstarten</h3>
+      <button class="modal-close" id="closeVermissingModalBtn">&times;</button>
+    </div>
+    <form id="vermissingForm" style="padding: 24px; display: grid; grid-template-columns: 1fr; gap: 12px 18px; max-height: calc(100vh - 160px); overflow-y: auto;">
+      <div class="form-group"><label class="group-label">Locatie</label><input type="text" name="location" required></div>
+      <div class="form-group"><label class="group-label">Melder</label><input type="text" name="reporter" required></div>
+      <div class="form-group"><label class="group-label">Naam &amp; geboortedatum vermiste persoon</label><input type="text" name="naam" required></div>
+      <div class="form-group"><label class="group-label">Uiterlijke kenmerken &amp; kleding</label><textarea name="kenmerken" rows="2" required></textarea></div>
+      <div class="form-group"><label class="group-label">Omschrijving situatie (laatst gezien, bijzonderheden)</label><textarea name="situatie" rows="3" required></textarea></div>
+      <div class="form-group"><label class="group-label">Recente foto beschikbaar?</label>
+        <select name="foto">
+          <option value="Ja">Ja</option>
+          <option value="Nee">Nee</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
+        <button type="button" class="btn btn-cancel" id="cancelVermissingModalBtn">Annuleren</button>
+        <button type="submit" class="btn btn-submit">Melding aanmaken</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script type="module" src="js/main.js"></script>
+
+</body>
+</html>
