@@ -2126,42 +2126,83 @@ function escapeHtml(str) {
       });
   }
 
+  // ── Focus trap for modals ──
+  function trapFocus(el) {
+      const focusable = Array.from(el.querySelectorAll('button,input,textarea,select,[tabindex]:not([tabindex="-1"])'))
+          .filter(e => !e.disabled && e.offsetParent !== null);
+      if (focusable.length === 0) return;
+      function onKey(e) {
+          if (e.key !== 'Tab') return;
+          const first = focusable[0], last = focusable[focusable.length - 1];
+          if (e.shiftKey) {
+              if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+          } else {
+              if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+          }
+      }
+      el._focusTrap = onKey;
+      el.addEventListener('keydown', onKey);
+  }
+  function removeFocusTrap(el) {
+      if (el._focusTrap) { el.removeEventListener('keydown', el._focusTrap); delete el._focusTrap; }
+  }
+
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => {
-          if (e.target === overlay) overlay.classList.remove('show');
-          if (e.target.classList.contains('modal-close')) overlay.classList.remove('show');
+          if (e.target === overlay) { overlay.classList.remove('show'); removeFocusTrap(overlay); }
+          if (e.target.classList.contains('modal-close')) { overlay.classList.remove('show'); removeFocusTrap(overlay); }
       });
+      // Focus trap when modal opens
+      const observer = new MutationObserver((mutations) => {
+          mutations.forEach(m => {
+              if (m.type === 'attributes' && m.attributeName === 'class') {
+                  if (overlay.classList.contains('show')) {
+                      trapFocus(overlay);
+                      // Focus first focusable element or the modal title
+                      const first = overlay.querySelector('button,input,textarea,select,h3');
+                      if (first) setTimeout(() => first.focus(), 50);
+                  } else {
+                      removeFocusTrap(overlay);
+                  }
+              }
+          });
+      });
+      observer.observe(overlay, { attributes: true });
   });
 
-          // Sluit alle andere inline uitklap-panelen wanneer er één geopend wordt
-          window.closeOtherInlinePanels = function(exceptId) {
-              [
-                  ['quickMedicalInlineContainer', 'display'],
-                  ['detailedMedicalInlineContainer', 'display'],
-                  ['brandwachtModal', 'class'],
-                  ['logistiekModal', 'class'],
-                  ['freeLogModal', 'class']
-              ].forEach(([id, mode]) => {
-                  if (id === exceptId) return;
-                  const el = document.getElementById(id);
-                  if (!el) return;
-                  if (mode === 'display') el.style.display = 'none';
-                  else el.classList.remove('show');
-                  el.querySelector('form')?.reset();
-              });
-          };
+  // Setup all modals (except the new inline one)
+  setupModal('brandwachtModal', 'btnBrandwacht', 'brandwachtForm');
+  setupModal('logistiekModal', 'btnLogistiek', 'logistiekForm');
 
-          // Detailed SBAR inline dropdown handlers (zelfde gedrag als snelle medische melding)
-          const detailedContainer = document.getElementById('detailedMedicalInlineContainer');
-          const detailedForm = document.getElementById('detailedMedicalForm');
-          document.getElementById('btnDetailedMedical').addEventListener('click', () => {
-              const isOpen = detailedContainer.style.display !== 'none';
-              if (!isOpen) window.closeOtherInlinePanels('detailedMedicalInlineContainer');
-              detailedContainer.style.display = isOpen ? 'none' : 'block';
-              if (!isOpen) detailedContainer.querySelector('input[name="reporter"]')?.focus();
-          });
-          document.getElementById('detailedCloseBtn').addEventListener('click', () => { detailedContainer.style.display = 'none'; detailedForm.reset(); });
-          document.getElementById('detailedCancel').addEventListener('click', () => { detailedContainer.style.display = 'none'; detailedForm.reset(); });
+  // ── Close other inline panels when one opens ──
+  window.closeOtherInlinePanels = function(exceptId) {
+      [
+          ['quickMedicalInlineContainer', 'display'],
+          ['detailedMedicalInlineContainer', 'display'],
+          ['brandwachtModal', 'class'],
+          ['logistiekModal', 'class'],
+          ['freeLogModal', 'class']
+      ].forEach(([id, mode]) => {
+          if (id === exceptId) return;
+          const el = document.getElementById(id);
+          if (!el) return;
+          if (mode === 'display') el.style.display = 'none';
+          else el.classList.remove('show');
+          el.querySelector('form')?.reset();
+      });
+  };
+
+  // Detailed SBAR inline dropdown handlers (zelfde gedrag als snelle medische melding)
+  const detailedContainer = document.getElementById('detailedMedicalInlineContainer');
+  const detailedForm = document.getElementById('detailedMedicalForm');
+  document.getElementById('btnDetailedMedical').addEventListener('click', () => {
+      const isOpen = detailedContainer.style.display !== 'none';
+      if (!isOpen) window.closeOtherInlinePanels('detailedMedicalInlineContainer');
+      detailedContainer.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) detailedContainer.querySelector('input[name="reporter"]')?.focus();
+  });
+  document.getElementById('detailedCloseBtn').addEventListener('click', () => { detailedContainer.style.display = 'none'; detailedForm.reset(); });
+  document.getElementById('detailedCancel').addEventListener('click', () => { detailedContainer.style.display = 'none'; detailedForm.reset(); });
 
           detailedForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -3594,121 +3635,166 @@ function escapeHtml(str) {
       showToast('Verbinding hersteld, data is gesynchroniseerd.');
   });
 
-  // Sneltoetsen (Keyboard Shortcuts)
-  // Sneltoetsen (Keyboard Shortcuts & Navigatie)
-  document.addEventListener('keydown', (e) => {
-      if (e.altKey) {
-          if (e.key.toLowerCase() === 'n') {
-              e.preventDefault();
-              document.getElementById('btnQuickMedical').click();
-          } else if (e.key.toLowerCase() === 's') {
-              e.preventDefault();
-              document.getElementById('btnDetailedMedical').click();
-          } else if (e.key.toLowerCase() === 'b') {
-              e.preventDefault();
-              document.getElementById('btnBrandwacht').click();
-          } else if (e.key.toLowerCase() === 'l') {
-              e.preventDefault();
-              document.getElementById('btnLogistiek').click();
-          }
-      }
+  // ==========================================
+  // KEYBOARD SHORTCUTS & NAVIGATION
+  // ==========================================
+  (function() {
+      const ESCAPE_DROPDOWNS = [
+          { dd: urgencyDropdown, close: closeUrgencyDropdown },
+          { dd: assignDropdown, close: closeAssignDropdown },
+          { dd: escalationDropdown },
+          { dd: afloopDropdown },
+          { dd: logistiekStatusDropdown },
+          { dd: mergeDropdown },
+          { dd: logDropdown },
+      ];
 
-      // Escape toets om actieve modal te sluiten
-      if (e.key === 'Escape') {
-          // Sluit urgentie dropdown
-          if (urgencyDropdown && urgencyDropdown.classList.contains('open')) {
-              closeUrgencyDropdown();
-              return;
-          }
-          // Sluit toewijzen dropdown
-          if (assignDropdown && assignDropdown.classList.contains('open')) {
-              closeAssignDropdown();
-              return;
-          }
-          // Sluit display-gebaseerde inline panelen
-          const displayPanels = [
-              document.getElementById('quickMedicalInlineContainer'),
-              document.getElementById('detailedMedicalInlineContainer'),
-          ];
-          for (const panel of displayPanels) {
-              if (panel && panel.style.display !== 'none') {
-                  panel.style.display = 'none';
-                  panel.querySelector('form')?.reset();
-                  return;
+      function closeAllDropdowns() {
+          ESCAPE_DROPDOWNS.forEach(({ dd, close }) => {
+              if (dd && dd.classList.contains('open')) {
+                  dd.classList.remove('open');
+                  if (close) close();
               }
-          }
-          // Sluit class-gebaseerde inline panelen (brandwacht, logistiek, vrij logboek)
-          const classPanel = document.querySelector('.inline-form-panel.show');
-          if (classPanel) {
-              classPanel.classList.remove('show');
-              classPanel.querySelector('form')?.reset();
-              return;
-          }
-          // Sluit modal overlays (opschalen, urgentie, toewijzen, afloop, tijdlijn, etc.)
-          const openModal = document.querySelector('.modal-overlay.show');
-          if (openModal) {
-              const closeBtn = openModal.querySelector('.modal-close, .closeModalBtn');
-              if (closeBtn) closeBtn.click();
-              else openModal.classList.remove('show');
-              return;
-          }
-      }
-
-      // Enter om formulieren op te slaan
-      // Enter om formulieren op te slaan (behalve in tekstvelden)
-      if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
-          const activeForm = e.target.closest('form');
-          if (activeForm) {
-              const parentModal = activeForm.closest('.modal-overlay.show');
-              const parentSection = activeForm.closest('#unitFormSection, #postFormSection, #bulkUnitFormSection');
-
-              if (parentModal || (parentSection && parentSection.style.display !== 'none')) {
-                  e.preventDefault();
-                  const submitBtn = activeForm.querySelector('.btn-submit');
-                  if (submitBtn) {
-                      submitBtn.click();
-                  }
-                  return; // Stop verdere verwerking
-              }
-          }
-      }
-
-      // Negeer pijltjestoetsen als je in een input typt of als er een modal open staat
-      if (document.querySelector('.modal-overlay.show') || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-          e.preventDefault();
-          
-          const activeView = document.querySelector('.view.active');
-          if (!activeView) return;
-          
-          const tables = activeView.querySelectorAll('tbody');
-          let allRows = [];
-          tables.forEach(tbody => {
-              const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-table-msg)'));
-              allRows = allRows.concat(rows);
           });
-
-          if (allRows.length === 0) return;
-
-          const currentSelected = activeView.querySelector('.selected-row');
-          let selectedIndex = currentSelected ? allRows.indexOf(currentSelected) : -1;
-
-          if (currentSelected) currentSelected.classList.remove('selected-row');
-
-          if (e.key === 'ArrowDown') {
-              selectedIndex = (selectedIndex + 1) % allRows.length;
-          } else if (e.key === 'ArrowUp') {
-              selectedIndex = (selectedIndex - 1 + allRows.length) % allRows.length;
-          }
-
-          const newSelected = allRows[selectedIndex];
-          if (newSelected) {
-              newSelected.classList.add('selected-row');
-              newSelected.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-          }
       }
-  });
+
+      function focusTrap(el) {
+          const focusable = Array.from(el.querySelectorAll('button,input,textarea,select,[tabindex]:not([tabindex="-1"])'))
+              .filter(e => !e.disabled && e.offsetParent !== null);
+          if (focusable.length === 0) return;
+          function onKey(e) {
+              if (e.key !== 'Tab') return;
+              const first = focusable[0], last = focusable[focusable.length - 1];
+              if (e.shiftKey) {
+                  if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+              } else {
+                  if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+              }
+          }
+          el._focusTrap = onKey;
+          el.addEventListener('keydown', onKey);
+      }
+
+      function removeFocusTrap(el) {
+          if (el._focusTrap) { el.removeEventListener('keydown', el._focusTrap); delete el._focusTrap; }
+      }
+
+      document.addEventListener('keydown', (e) => {
+          // — Escape: close dropdowns, panels, modals —
+          if (e.key === 'Escape') {
+              closeAllDropdowns();
+
+              // Inline panels
+              [
+                  document.getElementById('quickMedicalInlineContainer'),
+                  document.getElementById('detailedMedicalInlineContainer'),
+              ].forEach(panel => {
+                  if (panel && panel.style.display !== 'none') { panel.style.display = 'none'; panel.querySelector('form')?.reset(); }
+              });
+
+              const classPanel = document.querySelector('.inline-form-panel.show');
+              if (classPanel) { classPanel.classList.remove('show'); classPanel.querySelector('form')?.reset(); }
+
+              const openModal = document.querySelector('.modal-overlay.show');
+              if (openModal) {
+                  const closeBtn = openModal.querySelector('.modal-close, .closeModalBtn');
+                  if (closeBtn) closeBtn.click(); else openModal.classList.remove('show');
+              }
+              return;
+          }
+
+          // — Alt shortcuts —
+          if (e.altKey && !e.ctrlKey && !e.metaKey) {
+              const map = { n: 'btnQuickMedical', s: 'btnDetailedMedical', b: 'btnBrandwacht', l: 'btnLogistiek' };
+              const id = map[e.key.toLowerCase()];
+              if (id) { e.preventDefault(); document.getElementById(id)?.click(); }
+          }
+
+          // — Enter: submit form in modal / inline section —
+          if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+              const form = e.target.closest('form');
+              if (form) {
+                  const parentModal = form.closest('.modal-overlay.show');
+                  const parentSection = form.closest('#unitFormSection, #postFormSection, #bulkUnitFormSection, #importCsvFormSection');
+                  if (parentModal || (parentSection && parentSection.style.display !== 'none')) {
+                      e.preventDefault();
+                      form.querySelector('.btn-submit')?.click();
+                      return;
+                  }
+              }
+          }
+
+          // Skip arrow keys when typing or modal is open
+          if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Home','End'].includes(e.key)) {
+              if (document.querySelector('.modal-overlay.show')) return;
+              if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+          }
+
+          // — Arrow Up/Down: navigate table rows —
+          if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+              e.preventDefault();
+              const activeView = document.querySelector('.view.active');
+              if (!activeView) return;
+              let allRows = [];
+              activeView.querySelectorAll('tbody').forEach(tbody => {
+                  tbody.querySelectorAll('tr:not(.empty-table-msg)').forEach(tr => allRows.push(tr));
+              });
+              if (allRows.length === 0) return;
+              const current = activeView.querySelector('.selected-row');
+              let idx = current ? allRows.indexOf(current) : -1;
+              if (current) current.classList.remove('selected-row');
+              idx = e.key === 'ArrowDown' ? (idx + 1) % allRows.length : (idx - 1 + allRows.length) % allRows.length;
+              const sel = allRows[idx];
+              if (sel) { sel.classList.add('selected-row'); sel.scrollIntoView({ block: 'nearest' }); }
+              return;
+          }
+
+          // — Home / End —
+          if (e.key === 'Home' || e.key === 'End') {
+              e.preventDefault();
+              const activeView = document.querySelector('.view.active');
+              if (!activeView) return;
+              let allRows = [];
+              activeView.querySelectorAll('tbody').forEach(tbody => {
+                  tbody.querySelectorAll('tr:not(.empty-table-msg)').forEach(tr => allRows.push(tr));
+              });
+              if (allRows.length === 0) return;
+              const current = activeView.querySelector('.selected-row');
+              if (current) current.classList.remove('selected-row');
+              const sel = e.key === 'Home' ? allRows[0] : allRows[allRows.length - 1];
+              if (sel) { sel.classList.add('selected-row'); sel.scrollIntoView({ block: 'nearest' }); }
+              return;
+          }
+
+          // — Space: select row —
+          if (e.key === ' ' && !e.target.closest('input, textarea, select, button')) {
+              e.preventDefault();
+              const activeView = document.querySelector('.view.active');
+              if (!activeView) return;
+              const target = document.elementFromPoint(e.clientX, e.clientY);
+              if (!target) return;
+              const tr = target.closest('tbody tr:not(.empty-table-msg)');
+              if (tr) {
+                  const prev = activeView.querySelector('.selected-row');
+                  if (prev && prev !== tr) prev.classList.remove('selected-row');
+                  tr.classList.add('selected-row');
+                  tr.scrollIntoView({ block: 'nearest' });
+              }
+              return;
+          }
+
+          // — Enter: trigger default action on selected row —
+          if (e.key === 'Enter') {
+              const selected = document.querySelector('.selected-row');
+              if (selected) {
+                  const btn = selected.querySelector('button.btn-submit, button[type="submit"]');
+                  if (btn) { btn.click(); return; }
+                  const firstAction = selected.querySelector('.row-actions .btn');
+                  if (firstAction) { firstAction.click(); return; }
+              }
+          }
+      });
+  })();
 
   // Roep de functie aan die de temperatuur in de weer-knop laadt
   initializeWeather();
