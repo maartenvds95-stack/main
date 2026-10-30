@@ -86,6 +86,7 @@
   .btn:disabled { opacity: .45; cursor: not-allowed; }
 
   /* Event type picker */
+  .pick-title { font-size: 14px; color: var(--gold); margin: 0 0 8px; }
   .types { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 24px; }
   .type { border: 1.5px solid var(--line); background: var(--paper); border-radius: 10px; padding: 16px; text-align: left; cursor: pointer; }
   .type strong { display: block; font-size: 16px; }
@@ -289,8 +290,11 @@
     <!-- Stap 2 -->
     <div class="card" id="step-2" hidden>
       <h1 class="view-title">Wat voor evenement is het?</h1>
-      <p class="lead">Kies particulier of zakelijk. Daarmee weet het programma of de offerte incl. of excl. BTW wordt opgebouwd.</p>
+      <p class="lead">Kies of het een particuliere of zakelijke klant is (incl. of excl. BTW) en wat er geboekt wordt.</p>
+      <h3 class="pick-title">Klant</h3>
       <div class="types" id="types"></div>
+      <h3 class="pick-title">Wat wordt er geboekt?</h3>
+      <div class="types" id="kinds"></div>
       <div class="form-grid">
         <label class="f">Naam of omschrijving<input id="e-title" placeholder="Bijv. bruiloft Sanne &amp; Tom"></label>
         <label class="f">Datum evenement<input id="e-date" type="date"></label>
@@ -486,8 +490,8 @@ const COMPANY = {
 };
 
 const EVENT_TYPES = [
-  { id: 'particulier', name: 'Particulier event', hint: 'Bruiloft, verjaardag, feest. Prijzen incl. BTW' },
-  { id: 'zakelijk', name: 'Zakelijk event', hint: 'Bedrijf, school, vereniging. Prijzen excl. BTW' }
+  { id: 'particulier', name: 'Particulier', hint: 'Prijzen incl. BTW' },
+  { id: 'zakelijk', name: 'Zakelijk', hint: 'Bedrijf, school, vereniging. Prijzen excl. BTW' }
 ];
 // Oude soorten omzetten naar de nieuwe indeling
 const LEGACY_TYPES = { bruiloft: 'particulier', verjaardag: 'particulier', baby: 'particulier', jubileum: 'particulier', vuur: 'particulier', anders: 'particulier', opening: 'zakelijk', school: 'zakelijk', bedrijf: 'zakelijk' };
@@ -678,7 +682,7 @@ function newDoc() {
     kind: 'offerte',
     number: '', invoiceNumber: '',
     date: todayISO(),
-    client: {}, event: { type: '' },
+    client: {}, event: { type: '', kind: 'event' },
     picks: {},            // productId -> qty (stap 3)
     pickPrices: {},       // productId -> zelf ingevulde prijs (stap 3)
     lines: [],            // regels op document
@@ -768,16 +772,32 @@ $('to-2').addEventListener('click', () => {
 });
 
 /* ---------- Stap 2: evenement ---------- */
+const BOOKING_KINDS = [
+  { id: 'event', name: 'Event', hint: 'Licht, geluid, DJ en effecten' },
+  { id: 'vuur', name: 'Losse vuurspuwshow', hint: 'Alleen Schroei Fireperformers' }
+];
+const kindOf = () => (current.event.kind || 'event');
+function eventLabel(e) {
+  const t = EVENT_TYPES.find(x => x.id === e.type);
+  const k = BOOKING_KINDS.find(x => x.id === (e.kind || 'event'));
+  if (!t) return '';
+  return (e.kind === 'vuur') ? `${k.name} (${t.name.toLowerCase()})` : `${t.name} event`;
+}
 function renderTypes() {
-  $('types').innerHTML = EVENT_TYPES.map(t =>
-    `<button type="button" class="type" data-type="${t.id}" aria-pressed="${current.event.type === t.id}"><strong>${esc(t.name)}</strong><span>${esc(t.hint)}</span></button>`
-  ).join('');
+  const tile = (list, attr, sel) => list.map(t =>
+    `<button type="button" class="type" data-${attr}="${t.id}" aria-pressed="${sel === t.id}"><strong>${esc(t.name)}</strong><span>${esc(t.hint)}</span></button>`).join('');
+  $('types').innerHTML = tile(EVENT_TYPES, 'type', current.event.type);
+  $('kinds').innerHTML = tile(BOOKING_KINDS, 'kind', kindOf());
   $('types').querySelectorAll('.type').forEach(btn => btn.addEventListener('click', () => {
-    const changed = current.event.type !== btn.dataset.type;
     current.event.type = btn.dataset.type;
-    if (changed) current.picks = null; // opnieuw standaardselectie laden
     $('types').querySelectorAll('.type').forEach(b => b.setAttribute('aria-pressed', b === btn));
     $('to-3').disabled = false;
+  }));
+  $('kinds').querySelectorAll('.type').forEach(btn => btn.addEventListener('click', () => {
+    const changed = kindOf() !== btn.dataset.kind;
+    current.event.kind = btn.dataset.kind;
+    if (changed) current.picks = null;
+    $('kinds').querySelectorAll('.type').forEach(b => b.setAttribute('aria-pressed', b === btn));
   }));
 }
 $('back-1').addEventListener('click', () => showStep(1));
@@ -797,7 +817,8 @@ $('to-3').addEventListener('click', () => {
 function renderPicker() {
   const type = EVENT_TYPES.find(t => t.id === current.event.type);
   $('step3-lead').textContent = `Vink aan wat je in de offerte wilt hebben en vul het aantal in. Prijzen zijn ${vatLabel()}${isIncl() ? ' (particulier)' : ' (zakelijk)'}.`;
-  const groups = CATS.map(cat => ({ cat, items: catalog.filter(p => (p.cat || 'Overig') === cat) })).filter(g => g.items.length);
+  const cats = kindOf() === 'vuur' ? ['Vuurspuwshow'] : CATS;
+  const groups = cats.map(cat => ({ cat, items: catalog.filter(p => (p.cat || 'Overig') === cat) })).filter(g => g.items.length);
   $('picker').innerHTML = groups.map(g => `
     <div class="cat"><h3>${esc(g.cat)}</h3>
       ${g.items.map(p => {
@@ -872,7 +893,7 @@ function renderDoc() {
   $('doc-client').textContent = [c.company, c.company ? 'T.a.v. ' + c.name : c.name, [c.street, c.house].filter(Boolean).join(' '), [c.zip, c.city].filter(Boolean).join(' '), c.email, c.phone, c.kvk ? 'KvK: ' + c.kvk : '', c.btw ? 'BTW-nr: ' + c.btw : ''].filter(Boolean).join('\n');
 
   const e = current.event, type = EVENT_TYPES.find(t => t.id === e.type);
-  const rows = [['Soort', type ? type.name : ''], ['Omschrijving', e.title], ['Datum', nlDate(e.date)], ['Locatie', e.location], ['Aantal gasten', e.guests]].filter(r => r[1]);
+  const rows = [['Soort', eventLabel(e)], ['Omschrijving', e.title], ['Datum', nlDate(e.date)], ['Locatie', e.location], ['Aantal gasten', e.guests]].filter(r => r[1]);
   $('doc-event').innerHTML = rows.map(r => `<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('');
 
   $('add-select').innerHTML = CATS.map(cat => {
@@ -1093,7 +1114,7 @@ function renderSaved() {
       return `<tr>
         <td><span class="badge ${d.kind === 'factuur' ? 'fac' : ''}">${d.kind === 'factuur' ? 'Factuur' : 'Offerte'}</span> ${esc(d.kind === 'factuur' ? d.invoiceNumber : d.number)}</td>
         <td>${esc(d.client.company || d.client.name)}</td>
-        <td>${esc(t ? t.name : '')}${d.event.date ? ', ' + esc(nlDate(d.event.date)) : ''}</td>
+        <td>${esc(eventLabel(d.event))}${d.event.date ? ', ' + esc(nlDate(d.event.date)) : ''}</td>
         <td class="num">${eur.format(d.total || 0)}</td>
         <td style="white-space:nowrap;text-align:right">
           <button class="btn secondary small" type="button" data-open="${d.id}">Openen</button>
