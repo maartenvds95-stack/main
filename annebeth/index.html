@@ -24,6 +24,8 @@
     <!-- Chart.js bibliotheek voor de groeicurve -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <!-- Google Identity Services, voor het opslaan van dagboekfoto's in Google Drive -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
             --bg-color: #f7f5ef;
@@ -701,6 +703,167 @@
             #growthHistoryList { background-color: #1c1c1e; }
             #growthHistoryList div { border-bottom-color: #3a3a3c !important; }
         }
+        /* ==========================================
+           --- DAGBOEK ---
+           ========================================== */
+        :root { --icon-diary: #d9668f; --diary-soft: #fde8ef; }
+
+        .filter-btn[data-filter="dagboek"].active {
+            background-color: var(--icon-diary);
+            color: #ffffff;
+            border-color: var(--icon-diary);
+        }
+        .c-diary { color: var(--icon-diary); }
+
+        #diaryModal .input-field { background-color: var(--diary-soft); border-color: var(--diary-soft); color: var(--text-dark); }
+        #diaryText { min-height: 180px; line-height: 1.5; font-family: var(--primary-font); }
+        #diaryModal { z-index: 110; }
+
+        .mood-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+        .mood-btn {
+            border: 2px solid transparent;
+            background: var(--diary-soft);
+            border-radius: 20px;
+            padding: 6px 10px;
+            font-size: 13px;
+            color: var(--text-dark);
+            cursor: pointer;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .mood-btn.active { border-color: var(--icon-diary); background: #fff; font-weight: 600; }
+
+        .diary-photo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .diary-photo-thumb {
+            position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden;
+            background: var(--diary-soft);
+        }
+        .diary-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .diary-photo-remove {
+            position: absolute; top: 4px; right: 4px;
+            width: 22px; height: 22px; border-radius: 50%;
+            border: none; background: rgba(0,0,0,0.6); color: #fff;
+            font-size: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .diary-photo-add {
+            aspect-ratio: 1; border-radius: 12px;
+            border: 2px dashed var(--icon-diary);
+            background: transparent; color: var(--icon-diary);
+            font-size: 20px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+        }
+        .diary-photo-add span { font-size: 10px; font-weight: 600; }
+        .diary-hint { font-size: 11px; color: var(--text-light); margin-top: 6px; padding-left: 5px; }
+
+        /* Tijdlijn-weergave van een dagboekitem */
+        .timeline-diary-thumb {
+            width: 42px; height: 42px; border-radius: 10px; object-fit: cover;
+            margin-left: 8px; flex-shrink: 0; cursor: pointer;
+        }
+
+        /* Leesboek */
+        #diaryBookModal .modal-container { max-width: 520px; max-height: 92vh; max-height: 92dvh; }
+        .diary-book-search { margin-bottom: 14px; }
+        .diary-book-empty { text-align: center; color: var(--text-light); padding: 40px 10px; font-size: 14px; }
+        .diary-book-empty i { font-size: 36px; color: var(--icon-diary); display: block; margin-bottom: 12px; }
+        .diary-book-month {
+            font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+            color: var(--icon-diary); margin: 18px 4px 8px;
+        }
+        .diary-entry {
+            background: var(--diary-soft);
+            border-radius: 18px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+        }
+        .diary-entry-head { display: flex; align-items: flex-start; gap: 10px; }
+        .diary-entry-date { font-size: 12px; color: var(--text-light); }
+        .diary-entry-title { font-size: 17px; font-weight: 700; color: var(--text-dark); margin: 2px 0 0; }
+        .diary-entry-mood { font-size: 12px; margin-left: 4px; }
+        .diary-entry-edit {
+            margin-left: auto; border: none; background: #fff; color: var(--icon-diary);
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+        }
+        .diary-entry-text { font-size: 15px; line-height: 1.55; color: var(--text-dark); margin-top: 10px; white-space: pre-wrap; word-wrap: break-word; }
+        .diary-entry-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px; margin-top: 12px; }
+        .diary-entry-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; cursor: pointer; display: block; }
+        .diary-entry-photos.single { grid-template-columns: 1fr; }
+        .diary-entry-photos.single img { aspect-ratio: auto; max-height: 360px; }
+        .diary-entry-by { font-size: 11px; color: var(--text-light); margin-top: 10px; }
+
+        .diary-tools { display: flex; gap: 8px; margin-bottom: 10px; }
+        .diary-tool-btn {
+            flex: 1; border: none; cursor: pointer;
+            background: var(--diary-soft); color: var(--icon-diary);
+            border-radius: 14px; padding: 10px 8px;
+            font-size: 13px; font-weight: 600;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .diary-tool-btn:disabled { opacity: 0.7; cursor: default; }
+        .diary-drive {
+            display: flex; align-items: center; gap: 10px;
+            border: 1px dashed var(--icon-diary); border-radius: 14px;
+            padding: 8px 10px; margin-bottom: 14px;
+            font-size: 12px; color: var(--text-dark);
+        }
+        .diary-drive > i { color: var(--icon-diary); font-size: 18px; }
+        .diary-drive span { flex: 1; }
+        .diary-drive .diary-tool-btn { flex: 0 0 auto; padding: 8px 12px; }
+        .diary-photo-drive {
+            position: absolute; bottom: 4px; left: 4px;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: rgba(255,255,255,0.9); color: #1a73e8; font-size: 11px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Printweergave voor export (alleen zichtbaar tijdens afdrukken) */
+        #diaryPrintArea { display: none; }
+        @media print {
+            body.diary-printing { display: block !important; background: #fff !important; }
+            body.diary-printing > *:not(#diaryPrintArea) { display: none !important; }
+            body.diary-printing #diaryPrintArea { display: block !important; }
+        }
+
+        /* Voeden-keuze */
+        .action-card.hidden-card { display: none; }
+        .feed-choice { display: flex; gap: 12px; }
+        .feed-choice-btn {
+            flex: 1; border: none; cursor: pointer;
+            border-radius: 20px; padding: 22px 10px;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            font-size: 16px; font-weight: 600; color: var(--text-dark);
+            touch-action: manipulation;
+        }
+        .feed-choice-btn i { font-size: 30px; }
+        .feed-choice-btn small { font-size: 11px; font-weight: 500; color: var(--text-light); }
+        .feed-choice-btn.breast { background: #e3f7e8; }
+        .feed-choice-btn.breast i { color: var(--icon-green); }
+        .feed-choice-btn.bottle { background: #e6f2ff; }
+        .feed-choice-btn.bottle i { color: var(--icon-blue); }
+        @media (prefers-color-scheme: dark) {
+            .feed-choice-btn.breast, .feed-choice-btn.bottle { background: #3a3a3c; }
+        }
+
+        /* Foto vergroten */
+        .photo-lightbox {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+            display: none; align-items: center; justify-content: center;
+            z-index: 300; padding: 20px; box-sizing: border-box;
+        }
+        .photo-lightbox.active { display: flex; }
+        .photo-lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+        .photo-lightbox button {
+            position: absolute; top: 16px; right: 16px;
+            width: 40px; height: 40px; border-radius: 50%; border: none;
+            background: rgba(255,255,255,0.15); color: #fff; font-size: 24px; cursor: pointer;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root { --diary-soft: #3a2a31; }
+            .diary-entry-edit, .mood-btn.active { background: #2c2c2e; }
+            #diaryModal .input-field { background-color: #3a3a3c !important; border-color: #444 !important; color: var(--text-dark) !important; }
+            #saveDiaryBtn { box-shadow: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -772,7 +935,16 @@
             <div class="plus-btn c-purple"><i class="fa-solid fa-plus"></i></div>
         </div>
         
-        <div class="action-card" id="openBreastModalBtn">
+        <!-- Voeden: kies tussen borst of fles -->
+        <div class="action-card" id="openFeedChoiceBtn">
+            <div class="action-icon c-green"><i class="fa-solid fa-person-breastfeeding"></i></div>
+            <div class="action-title">Voeden</div>
+            <div class="action-time" id="feedLastTime">Lang geleden</div>
+            <div class="plus-btn c-green"><i class="fa-solid fa-plus"></i></div>
+        </div>
+
+        <!-- Losse Borst/Fles-tegels zijn verborgen; ze worden geopend via de Voeden-keuze -->
+        <div class="action-card hidden-card" id="openBreastModalBtn">
             <div class="action-icon c-green"><i class="fa-solid fa-person-breastfeeding"></i></div>
             <div class="action-title">Borst</div>
             <div class="action-time" id="breastLastTime">Lang geleden</div>
@@ -786,7 +958,7 @@
             <div class="plus-btn c-yellow"><i class="fa-solid fa-plus"></i></div>
         </div>
         
-        <div class="action-card" id="openBottleModalBtn">
+        <div class="action-card hidden-card" id="openBottleModalBtn">
             <div class="action-icon c-blue"><i class="fa-solid fa-bottle-droplet"></i></div>
             <div class="action-title">Fles</div>
             <div class="action-time" id="bottleLastTime">Lang geleden</div>
@@ -806,12 +978,20 @@
             <div class="action-time" id="noteLastTime">Lang geleden</div>
             <div class="plus-btn" style="color: orange;"><i class="fa-solid fa-plus"></i></div>
         </div>
+
+        <div class="action-card" id="openDiaryBookBtn">
+            <div class="action-icon c-diary"><i class="fa-solid fa-book-open"></i></div>
+            <div class="action-title">Dagboek</div>
+            <div class="action-time" id="diaryLastTime">Lang geleden</div>
+            <div class="plus-btn c-diary" id="openDiaryModalBtn" title="Nieuw verhaal"><i class="fa-solid fa-plus"></i></div>
+        </div>
     </div>
 
     <div class="filter-container">
         <button class="filter-btn active" data-filter="all">Alles</button>
         <button class="filter-btn" data-filter="luier">Verschoningen</button>
         <button class="filter-btn" data-filter="voeding">Voedingen</button>
+        <button class="filter-btn" data-filter="dagboek">Dagboek</button>
     </div>
 
     <div class="timeline">
@@ -1073,6 +1253,127 @@
     </div>
 </div>
 
+<!-- Pop-up: kies borst of fles -->
+<div class="modal-overlay" id="feedChoiceModal">
+    <div class="modal-container" style="max-width: 360px;">
+        <div class="modal-header">
+            <button class="back-btn" id="closeFeedChoiceBtn">&times;</button>
+            <div class="page-title" style="color: var(--icon-green);">
+                <i class="fa-solid fa-person-breastfeeding"></i> Voeden
+            </div>
+        </div>
+        <div class="modal-content">
+            <div class="feed-choice">
+                <button type="button" class="feed-choice-btn breast" id="feedChooseBreastBtn">
+                    <i class="fa-solid fa-person-breastfeeding"></i> Borst
+                    <small id="feedChoiceBreastTime">Lang geleden</small>
+                </button>
+                <button type="button" class="feed-choice-btn bottle" id="feedChooseBottleBtn">
+                    <i class="fa-solid fa-bottle-droplet"></i> Fles
+                    <small id="feedChoiceBottleTime">Lang geleden</small>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pop-up overlay voor Dagboek schrijven -->
+<div class="modal-overlay" id="diaryModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <button class="back-btn" id="closeDiaryModalBtn">&times;</button>
+            <div class="page-title" style="color: var(--icon-diary);">
+                <i class="fa-solid fa-pen-nib"></i> <span id="diaryModalTitle">Nieuw verhaal</span>
+            </div>
+        </div>
+
+        <div class="modal-content">
+            <div id="diaryDraftNotice" style="display: none; background: var(--diary-soft); border-radius: 12px; padding: 8px 12px; margin-bottom: 14px; font-size: 13px; color: var(--text-dark);">
+                <i class="fa-solid fa-clock-rotate-left" style="color: var(--icon-diary);"></i> Niet-opgeslagen concept teruggezet.
+                <button type="button" id="diaryDraftDiscardBtn" style="border: none; background: none; color: var(--icon-diary); font-weight: 600; cursor: pointer; padding: 0 0 0 4px; font-size: 13px;">Weggooien</button>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <div class="input-group" style="flex: 3;">
+                    <label class="input-label">Datum</label>
+                    <input type="date" class="input-field" id="diaryDate">
+                </div>
+                <div class="input-group" style="flex: 2;">
+                    <label class="input-label">Tijd</label>
+                    <input type="time" class="input-field" id="diaryTime">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Titel</label>
+                <input type="text" class="input-field" id="diaryTitle" maxlength="120" placeholder="Bijv. Eerste keer in bad">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Stemming</label>
+                <div class="mood-picker" id="diaryMoodPicker">
+                    <button type="button" class="mood-btn" data-mood="Blij">😊 Blij</button>
+                    <button type="button" class="mood-btn" data-mood="Knuffelig">🥰 Knuffelig</button>
+                    <button type="button" class="mood-btn" data-mood="Bijzonder">🎉 Bijzonder</button>
+                    <button type="button" class="mood-btn" data-mood="Moe">😴 Moe</button>
+                    <button type="button" class="mood-btn" data-mood="Huilerig">😢 Huilerig</button>
+                    <button type="button" class="mood-btn" data-mood="Ziekjes">🤒 Ziekjes</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Verhaal</label>
+                <textarea class="input-field" id="diaryText" placeholder="Wat is er vandaag gebeurd? Wat wil je later nog weten?"></textarea>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Foto's</label>
+                <div class="diary-photo-grid" id="diaryPhotoGrid"></div>
+                <input type="file" id="diaryPhotoInput" accept="image/*" multiple style="display: none;">
+                <div class="diary-hint" id="diaryPhotoHint">Maximaal 6 foto's per verhaal, opgeslagen in hoge kwaliteit.</div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button id="deleteDiaryBtn" style="display:none; width:100%; background:transparent; border:none; color:var(--icon-pink); padding:10px; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:8px;">
+                <i class="fa-solid fa-trash-can"></i> Verwijderen
+            </button>
+            <button class="save-btn" id="saveDiaryBtn" style="background-color: var(--icon-diary); color: #fff; box-shadow: 0 4px 15px rgba(217, 102, 143, 0.3);">Opslaan</button>
+        </div>
+    </div>
+</div>
+
+<!-- Pop-up overlay voor Dagboek lezen -->
+<div class="modal-overlay" id="diaryBookModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <button class="back-btn" id="closeDiaryBookBtn">&times;</button>
+            <div class="page-title" style="color: var(--icon-diary);">
+                <i class="fa-solid fa-book-open"></i> Dagboek
+            </div>
+        </div>
+        <div class="modal-content">
+            <button class="save-btn" id="diaryBookNewBtn" style="background-color: var(--icon-diary); color: #fff; box-shadow: none; font-size: 16px; margin-bottom: 12px;"><i class="fa-solid fa-pen-nib"></i> Nieuw verhaal</button>
+            <div class="diary-tools">
+                <button type="button" class="diary-tool-btn" id="diaryExportPdfBtn"><i class="fa-solid fa-file-pdf"></i> PDF / afdrukken</button>
+                <button type="button" class="diary-tool-btn" id="diaryExportHtmlBtn"><i class="fa-solid fa-download"></i> Downloaden</button>
+            </div>
+            <div class="diary-drive" id="diaryDriveBox">
+                <i class="fa-brands fa-google-drive"></i>
+                <span id="diaryDriveStatus">Google Drive</span>
+                <button type="button" class="diary-tool-btn" id="diaryDriveBtn">Koppelen</button>
+            </div>
+            <input type="search" class="input-field diary-book-search" id="diaryBookSearch" placeholder="Zoek in het dagboek..." style="background-color: var(--diary-soft); border-color: var(--diary-soft); color: var(--text-dark);">
+            <div id="diaryBookList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Foto vergroten -->
+<div class="photo-lightbox" id="photoLightbox">
+    <button id="closePhotoLightbox">&times;</button>
+    <img id="photoLightboxImg" alt="Foto">
+</div>
+
 <!-- Pop-up overlay voor Groei (Lengte & Gewicht) -->
 <div class="modal-overlay" id="growthModal">
     <div class="modal-container" id="growthModalContent">
@@ -1124,7 +1425,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -1157,6 +1458,13 @@
             if (dateObj.toDateString() === today.toDateString()) return 'Vandaag';
             if (dateObj.toDateString() === yesterday.toDateString()) return 'Gisteren';
             return getDutchDateLong(dateObj);
+        }
+
+        // --- Dagboek helpers ---
+        const DIARY_MOODS = { 'Blij': '😊', 'Knuffelig': '🥰', 'Bijzonder': '🎉', 'Moe': '😴', 'Huilerig': '😢', 'Ziekjes': '🤒' };
+
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
         // --- Connectie status wolkje (Groen = online) ---
@@ -1649,6 +1957,9 @@
                     if (currentFilter === 'voeding') {
                         return titleLower === 'borstvoeding' || titleLower === 'fles';
                     }
+                    if (currentFilter === 'dagboek') {
+                        return titleLower === 'dagboek';
+                    }
                     return item.title === currentFilter;
                 });
             }
@@ -1697,15 +2008,27 @@
 
                 const addedByHtml = item.addedBy ? `<span class="item-added-by"><i class="fa-regular fa-user"></i> ${item.addedBy}</span>` : '';
 
+                let subtitleHtml = item.subtitle;
+                let diaryThumbHtml = '';
+                if (item.title === 'Dagboek') {
+                    const moodEmoji = DIARY_MOODS[item.mood] ? DIARY_MOODS[item.mood] + ' ' : '';
+                    const snippet = (item.diaryText || '').slice(0, 80) + ((item.diaryText || '').length > 80 ? '…' : '');
+                    subtitleHtml = `${format24Hour(itemDate)} - ${moodEmoji}<strong>${escapeHtml(item.diaryTitle || 'Zonder titel')}</strong>${snippet ? '<br>' + escapeHtml(snippet) : ''}`;
+                    if (Array.isArray(item.photos) && item.photos.length) {
+                        diaryThumbHtml = `<img class="timeline-diary-thumb" src="${item.photos[0]}" data-diary-open="${item.id}" alt="Foto">`;
+                    }
+                }
+
                 const newItem = document.createElement('div');
                 newItem.className = 'timeline-item';
                 newItem.innerHTML = `
                     <div class="item-icon-wrapper ${item.colorClass}" style="${item.bgStyle}"><i class="fa-solid ${item.icon}"></i></div>
                     <div class="item-details">
                         <span class="item-title">${item.title}</span>
-                        <span class="item-subtitle">${item.subtitle}</span>
+                        <span class="item-subtitle">${subtitleHtml}</span>
                         ${addedByHtml}
                     </div>
+                    ${diaryThumbHtml}
                 <div style="margin-left: auto; display: flex;">
                     ${editBtnHtml}
                     <button class="item-delete-btn" data-id="${item.id}" title="Verwijderen" style="margin-left: 0;">
@@ -1721,6 +2044,12 @@
         document.querySelector('.timeline').addEventListener('click', async (e) => {
             const deleteBtn = e.target.closest('.item-delete-btn');
             const editBtn = e.target.closest('.item-edit-btn');
+            const diaryThumb = e.target.closest('[data-diary-open]');
+
+            if (diaryThumb) {
+                openDiaryBook(diaryThumb.getAttribute('data-diary-open'));
+                return;
+            }
 
             if (deleteBtn) {
                 const itemId = deleteBtn.getAttribute('data-id');
@@ -1795,6 +2124,8 @@
                     document.getElementById('sleepNotes').value = notes;
                     document.getElementById('sleepModal').classList.add('active');
                     document.body.style.overflow = 'hidden';
+                } else if (item.title === 'Dagboek') {
+                    openDiaryEditor(item);
                 } else if (item.title.includes('luier') || item.title === 'Verschonen') {
                     document.getElementById('saveDiaperBtn').innerHTML = 'Bijwerken';
                     document.getElementById('deleteDiaperBtn').style.display = 'block';
@@ -1903,6 +2234,7 @@
             let lastBottle = null;
             let lastPump = null;
             let lastNote = null;
+            let lastDiary = null;
 
             // Zoek achterstevoren (zodat we de meest recente pakken)
             for (let i = savedItems.length - 1; i >= 0; i--) {
@@ -1918,8 +2250,9 @@
                 if (!lastBottle && titleLower.includes('fles')) lastBottle = item.timestamp;
                 if (!lastPump && titleLower.includes('kolv')) lastPump = item.timestamp;
                 if (!lastNote && titleLower.includes('notitie')) lastNote = item.timestamp;
+                if (!lastDiary && titleLower === 'dagboek') lastDiary = item.timestamp;
                 
-                if (lastSleep && lastBreast && lastDiaper && lastBottle && lastPump && lastNote) break;
+                if (lastSleep && lastBreast && lastDiaper && lastBottle && lastPump && lastNote && lastDiary) break;
             }
 
             function formatTimeAgo(ts) {
@@ -1943,12 +2276,32 @@
 
             document.getElementById('sleepLastTime').textContent = formatTimeAgo(lastSleep);
             document.getElementById('breastLastTime').textContent = formatTimeAgo(lastBreast);
+
+            // Voeden-tegel: de meest recente van borst of fles
+            const feedLastEl = document.getElementById('feedLastTime');
+            if (feedLastEl) {
+                const breastMs = lastBreast ? new Date(lastBreast).getTime() : 0;
+                const bottleMs = lastBottle ? new Date(lastBottle).getTime() : 0;
+                if (!breastMs && !bottleMs) feedLastEl.textContent = 'Lang geleden';
+                else if (breastMs >= bottleMs) feedLastEl.textContent = 'Borst · ' + formatTimeAgo(lastBreast);
+                else feedLastEl.textContent = 'Fles · ' + formatTimeAgo(lastBottle);
+            }
+            const fcBreast = document.getElementById('feedChoiceBreastTime');
+            const fcBottle = document.getElementById('feedChoiceBottleTime');
+            if (fcBreast) fcBreast.textContent = formatTimeAgo(lastBreast);
+            if (fcBottle) fcBottle.textContent = formatTimeAgo(lastBottle);
             document.getElementById('diaperLastTime').textContent = formatTimeAgo(lastDiaper);
             document.getElementById('bottleLastTime').textContent = formatTimeAgo(lastBottle);
             document.getElementById('pumpLastTime').textContent = formatTimeAgo(lastPump);
             
             const noteLastEl = document.getElementById('noteLastTime');
             if (noteLastEl) noteLastEl.textContent = formatTimeAgo(lastNote);
+
+            const diaryLastEl = document.getElementById('diaryLastTime');
+            if (diaryLastEl) diaryLastEl.textContent = formatTimeAgo(lastDiary);
+            if (typeof renderDiaryBook === 'function' && document.getElementById('diaryBookModal').classList.contains('active')) {
+                renderDiaryBook();
+            }
         }
         
         // --- Timer Logica ---
@@ -2968,7 +3321,8 @@
         const saveNoteBtn = document.getElementById('saveNoteBtn');
         const deleteNoteBtn = document.getElementById('deleteNoteBtn');
 
-        openNoteModalBtn.addEventListener('click', () => {
+        // De Notitie-knop is vervangen door Dagboek; bestaande notities blijven wel te bewerken via de tijdlijn
+        if (openNoteModalBtn) openNoteModalBtn.addEventListener('click', () => {
             currentEditNoteId = null;
             saveNoteBtn.innerHTML = 'Opslaan';
             deleteNoteBtn.style.display = 'none'; // Verberg verwijder knop
@@ -3051,6 +3405,950 @@
                 saveNoteBtn.innerHTML = "Opslaan";
                 saveNoteBtn.disabled = false;
             }
+        });
+
+        // ==========================================
+        // --- VOEDEN: KEUZE TUSSEN BORST OF FLES ---
+        // ==========================================
+        const feedChoiceModal = document.getElementById('feedChoiceModal');
+        const closeFeedChoice = () => {
+            feedChoiceModal.classList.remove('active');
+            document.body.style.overflow = '';
+        };
+        document.getElementById('openFeedChoiceBtn').addEventListener('click', () => {
+            feedChoiceModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        document.getElementById('closeFeedChoiceBtn').addEventListener('click', closeFeedChoice);
+        feedChoiceModal.addEventListener('click', (e) => { if (e.target === feedChoiceModal) closeFeedChoice(); });
+        // Opent de bestaande (verborgen) Borst- of Fles-tegel, zodat alle bestaande logica gewoon werkt
+        document.getElementById('feedChooseBreastBtn').addEventListener('click', () => {
+            closeFeedChoice();
+            document.getElementById('openBreastModalBtn').click();
+        });
+        document.getElementById('feedChooseBottleBtn').addEventListener('click', () => {
+            closeFeedChoice();
+            document.getElementById('openBottleModalBtn').click();
+        });
+
+        // ==========================================
+        // --- LOGICA VOOR DAGBOEK ---
+        // ==========================================
+        // Foto-opslag:
+        //  - item.photos[i]           kleine voorvertoning (in het tijdlijn-document, snel te laden)
+        //  - item.photoMeta[i].hqId   id van de hoge-kwaliteitsversie in de collectie "diary_photos" (1 document per foto)
+        //  - item.photoMeta[i].driveId id van het originele bestand in Google Drive (archief, optioneel)
+        // Oudere verhalen hebben alleen item.photos (±1280px); die blijven gewoon werken.
+        const DIARY_MAX_PHOTOS = 6;
+        const DIARY_THUMB = { maxSide: 640, quality: 0.8, maxChars: 90000 };
+        const DIARY_HQ = { maxSide: 2048, quality: 0.88, maxChars: 950000 };       // Firestore-limiet is 1 MB per document
+        const DIARY_FALLBACK = { maxSide: 1280, quality: 0.8, maxChars: 140000 };  // als "diary_photos" niet mag van de database regels
+        const DIARY_BIRTH_DATE = new Date(2026, 3, 25); // Zelfde geboortedatum als bij de leeftijd bovenaan
+
+        // --- Google Drive instellingen ---
+        // Vul hier de OAuth Client-ID in uit Google Cloud Console (zie uitleg). Leeg = Drive-koppeling uit.
+        const GOOGLE_CLIENT_ID = '559990845452-j42ddvvg1p2utdg6jp2u8irr0c1546mp.apps.googleusercontent.com'; // openbaar, geen geheim
+        const DRIVE_FOLDER_NAME = 'Dagboek Annebeth';
+        const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+
+        const diaryModal = document.getElementById('diaryModal');
+        const diaryBookModal = document.getElementById('diaryBookModal');
+        const saveDiaryBtn = document.getElementById('saveDiaryBtn');
+        const deleteDiaryBtn = document.getElementById('deleteDiaryBtn');
+        const diaryPhotoInput = document.getElementById('diaryPhotoInput');
+        const diaryPhotoGrid = document.getElementById('diaryPhotoGrid');
+        const diaryMoodPicker = document.getElementById('diaryMoodPicker');
+        const diaryBookList = document.getElementById('diaryBookList');
+        const diaryBookSearch = document.getElementById('diaryBookSearch');
+        const photoLightbox = document.getElementById('photoLightbox');
+
+        let currentEditDiaryItem = null;
+        // Elke foto in de editor: { thumb, hq, hqId, driveId, original }
+        let diaryPhotos = [];
+        let diarySelectedMood = '';
+        let diaryDirty = false;
+
+        function updateBodyScroll() {
+            const anyOpen = document.querySelector('.modal-overlay.active');
+            document.body.style.overflow = anyOpen ? 'hidden' : '';
+        }
+
+        // ---------- Foto hulpfuncties ----------
+        function loadImageElement(source) {
+            return new Promise((resolve, reject) => {
+                const isFile = source instanceof Blob;
+                const url = isFile ? URL.createObjectURL(source) : source;
+                const img = new Image();
+                img.onload = () => { if (isFile) URL.revokeObjectURL(url); resolve(img); };
+                img.onerror = () => { if (isFile) URL.revokeObjectURL(url); reject(new Error('Kon de foto niet lezen')); };
+                img.src = url;
+            });
+        }
+
+        // Foto verkleinen tot JPEG (base64) binnen de opgegeven grenzen
+        async function compressImage(source, opts) {
+            const img = await loadImageElement(source);
+            let maxSide = opts.maxSide;
+            let quality = opts.quality;
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            let dataUrl = '';
+            for (let attempt = 0; attempt < 14; attempt++) {
+                const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+                canvas.width = Math.round(img.naturalWidth * scale);
+                canvas.height = Math.round(img.naturalHeight * scale);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                dataUrl = canvas.toDataURL('image/jpeg', quality);
+                if (dataUrl.length <= opts.maxChars) break;
+                if (quality > 0.7) quality -= 0.06;
+                else maxSide = Math.round(maxSide * 0.85);
+            }
+            return dataUrl;
+        }
+
+        async function dataUrlToBlob(dataUrl) {
+            return (await fetch(dataUrl)).blob();
+        }
+
+        function getPhotoMeta(item) {
+            const photos = Array.isArray(item.photos) ? item.photos : [];
+            const meta = Array.isArray(item.photoMeta) ? item.photoMeta : [];
+            return photos.map((_, i) => ({ hqId: meta[i]?.hqId || null, driveId: meta[i]?.driveId || null }));
+        }
+
+        // Hoge-kwaliteitsversies ophalen (met cache, zodat elke foto maar één keer wordt gedownload)
+        const diaryHqCache = new Map();
+        function fetchHqById(hqId) {
+            if (!diaryHqCache.has(hqId)) {
+                const p = getDoc(doc(db, 'diary_photos', hqId))
+                    .then(snap => (snap.exists() ? snap.data().data : null))
+                    .catch(err => { console.error('Foto ophalen mislukt:', err); diaryHqCache.delete(hqId); return null; });
+                diaryHqCache.set(hqId, p);
+            }
+            return diaryHqCache.get(hqId);
+        }
+
+        async function getPhotoHq(item, idx) {
+            const meta = getPhotoMeta(item)[idx];
+            if (meta && meta.hqId) {
+                const hq = await fetchHqById(meta.hqId);
+                if (hq) return hq;
+            }
+            return item.photos[idx];
+        }
+
+        // ---------- Editor ----------
+        function renderDiaryPhotoGrid() {
+            let html = diaryPhotos.map((p, idx) => `
+                <div class="diary-photo-thumb">
+                    <img src="${p.thumb}" alt="Foto ${idx + 1}" data-editor-photo="${idx}">
+                    <button type="button" class="diary-photo-remove" data-remove="${idx}" title="Foto verwijderen"><i class="fa-solid fa-xmark"></i></button>
+                    ${p.driveId ? '<span class="diary-photo-drive" title="Staat in Google Drive"><i class="fa-brands fa-google-drive"></i></span>' : ''}
+                </div>`).join('');
+            if (diaryPhotos.length < DIARY_MAX_PHOTOS) {
+                html += `<button type="button" class="diary-photo-add" id="diaryPhotoAddBtn"><i class="fa-solid fa-camera"></i><span>Toevoegen</span></button>`;
+            }
+            diaryPhotoGrid.innerHTML = html;
+        }
+
+        function setDiaryMood(mood) {
+            diarySelectedMood = mood || '';
+            diaryMoodPicker.querySelectorAll('.mood-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.mood === diarySelectedMood);
+            });
+        }
+
+        // --- Concepten: niet-opgeslagen tekst bewaren i.p.v. een confirm()-vraag bij sluiten ---
+        // (confirm() wordt in sommige app-/telefoonbrowsers geblokkeerd, waardoor sluiten dan niet werkte)
+        function diaryDraftKey() {
+            return 'diaryDraft:' + (currentEditDiaryItem ? currentEditDiaryItem.id : 'new');
+        }
+
+        function saveDiaryDraft() {
+            const base = {
+                date: document.getElementById('diaryDate').value,
+                time: document.getElementById('diaryTime').value,
+                title: document.getElementById('diaryTitle').value,
+                text: document.getElementById('diaryText').value,
+                mood: diarySelectedMood
+            };
+            const strip = (withHq) => diaryPhotos.map(p => ({ thumb: p.thumb, hq: withHq ? p.hq : null, hqId: p.hqId, driveId: p.driveId }));
+            const attempts = [{ ...base, photos: strip(true) }, { ...base, photos: strip(false) }, { ...base, photos: null }];
+            for (const draft of attempts) {
+                try { localStorage.setItem(diaryDraftKey(), JSON.stringify(draft)); return; } catch (e) { /* opslag vol: probeer kleiner */ }
+            }
+        }
+
+        function clearDiaryDraft() {
+            try { localStorage.removeItem(diaryDraftKey()); } catch (e) { /* negeren */ }
+        }
+
+        function loadDiaryDraft() {
+            try { return JSON.parse(localStorage.getItem(diaryDraftKey()) || 'null'); } catch (e) { return null; }
+        }
+
+        function photosFromItem(item) {
+            if (!item || !Array.isArray(item.photos)) return [];
+            const meta = getPhotoMeta(item);
+            return item.photos.map((thumb, i) => ({ thumb, hq: null, hqId: meta[i].hqId, driveId: meta[i].driveId, original: null }));
+        }
+
+        function fillDiaryForm(item) {
+            const local = item ? new Date(item.timestamp) : new Date();
+            local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+            const iso = local.toISOString();
+
+            document.getElementById('diaryDate').value = iso.slice(0, 10);
+            document.getElementById('diaryTime').value = iso.slice(11, 16);
+            document.getElementById('diaryTitle').value = item ? (item.diaryTitle || '') : '';
+            document.getElementById('diaryText').value = item ? (item.diaryText || '') : '';
+            diaryPhotos = photosFromItem(item);
+            setDiaryMood(item ? item.mood : '');
+        }
+
+        function openDiaryEditor(item) {
+            currentEditDiaryItem = item || null;
+            diaryDirty = false;
+
+            fillDiaryForm(item);
+            const draft = loadDiaryDraft();
+            const notice = document.getElementById('diaryDraftNotice');
+            if (draft) {
+                if (draft.date) document.getElementById('diaryDate').value = draft.date;
+                if (draft.time) document.getElementById('diaryTime').value = draft.time;
+                document.getElementById('diaryTitle').value = draft.title || '';
+                document.getElementById('diaryText').value = draft.text || '';
+                if (Array.isArray(draft.photos)) {
+                    diaryPhotos = draft.photos
+                        .map(p => (typeof p === 'string' ? { thumb: p, hq: null, hqId: null, driveId: null } : p))
+                        .map(p => ({ ...p, original: null }));
+                }
+                setDiaryMood(draft.mood);
+                diaryDirty = true;
+                notice.style.display = 'block';
+            } else {
+                notice.style.display = 'none';
+            }
+            renderDiaryPhotoGrid();
+
+            document.getElementById('diaryModalTitle').textContent = item ? 'Verhaal bewerken' : 'Nieuw verhaal';
+            saveDiaryBtn.innerHTML = item ? 'Bijwerken' : 'Opslaan';
+            deleteDiaryBtn.style.display = item ? 'block' : 'none';
+            disarmDiaryDelete();
+            diaryModal.classList.add('active');
+            updateBodyScroll();
+        }
+
+        function closeDiaryEditor(saved) {
+            if (saved) clearDiaryDraft();
+            else if (diaryDirty) saveDiaryDraft();
+            diaryModal.classList.remove('active');
+            diaryDirty = false;
+            updateBodyScroll();
+        }
+
+        document.getElementById('diaryDraftDiscardBtn').addEventListener('click', () => {
+            clearDiaryDraft();
+            fillDiaryForm(currentEditDiaryItem);
+            renderDiaryPhotoGrid();
+            diaryDirty = false;
+            document.getElementById('diaryDraftNotice').style.display = 'none';
+        });
+
+        // Plusje op de Dagboek-kaart = nieuw verhaal, de rest van de kaart = dagboek lezen
+        document.getElementById('openDiaryModalBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openDiaryEditor(null);
+        });
+        document.getElementById('diaryBookNewBtn').addEventListener('click', () => openDiaryEditor(null));
+        document.getElementById('closeDiaryModalBtn').addEventListener('click', () => closeDiaryEditor(false));
+        diaryModal.addEventListener('click', (e) => { if (e.target === diaryModal) closeDiaryEditor(false); });
+        ['diaryTitle', 'diaryText', 'diaryDate', 'diaryTime'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => { diaryDirty = true; });
+        });
+
+        diaryMoodPicker.addEventListener('click', (e) => {
+            const btn = e.target.closest('.mood-btn');
+            if (!btn) return;
+            setDiaryMood(btn.dataset.mood === diarySelectedMood ? '' : btn.dataset.mood);
+            diaryDirty = true;
+        });
+
+        diaryPhotoGrid.addEventListener('click', async (e) => {
+            const removeBtn = e.target.closest('[data-remove]');
+            if (removeBtn) {
+                diaryPhotos.splice(parseInt(removeBtn.dataset.remove, 10), 1);
+                diaryDirty = true;
+                renderDiaryPhotoGrid();
+                return;
+            }
+            if (e.target.closest('#diaryPhotoAddBtn')) {
+                diaryPhotoInput.click();
+                return;
+            }
+            const img = e.target.closest('[data-editor-photo]');
+            if (img) {
+                const p = diaryPhotos[parseInt(img.dataset.editorPhoto, 10)];
+                if (!p) return;
+                openLightbox(p.hq || p.thumb, p.hq || !p.hqId ? null : () => fetchHqById(p.hqId));
+            }
+        });
+
+        diaryPhotoInput.addEventListener('change', async () => {
+            const files = Array.from(diaryPhotoInput.files || []);
+            diaryPhotoInput.value = '';
+            const room = DIARY_MAX_PHOTOS - diaryPhotos.length;
+            if (files.length > room) alert(`Je kunt nog ${room} foto${room === 1 ? '' : "'s"} toevoegen. De rest is overgeslagen.`);
+            const hint = document.getElementById('diaryPhotoHint');
+            const oldHint = hint.textContent;
+            saveDiaryBtn.disabled = true;
+            let n = 0;
+            const todo = files.slice(0, room);
+            for (const file of todo) {
+                n++;
+                hint.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Foto ${n} van ${todo.length} verwerken...`;
+                try {
+                    const hq = await compressImage(file, DIARY_HQ);
+                    const thumb = await compressImage(hq, DIARY_THUMB);
+                    diaryPhotos.push({ thumb, hq, hqId: null, driveId: null, original: file });
+                    diaryDirty = true;
+                    renderDiaryPhotoGrid();
+                } catch (err) {
+                    console.error(err);
+                    alert('Een foto kon niet worden gelezen en is overgeslagen.');
+                }
+            }
+            saveDiaryBtn.disabled = false;
+            hint.textContent = oldHint;
+            renderDiaryPhotoGrid();
+        });
+
+        // Verwijderen in twee tikken (geen confirm(), die wordt in sommige browsers geblokkeerd)
+        let diaryDeleteArmedTimer = null;
+        const DIARY_DELETE_LABEL = '<i class="fa-solid fa-trash-can"></i> Verwijderen';
+        function disarmDiaryDelete() {
+            clearTimeout(diaryDeleteArmedTimer);
+            diaryDeleteArmedTimer = null;
+            deleteDiaryBtn.innerHTML = DIARY_DELETE_LABEL;
+        }
+
+        function deleteHqPhotos(hqIds) {
+            hqIds.filter(Boolean).forEach(id => {
+                diaryHqCache.delete(id);
+                deleteDoc(doc(db, 'diary_photos', id)).catch(err => console.warn('Foto opruimen mislukt:', err));
+            });
+        }
+
+        deleteDiaryBtn.addEventListener('click', async () => {
+            if (!currentEditDiaryItem) return;
+            if (!diaryDeleteArmedTimer) {
+                deleteDiaryBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Tik nogmaals om definitief te verwijderen';
+                diaryDeleteArmedTimer = setTimeout(disarmDiaryDelete, 4000);
+                return;
+            }
+            disarmDiaryDelete();
+            try {
+                deleteDiaryBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                deleteDiaryBtn.disabled = true;
+                const hqIds = getPhotoMeta(currentEditDiaryItem).map(m => m.hqId);
+                await deleteDoc(doc(db, "timeline", currentEditDiaryItem.id));
+                deleteHqPhotos(hqIds); // Foto's in Google Drive blijven bewust bewaard (archief)
+                closeDiaryEditor(true);
+            } catch (error) {
+                console.error("Fout bij verwijderen:", error);
+                alert("Verwijderen mislukt! Controleer je verbinding en rechten.");
+            } finally {
+                deleteDiaryBtn.innerHTML = DIARY_DELETE_LABEL;
+                deleteDiaryBtn.disabled = false;
+            }
+        });
+
+        saveDiaryBtn.addEventListener('click', async () => {
+            const dateVal = document.getElementById('diaryDate').value;
+            const timeVal = document.getElementById('diaryTime').value || '12:00';
+            const titleVal = document.getElementById('diaryTitle').value.trim();
+            const textVal = document.getElementById('diaryText').value.trim();
+
+            if (!titleVal && !textVal && diaryPhotos.length === 0) {
+                alert('Schrijf een titel, een verhaal of voeg een foto toe.');
+                return;
+            }
+
+            // Drive-toegang vernieuwen moet direct in de klik gebeuren (anders blokkeert de browser de pop-up)
+            let driveTokenPromise = null;
+            const needsDrive = diaryPhotos.some(p => !p.driveId);
+            if (needsDrive && driveIsEnabled() && !driveTokenValid()) {
+                driveTokenPromise = requestDriveToken().catch(err => { console.warn('Drive niet beschikbaar:', err); return null; });
+            }
+
+            let timeObj = new Date();
+            if (dateVal) {
+                const parsed = new Date(`${dateVal}T${timeVal}`);
+                if (!isNaN(parsed.getTime())) timeObj = parsed;
+            }
+
+            try {
+                saveDiaryBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opslaan...';
+                saveDiaryBtn.disabled = true;
+
+                // 1. Nieuwe foto's in hoge kwaliteit opslaan (1 document per foto)
+                const photosOut = [];
+                const metaOut = [];
+                let usedFallback = false;
+                for (const p of diaryPhotos) {
+                    if (p.hq && !p.hqId) {
+                        try {
+                            const ref = await addDoc(collection(db, 'diary_photos'), {
+                                data: p.hq,
+                                createdAt: new Date().toISOString(),
+                                addedBy: getUserName()
+                            });
+                            p.hqId = ref.id;
+                            diaryHqCache.set(ref.id, Promise.resolve(p.hq));
+                        } catch (err) {
+                            console.error('Hoge kwaliteit opslaan mislukt, val terug op normale kwaliteit:', err);
+                            usedFallback = true;
+                            p.thumb = await compressImage(p.hq, DIARY_FALLBACK);
+                            p.hq = null;
+                        }
+                    }
+                    photosOut.push(p.thumb);
+                    metaOut.push({ hqId: p.hqId || null, driveId: p.driveId || null });
+                }
+
+                const itemData = {
+                    title: 'Dagboek',
+                    subtitle: `${format24Hour(timeObj)} - ${titleVal || 'Zonder titel'}`,
+                    icon: 'fa-book-open',
+                    colorClass: 'c-diary',
+                    bgStyle: 'background-color: var(--diary-soft);',
+                    timestamp: timeObj.toISOString(),
+                    addedBy: currentEditDiaryItem?.addedBy || getUserName(),
+                    diaryTitle: titleVal,
+                    diaryText: textVal,
+                    mood: diarySelectedMood,
+                    photos: photosOut,
+                    photoMeta: metaOut
+                };
+                if (currentEditDiaryItem) itemData.editedBy = getUserName();
+
+                if (JSON.stringify(itemData).length > 1000000) {
+                    alert("Dit verhaal is te groot om op te slaan. Verwijder een foto of maak de tekst korter.");
+                    return;
+                }
+
+                // 2. Het verhaal zelf opslaan
+                let entryId;
+                if (currentEditDiaryItem) {
+                    entryId = currentEditDiaryItem.id;
+                    await updateDoc(doc(db, "timeline", entryId), itemData);
+                    // Verwijderde foto's opruimen
+                    const kept = new Set(metaOut.map(m => m.hqId).filter(Boolean));
+                    deleteHqPhotos(getPhotoMeta(currentEditDiaryItem).map(m => m.hqId).filter(id => id && !kept.has(id)));
+                } else {
+                    entryId = (await addDoc(collection(db, "timeline"), itemData)).id;
+                }
+
+                // 3. Originelen naar Google Drive (op de achtergrond)
+                const originals = diaryPhotos.map(p => p.original || null);
+                const hqs = diaryPhotos.map(p => p.hq || null);
+                closeDiaryEditor(true);
+
+                if (usedFallback) {
+                    alert("Let op: de foto's zijn in normale kwaliteit opgeslagen, omdat de database de collectie 'diary_photos' (nog) niet toestaat. Pas de Firebase regels aan voor hoge kwaliteit.");
+                }
+
+                if (driveIsEnabled() && needsDrive) {
+                    const token = driveTokenValid() ? driveToken.token : (driveTokenPromise ? await driveTokenPromise : null);
+                    if (token) {
+                        syncEntryToDrive(entryId, itemData, originals, hqs)
+                            .catch(err => console.warn('Uploaden naar Drive mislukt:', err))
+                            .finally(renderDriveStatus);
+                    }
+                }
+            } catch (error) {
+                console.error("Fout bij opslaan:", error);
+                alert("Opslaan mislukt! Controleer je verbinding en de database regels in Firebase.");
+            } finally {
+                saveDiaryBtn.innerHTML = currentEditDiaryItem ? 'Bijwerken' : 'Opslaan';
+                saveDiaryBtn.disabled = false;
+            }
+        });
+
+        // ==========================================
+        // --- GOOGLE DRIVE KOPPELING ---
+        // ==========================================
+        let driveToken = null;
+        try { driveToken = JSON.parse(sessionStorage.getItem('driveToken') || 'null'); } catch (e) { driveToken = null; }
+        let driveSyncBusy = false;
+
+        function driveIsConfigured() { return !!GOOGLE_CLIENT_ID; }
+        function driveIsEnabled() { return driveIsConfigured() && localStorage.getItem('driveEnabled') === '1'; }
+        function driveTokenValid() { return !!(driveToken && driveToken.expires > Date.now() + 60000); }
+
+        // Moet vanuit een klik worden aangeroepen (Google opent een pop-up)
+        function requestDriveToken() {
+            return new Promise((resolve, reject) => {
+                if (!driveIsConfigured()) return reject(new Error('Google Drive is niet ingesteld'));
+                if (!window.google || !google.accounts || !google.accounts.oauth2) return reject(new Error('Google-script is nog niet geladen'));
+                const client = google.accounts.oauth2.initTokenClient({
+                    client_id: GOOGLE_CLIENT_ID,
+                    scope: DRIVE_SCOPE,
+                    callback: (resp) => {
+                        if (resp.error) return reject(new Error(resp.error));
+                        driveToken = { token: resp.access_token, expires: Date.now() + (resp.expires_in || 3600) * 1000 };
+                        try { sessionStorage.setItem('driveToken', JSON.stringify(driveToken)); } catch (e) { /* negeren */ }
+                        localStorage.setItem('driveEnabled', '1');
+                        resolve(driveToken.token);
+                    },
+                    error_callback: (err) => reject(new Error(err && err.type ? err.type : 'Inloggen bij Google afgebroken'))
+                });
+                client.requestAccessToken({ prompt: localStorage.getItem('driveEnabled') === '1' ? '' : 'consent' });
+            });
+        }
+
+        async function driveFetch(url, options = {}) {
+            if (!driveTokenValid()) throw new Error('Geen geldige Google Drive toegang');
+            const res = await fetch(url, { ...options, headers: { ...(options.headers || {}), Authorization: `Bearer ${driveToken.token}` } });
+            if (res.status === 401) {
+                driveToken = null;
+                sessionStorage.removeItem('driveToken');
+                throw new Error('Google Drive toegang verlopen');
+            }
+            if (!res.ok) throw new Error(`Google Drive fout ${res.status}: ${await res.text()}`);
+            return res.json();
+        }
+
+        async function ensureDriveFolder() {
+            const cached = localStorage.getItem('driveFolderId');
+            if (cached) return cached;
+            const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+            const found = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)&spaces=drive`);
+            let id = found.files && found.files[0] && found.files[0].id;
+            if (!id) {
+                const created = await driveFetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
+                });
+                id = created.id;
+            }
+            localStorage.setItem('driveFolderId', id);
+            return id;
+        }
+
+        async function uploadToDrive(blob, name, description) {
+            const upload = async (folderId) => {
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify({ name, parents: [folderId], description })], { type: 'application/json' }));
+                form.append('file', blob, name);
+                return driveFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', body: form });
+            };
+            try {
+                return (await upload(await ensureDriveFolder())).id;
+            } catch (err) {
+                // Map verwijderd in Drive? Dan opnieuw aanmaken en nog één keer proberen
+                if (String(err.message).includes('404')) {
+                    localStorage.removeItem('driveFolderId');
+                    return (await upload(await ensureDriveFolder())).id;
+                }
+                throw err;
+            }
+        }
+
+        function driveFileName(item, idx, blob) {
+            const d = new Date(item.timestamp);
+            const pad = n => String(n).padStart(2, '0');
+            const datePart = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+            const title = (item.diaryTitle || 'Dagboek').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'Dagboek';
+            const ext = blob && blob.type === 'image/png' ? 'png' : (blob && blob.type === 'image/heic' ? 'heic' : 'jpg');
+            return `${datePart} ${title} (${idx + 1}).${ext}`;
+        }
+
+        // Upload alle foto's van één verhaal die nog niet in Drive staan
+        async function syncEntryToDrive(entryId, item, originals = [], hqs = []) {
+            const meta = getPhotoMeta(item);
+            let changed = false;
+            for (let i = 0; i < meta.length; i++) {
+                if (meta[i].driveId) continue;
+                let blob = originals[i];
+                if (!blob) {
+                    const src = hqs[i] || await getPhotoHq(item, i);
+                    blob = await dataUrlToBlob(src);
+                }
+                const desc = [item.diaryTitle, item.diaryText].filter(Boolean).join('\n\n').slice(0, 2000);
+                meta[i].driveId = await uploadToDrive(blob, driveFileName(item, i, blob), desc);
+                changed = true;
+            }
+            if (changed) await updateDoc(doc(db, 'timeline', entryId), { photoMeta: meta });
+            return changed;
+        }
+
+        function countPhotosNotInDrive() {
+            return timelineData
+                .filter(i => i.title === 'Dagboek')
+                .reduce((sum, item) => sum + getPhotoMeta(item).filter(m => !m.driveId).length, 0);
+        }
+
+        function renderDriveStatus() {
+            const box = document.getElementById('diaryDriveBox');
+            const status = document.getElementById('diaryDriveStatus');
+            const btn = document.getElementById('diaryDriveBtn');
+            if (!box) return;
+            if (driveSyncBusy) return;
+            btn.style.display = '';
+            btn.disabled = false;
+            if (!driveIsConfigured()) {
+                status.textContent = 'Google Drive is nog niet ingesteld.';
+                btn.style.display = 'none';
+                return;
+            }
+            if (!driveIsEnabled()) {
+                status.textContent = "Bewaar de originele foto's in je eigen Google Drive.";
+                btn.innerHTML = 'Koppelen';
+                return;
+            }
+            const pending = countPhotosNotInDrive();
+            if (pending > 0) {
+                status.textContent = `${pending} foto${pending === 1 ? '' : "'s"} nog niet in Google Drive.`;
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Uploaden';
+            } else {
+                status.textContent = "Alle foto's staan in je Google Drive.";
+                btn.innerHTML = 'Map openen';
+            }
+        }
+
+        async function syncAllToDrive() {
+            const btn = document.getElementById('diaryDriveBtn');
+            const status = document.getElementById('diaryDriveStatus');
+            const entries = timelineData.filter(i => i.title === 'Dagboek' && getPhotoMeta(i).some(m => !m.driveId));
+            const total = countPhotosNotInDrive();
+            let done = 0;
+            driveSyncBusy = true;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            try {
+                for (const item of entries) {
+                    status.textContent = `Uploaden naar Google Drive... (${done} van ${total})`;
+                    const before = getPhotoMeta(item).filter(m => !m.driveId).length;
+                    await syncEntryToDrive(item.id, item);
+                    done += before;
+                }
+                status.textContent = `Klaar! ${done} foto${done === 1 ? '' : "'s"} geüpload.`;
+            } catch (err) {
+                console.error('Synchroniseren met Drive mislukt:', err);
+                alert('Uploaden naar Google Drive is (deels) mislukt: ' + err.message);
+            } finally {
+                driveSyncBusy = false;
+                setTimeout(renderDriveStatus, 1500);
+            }
+        }
+
+        document.getElementById('diaryDriveBtn').addEventListener('click', async () => {
+            try {
+                if (!driveTokenValid()) await requestDriveToken(); // in de klik, zodat de pop-up niet wordt geblokkeerd
+            } catch (err) {
+                console.warn(err);
+                alert('Koppelen met Google Drive is niet gelukt: ' + err.message);
+                renderDriveStatus();
+                return;
+            }
+            if (countPhotosNotInDrive() > 0) {
+                await syncAllToDrive();
+            } else {
+                const folderId = await ensureDriveFolder().catch(() => null);
+                window.open(folderId ? `https://drive.google.com/drive/folders/${folderId}` : 'https://drive.google.com/', '_blank');
+                renderDriveStatus();
+            }
+        });
+
+        // ==========================================
+        // --- DAGBOEK LEZEN ---
+        // ==========================================
+        const DUTCH_MONTHS = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+        const DUTCH_DAYS = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+
+        function getAgeLabel(dateObj) {
+            const dayStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+            const days = Math.round((dayStart - DIARY_BIRTH_DATE) / 86400000);
+            if (days < 0) return '';
+            if (days === 0) return 'geboortedag';
+            if (days < 14) return `${days} ${days === 1 ? 'dag' : 'dagen'} oud`;
+            const weeks = Math.floor(days / 7);
+            if (weeks < 13) return `${weeks} weken oud`;
+            let months = (dateObj.getFullYear() - DIARY_BIRTH_DATE.getFullYear()) * 12 + dateObj.getMonth() - DIARY_BIRTH_DATE.getMonth();
+            if (dateObj.getDate() < DIARY_BIRTH_DATE.getDate()) months--;
+            return `${months} maanden oud`;
+        }
+
+        function diaryDateLine(d) {
+            const age = getAgeLabel(d);
+            return `${DUTCH_DAYS[d.getDay()]} ${d.getDate()} ${DUTCH_MONTHS[d.getMonth()]} ${d.getFullYear()} · ${format24Hour(d)}${age ? ' · ' + age : ''}`;
+        }
+
+        // Hoge kwaliteit pas laden als de foto in beeld komt
+        let diaryHqObserver = null;
+        function observeHqImages() {
+            if (diaryHqObserver) diaryHqObserver.disconnect();
+            const imgs = diaryBookList.querySelectorAll('img[data-hq]');
+            if (!imgs.length) return;
+            const load = async (img) => {
+                const [entryId, idx] = img.dataset.hq.split('|');
+                img.removeAttribute('data-hq');
+                const item = timelineData.find(i => i.id === entryId);
+                if (!item) return;
+                const hq = await getPhotoHq(item, parseInt(idx, 10));
+                if (hq && hq !== img.src) img.src = hq;
+            };
+            if (!('IntersectionObserver' in window)) { imgs.forEach(load); return; }
+            diaryHqObserver = new IntersectionObserver((entries) => {
+                entries.forEach(en => {
+                    if (en.isIntersecting) { diaryHqObserver.unobserve(en.target); load(en.target); }
+                });
+            }, { root: diaryBookModal.querySelector('.modal-container'), rootMargin: '300px' });
+            imgs.forEach(img => diaryHqObserver.observe(img));
+        }
+
+        function renderDiaryBook() {
+            renderDriveStatus();
+            const term = diaryBookSearch.value.trim().toLowerCase();
+            const entries = timelineData
+                .filter(i => i.title === 'Dagboek')
+                .filter(i => !term || `${i.diaryTitle || ''} ${i.diaryText || ''} ${i.mood || ''}`.toLowerCase().includes(term))
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            if (entries.length === 0) {
+                diaryBookList.innerHTML = term
+                    ? `<div class="diary-book-empty"><i class="fa-solid fa-magnifying-glass"></i>Niets gevonden voor "${escapeHtml(term)}".</div>`
+                    : `<div class="diary-book-empty"><i class="fa-solid fa-book-open"></i>Het dagboek is nog leeg.<br>Tik op <strong>Nieuw verhaal</strong> om het eerste verhaal toe te voegen.</div>`;
+                return;
+            }
+
+            let html = '';
+            let currentMonth = '';
+
+            entries.forEach(item => {
+                const d = new Date(item.timestamp);
+                const monthKey = `${DUTCH_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+                if (monthKey !== currentMonth) {
+                    currentMonth = monthKey;
+                    html += `<div class="diary-book-month">${monthKey}</div>`;
+                }
+                const mood = item.mood && DIARY_MOODS[item.mood] ? `<span class="diary-entry-mood">${DIARY_MOODS[item.mood]} ${escapeHtml(item.mood)}</span>` : '';
+                const photos = Array.isArray(item.photos) ? item.photos : [];
+                const meta = getPhotoMeta(item);
+                const photosHtml = photos.length
+                    ? `<div class="diary-entry-photos ${photos.length === 1 ? 'single' : ''}">${photos.map((src, idx) =>
+                        `<img src="${src}" data-photo="${item.id}|${idx}" ${meta[idx].hqId ? `data-hq="${item.id}|${idx}"` : ''} alt="Foto" loading="lazy">`).join('')}</div>`
+                    : '';
+                const by = item.addedBy ? `<div class="diary-entry-by"><i class="fa-regular fa-user"></i> ${escapeHtml(item.addedBy)}${item.editedBy && item.editedBy !== item.addedBy ? ` · bewerkt door ${escapeHtml(item.editedBy)}` : ''}</div>` : '';
+
+                html += `
+                    <div class="diary-entry" id="diary-entry-${item.id}">
+                        <div class="diary-entry-head">
+                            <div>
+                                <div class="diary-entry-date">${diaryDateLine(d)}</div>
+                                <div class="diary-entry-title">${escapeHtml(item.diaryTitle || 'Zonder titel')}${mood}</div>
+                            </div>
+                            <button class="diary-entry-edit" data-edit="${item.id}" title="Bewerken"><i class="fa-solid fa-pen"></i></button>
+                        </div>
+                        ${item.diaryText ? `<div class="diary-entry-text">${escapeHtml(item.diaryText)}</div>` : ''}
+                        ${photosHtml}
+                        ${by}
+                    </div>`;
+            });
+            diaryBookList.innerHTML = html;
+            observeHqImages();
+        }
+
+        function openDiaryBook(scrollToId) {
+            diaryBookSearch.value = '';
+            renderDiaryBook();
+            diaryBookModal.classList.add('active');
+            updateBodyScroll();
+            if (scrollToId) {
+                const el = document.getElementById(`diary-entry-${scrollToId}`);
+                if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+            } else {
+                diaryBookModal.querySelector('.modal-container').scrollTop = 0;
+            }
+        }
+
+        function closeDiaryBook() {
+            diaryBookModal.classList.remove('active');
+            if (diaryHqObserver) diaryHqObserver.disconnect();
+            updateBodyScroll();
+        }
+
+        document.getElementById('openDiaryBookBtn').addEventListener('click', () => openDiaryBook());
+        document.getElementById('closeDiaryBookBtn').addEventListener('click', closeDiaryBook);
+        diaryBookModal.addEventListener('click', (e) => { if (e.target === diaryBookModal) closeDiaryBook(); });
+        diaryBookSearch.addEventListener('input', renderDiaryBook);
+
+        diaryBookList.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('[data-edit]');
+            if (editBtn) {
+                const item = timelineData.find(i => i.id === editBtn.dataset.edit);
+                if (item) openDiaryEditor(item);
+                return;
+            }
+            const img = e.target.closest('[data-photo]');
+            if (img) {
+                const [entryId, idx] = img.dataset.photo.split('|');
+                const item = timelineData.find(i => i.id === entryId);
+                openLightbox(img.src, item ? () => getPhotoHq(item, parseInt(idx, 10)) : null);
+            }
+        });
+
+        // --- Foto vergroten (eerst de snelle versie, daarna hoge kwaliteit) ---
+        let lightboxToken = 0;
+        async function openLightbox(src, loadHq) {
+            const imgEl = document.getElementById('photoLightboxImg');
+            const myToken = ++lightboxToken;
+            imgEl.src = src;
+            photoLightbox.classList.add('active');
+            if (loadHq) {
+                const hq = await loadHq();
+                if (hq && myToken === lightboxToken && photoLightbox.classList.contains('active')) imgEl.src = hq;
+            }
+        }
+        photoLightbox.addEventListener('click', () => { lightboxToken++; photoLightbox.classList.remove('active'); });
+
+        // ==========================================
+        // --- DAGBOEK EXPORTEREN ---
+        // ==========================================
+        const DIARY_EXPORT_CSS = `
+            body { font-family: Georgia, 'Times New Roman', serif; color: #2b2b2b; background: #fffdf9; margin: 0; }
+            .ex-wrap { max-width: 760px; margin: 0 auto; padding: 40px 28px; }
+            .ex-cover { text-align: center; padding: 120px 0 80px; page-break-after: always; break-after: page; }
+            .ex-cover h1 { font-size: 40px; color: #d9668f; margin: 0 0 12px; font-weight: normal; }
+            .ex-cover p { color: #888; font-size: 16px; margin: 4px 0; }
+            .ex-month { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; text-transform: uppercase; letter-spacing: .08em; font-size: 13px; color: #d9668f; margin: 36px 0 12px; font-weight: 700; }
+            .ex-entry { margin: 0 0 34px; padding-bottom: 26px; border-bottom: 1px solid #eee2e7; page-break-inside: avoid; break-inside: avoid; }
+            .ex-date { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 12px; color: #999; }
+            .ex-title { font-size: 24px; margin: 4px 0 10px; }
+            .ex-mood { font-size: 14px; color: #777; margin-left: 6px; }
+            .ex-text { font-size: 16px; line-height: 1.65; white-space: pre-wrap; }
+            .ex-photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 14px; }
+            .ex-photos.single { grid-template-columns: 1fr; }
+            .ex-photos img { width: 100%; border-radius: 6px; display: block; page-break-inside: avoid; break-inside: avoid; }
+            .ex-by { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 11px; color: #aaa; margin-top: 10px; }
+            @page { margin: 16mm; }
+        `;
+
+        async function buildDiaryExport(onProgress) {
+            const entries = timelineData
+                .filter(i => i.title === 'Dagboek')
+                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); // oud → nieuw, zoals een boek
+            if (!entries.length) return null;
+
+            const totalPhotos = entries.reduce((s, i) => s + (Array.isArray(i.photos) ? i.photos.length : 0), 0);
+            let loaded = 0;
+            const first = new Date(entries[0].timestamp);
+            const last = new Date(entries[entries.length - 1].timestamp);
+            const fmt = d => `${d.getDate()} ${DUTCH_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+
+            let html = `<div class="ex-wrap">
+                <div class="ex-cover">
+                    <h1>Het dagboek van Annebeth</h1>
+                    <p>${fmt(first)}${entries.length > 1 ? ' – ' + fmt(last) : ''}</p>
+                    <p>${entries.length} ${entries.length === 1 ? 'verhaal' : 'verhalen'}${totalPhotos ? ` · ${totalPhotos} foto${totalPhotos === 1 ? '' : "'s"}` : ''}</p>
+                </div>`;
+            let currentMonth = '';
+            for (const item of entries) {
+                const d = new Date(item.timestamp);
+                const monthKey = `${DUTCH_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+                if (monthKey !== currentMonth) {
+                    currentMonth = monthKey;
+                    html += `<div class="ex-month">${monthKey}</div>`;
+                }
+                const photos = Array.isArray(item.photos) ? item.photos : [];
+                const hqList = [];
+                for (let i = 0; i < photos.length; i++) {
+                    hqList.push(await getPhotoHq(item, i));
+                    loaded++;
+                    if (onProgress) onProgress(loaded, totalPhotos);
+                }
+                const mood = item.mood && DIARY_MOODS[item.mood] ? `<span class="ex-mood">${DIARY_MOODS[item.mood]} ${escapeHtml(item.mood)}</span>` : '';
+                html += `<div class="ex-entry">
+                    <div class="ex-date">${diaryDateLine(d)}</div>
+                    <div class="ex-title">${escapeHtml(item.diaryTitle || 'Zonder titel')}${mood}</div>
+                    ${item.diaryText ? `<div class="ex-text">${escapeHtml(item.diaryText)}</div>` : ''}
+                    ${hqList.length ? `<div class="ex-photos ${hqList.length === 1 ? 'single' : ''}">${hqList.map(src => `<img src="${src}" alt="Foto">`).join('')}</div>` : ''}
+                    ${item.addedBy ? `<div class="ex-by">Geschreven door ${escapeHtml(item.addedBy)}</div>` : ''}
+                </div>`;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        async function runDiaryExport(btn, action) {
+            const label = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Voorbereiden...';
+            try {
+                const body = await buildDiaryExport((n, total) => {
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Foto ${n}/${total}`;
+                });
+                if (!body) { alert('Het dagboek is nog leeg, er is niets om te exporteren.'); return; }
+                await action(body);
+            } catch (err) {
+                console.error('Exporteren mislukt:', err);
+                alert('Exporteren is mislukt. Controleer je verbinding en probeer het opnieuw.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = label;
+            }
+        }
+
+        // PDF / afdrukken: tijdelijk een printweergave in de pagina zetten
+        document.getElementById('diaryExportPdfBtn').addEventListener('click', (e) => {
+            runDiaryExport(e.currentTarget, async (body) => {
+                let area = document.getElementById('diaryPrintArea');
+                if (!area) {
+                    area = document.createElement('div');
+                    area.id = 'diaryPrintArea';
+                    document.body.appendChild(area);
+                }
+                area.innerHTML = `<style>${DIARY_EXPORT_CSS.replace(/(^|\})\s*body\s*\{/g, '$1 #diaryPrintArea {')}</style>${body}`;
+                await Promise.all([...area.querySelectorAll('img')].map(img => (img.decode ? img.decode().catch(() => {}) : null)));
+                document.body.classList.add('diary-printing');
+                const cleanup = () => {
+                    document.body.classList.remove('diary-printing');
+                    area.innerHTML = '';
+                    window.removeEventListener('afterprint', cleanup);
+                };
+                window.addEventListener('afterprint', cleanup);
+                window.print();
+                setTimeout(() => { if (document.body.classList.contains('diary-printing')) cleanup(); }, 60000);
+            });
+        });
+
+        // Downloaden als los HTML-bestand (met alle foto's erin, opent in elke browser)
+        document.getElementById('diaryExportHtmlBtn').addEventListener('click', (e) => {
+            runDiaryExport(e.currentTarget, async (body) => {
+                const doc_ = `<!DOCTYPE html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Het dagboek van Annebeth</title><style>${DIARY_EXPORT_CSS}</style></head><body>${body}</body></html>`;
+                const today = new Date();
+                const pad = n => String(n).padStart(2, '0');
+                const fileName = `Dagboek Annebeth ${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}.html`;
+                const file = new File([doc_], fileName, { type: 'text/html' });
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try { await navigator.share({ files: [file], title: 'Het dagboek van Annebeth' }); return; }
+                    catch (err) { if (err.name === 'AbortError') return; }
+                }
+                const url = URL.createObjectURL(file);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 10000);
+            });
         });
 
         // ==========================================
