@@ -837,6 +837,90 @@
             .login-divider::before, .login-divider::after { background: #3a3a3c; }
         }
 
+        /* Dagboekpagina maken */
+        #diaryPageModal { z-index: 110; }
+        #diaryPageModal .modal-container { max-height: 94vh; max-height: 94dvh; }
+        @media (max-width: 480px) {
+            #diaryPageModal { padding: 10px; }
+            #diaryPageModal .page-preview { padding: 8px; }
+            #diaryPageModal .page-preview canvas { max-height: 36vh; max-height: 36dvh; }
+            #diaryPageModal .modal-header { padding: 10px 12px; }
+            #diaryPageModal .modal-content, #diaryPageModal .modal-footer { padding: 12px; }
+            #diaryPageModal .page-options { margin-bottom: 10px; }
+            #diaryPageModal .modal-footer .save-btn { padding: 12px; font-size: 15px !important; }
+        }
+        .page-preview { background: var(--diary-soft); border-radius: 16px; padding: 12px; margin-bottom: 8px; text-align: center; }
+        .page-preview canvas { max-width: 100%; max-height: 52vh; max-height: 52dvh; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); display: inline-block; }
+        .page-options { display: flex; gap: 8px; margin-bottom: 14px; }
+        .page-opt {
+            flex: 1; border: 2px solid transparent; background: var(--diary-soft); color: var(--text-dark);
+            border-radius: 14px; padding: 9px 4px; font-size: 13px; cursor: pointer;
+        }
+        .page-opt.active { border-color: var(--icon-diary); font-weight: 700; }
+        .page-check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-dark); padding-left: 5px; }
+        .page-check input { width: 18px; height: 18px; accent-color: var(--icon-diary); }
+        .diary-entry-actions { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
+        .diary-entry-actions .diary-entry-edit { margin-left: 0; }
+
+        /* Het boek */
+        .diary-tool-btn.book { background: var(--icon-diary); color: #fff; }
+        #bookViewer { z-index: 105; padding: 0; background-color: #181014; }
+        .book-viewer {
+            width: 100%; height: 100%; max-width: 760px;
+            display: flex; flex-direction: column;
+            padding: calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom)); box-sizing: border-box;
+        }
+        .book-top { display: flex; align-items: center; gap: 12px; color: #fff; margin-bottom: 10px; }
+        .book-top .back-btn { background: rgba(255,255,255,0.15); color: #fff; }
+        .book-title { flex: 1; font-size: 18px; font-weight: 700; }
+        .book-counter { font-size: 13px; opacity: 0.8; }
+        .book-body { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; }
+        .book-stage { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; justify-content: center; transform-origin: center; }
+        .book-stage canvas {
+            max-width: 100%; max-height: 100%; border-radius: 4px 10px 10px 4px; cursor: pointer;
+            box-shadow: -6px 0 0 -2px rgba(255,255,255,0.25), 0 12px 40px rgba(0,0,0,0.5);
+        }
+        .book-nav {
+            width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: none; cursor: pointer;
+            background: rgba(255,255,255,0.15); color: #fff; font-size: 18px;
+        }
+        .book-nav:disabled { opacity: 0.25; cursor: default; }
+        .book-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #fff; padding: 20px; }
+        .book-empty > i { font-size: 48px; color: var(--icon-diary); margin-bottom: 14px; }
+        .book-empty p { margin: 4px 0; font-size: 16px; }
+        .book-empty-hint { font-size: 13px !important; opacity: 0.8; max-width: 320px; }
+        .book-bottom { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
+        .book-btn {
+            border: none; cursor: pointer; border-radius: 22px; padding: 11px 16px;
+            font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.15); color: #fff;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .book-btn.primary { background: var(--icon-diary); }
+        .ready-to-share { background: var(--icon-green) !important; color: #fff !important; animation: readyPulse 1.2s ease-in-out infinite; }
+        @keyframes readyPulse { 50% { transform: scale(1.04); } }
+        .book-btn:disabled { opacity: 0.6; cursor: default; }
+        .diary-entry-inbook { font-size: 11px; color: var(--icon-diary); font-weight: 600; margin-left: 6px; white-space: nowrap; }
+        @media (max-width: 480px) { .book-nav { display: none; } }
+
+        /* Meldingen in beeld */
+        #toastWrap {
+            position: fixed; left: 50%; transform: translateX(-50%);
+            top: calc(16px + env(safe-area-inset-top));
+            z-index: 500; display: flex; flex-direction: column; gap: 8px;
+            width: calc(100% - 32px); max-width: 420px; pointer-events: none;
+        }
+        .toast {
+            pointer-events: auto; display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px 14px; border-radius: 14px; font-size: 14px; line-height: 1.4;
+            color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            opacity: 0; transform: translateY(-10px); transition: opacity .25s, transform .25s;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast i { margin-top: 2px; }
+        .toast-error { background: #d9534f; }
+        .toast-info { background: #4a6fa5; }
+        .toast-success { background: #2e9e5b; }
+
         /* Voeden-keuze */
         .action-card.hidden-card { display: none; }
         .feed-choice { display: flex; gap: 12px; }
@@ -1374,7 +1458,8 @@
         <div class="modal-content">
             <button class="save-btn" id="diaryBookNewBtn" style="background-color: var(--icon-diary); color: #fff; box-shadow: none; font-size: 16px; margin-bottom: 12px;"><i class="fa-solid fa-pen-nib"></i> Nieuw verhaal</button>
             <div class="diary-tools">
-                <button type="button" class="diary-tool-btn" id="diaryExportPdfBtn"><i class="fa-solid fa-file-pdf"></i> PDF / afdrukken</button>
+                <button type="button" class="diary-tool-btn book" id="openBookViewerBtn"><i class="fa-solid fa-book"></i> Boek</button>
+                <button type="button" class="diary-tool-btn" id="diaryExportPdfBtn"><i class="fa-solid fa-print"></i> Afdrukken</button>
                 <button type="button" class="diary-tool-btn" id="diaryExportHtmlBtn"><i class="fa-solid fa-download"></i> Downloaden</button>
             </div>
             <div class="diary-drive" id="diaryDriveBox">
@@ -1384,6 +1469,66 @@
             </div>
             <input type="search" class="input-field diary-book-search" id="diaryBookSearch" placeholder="Zoek in het dagboek..." style="background-color: var(--diary-soft); border-color: var(--diary-soft); color: var(--text-dark);">
             <div id="diaryBookList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Pop-up: dagboekpagina maken -->
+<div class="modal-overlay" id="diaryPageModal">
+    <div class="modal-container" style="max-width: 460px;">
+        <div class="modal-header">
+            <button class="back-btn" id="closeDiaryPageBtn">&times;</button>
+            <div class="page-title" style="color: var(--icon-diary);">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Pagina maken
+            </div>
+        </div>
+        <div class="modal-content">
+            <div class="page-preview"><canvas id="diaryPageCanvas"></canvas></div>
+            <div class="diary-hint" id="diaryPageStatus" style="text-align: center; margin: 0 0 10px;"></div>
+
+            <label class="input-label">Stijl</label>
+            <div class="page-options">
+                <button type="button" class="page-opt" data-page-template="plakboek">📌 Plakboek</button>
+                <button type="button" class="page-opt" data-page-template="klassiek">📖 Klassiek</button>
+                <button type="button" class="page-opt" data-page-template="modern">✨ Modern</button>
+            </div>
+
+
+            <label class="page-check"><input type="checkbox" id="diaryPageShowText" checked> Verhaaltekst tonen</label>
+            <button type="button" id="diaryPageRemoveBtn" style="display: none; background: transparent; border: none; color: var(--text-light); padding: 12px 5px 0; font-size: 13px; cursor: pointer; text-align: left;"><i class="fa-solid fa-book-skull"></i> Uit het boek halen</button>
+        </div>
+        <div class="modal-footer">
+            <button class="save-btn" id="diaryPageBookBtn" style="background-color: var(--icon-purple); color: #fff; box-shadow: none; font-size: 16px; margin-bottom: 10px;"><i class="fa-solid fa-book-medical"></i> Toevoegen aan boek</button>
+            <div style="display: flex; gap: 10px;">
+            <button class="save-btn" id="diaryPageSaveBtn" style="background-color: var(--icon-diary); color: #fff; box-shadow: none; font-size: 16px;"><i class="fa-solid fa-share-nodes"></i> Delen / opslaan</button>
+            <button class="save-btn" id="diaryPageDriveBtn" style="flex: 0 0 auto; width: auto; padding: 14px 18px; background: var(--diary-soft); color: var(--icon-diary); box-shadow: none; font-size: 16px;"><i class="fa-brands fa-google-drive"></i> Drive</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Het boek: bladeren door alle pagina's -->
+<div class="modal-overlay" id="bookViewer">
+    <div class="book-viewer">
+        <div class="book-top">
+            <button class="back-btn" id="closeBookViewerBtn">&times;</button>
+            <div class="book-title"><i class="fa-solid fa-book"></i> Het boek</div>
+            <span class="book-counter" id="bookCounter"></span>
+        </div>
+        <div class="book-body">
+            <button class="book-nav" id="bookPrevBtn" title="Vorige pagina"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="book-stage" id="bookStage"><canvas id="bookCanvas"></canvas></div>
+            <button class="book-nav" id="bookNextBtn" title="Volgende pagina"><i class="fa-solid fa-chevron-right"></i></button>
+            <div class="book-empty" id="bookEmpty" style="display: none;">
+                <i class="fa-solid fa-book-open"></i>
+                <p>Er staan nog geen pagina's in het boek.</p>
+                <p class="book-empty-hint">Tik bij een verhaal op <i class="fa-solid fa-wand-magic-sparkles"></i> en kies <strong>Toevoegen aan boek</strong>, of voeg alles in één keer toe.</p>
+            </div>
+        </div>
+        <div class="book-bottom">
+            <button class="book-btn" id="bookAddAllBtn" style="display: none;"></button>
+            <button class="book-btn" id="bookEditPageBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> Pagina aanpassen</button>
+            <button class="book-btn primary" id="bookExportBtn"><i class="fa-solid fa-file-pdf"></i> Boek als PDF</button>
         </div>
     </div>
 </div>
@@ -1482,6 +1627,27 @@
 
         // --- Dagboek helpers ---
         const DIARY_MOODS = { 'Blij': '😊', 'Knuffelig': '🥰', 'Bijzonder': '🎉', 'Moe': '😴', 'Huilerig': '😢', 'Ziekjes': '🤒' };
+
+        // Meldingen in beeld i.p.v. alert(): alert() wordt in sommige app-/telefoonbrowsers geblokkeerd,
+        // waardoor het leek alsof er "niets gebeurde" bij een fout.
+        function showToast(message, type = 'error') {
+            let wrap = document.getElementById('toastWrap');
+            if (!wrap) {
+                wrap = document.createElement('div');
+                wrap.id = 'toastWrap';
+                document.body.appendChild(wrap);
+            }
+            const el = document.createElement('div');
+            el.className = `toast toast-${type}`;
+            const icon = type === 'success' ? 'fa-circle-check' : (type === 'info' ? 'fa-circle-info' : 'fa-triangle-exclamation');
+            el.innerHTML = `<i class="fa-solid ${icon}"></i><span></span>`;
+            el.querySelector('span').textContent = message;
+            el.addEventListener('click', () => el.remove());
+            wrap.appendChild(el);
+            requestAnimationFrame(() => el.classList.add('show'));
+            const duration = Math.max(4000, String(message).length * 70);
+            setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, duration);
+        }
 
         function escapeHtml(str) {
             return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1787,7 +1953,7 @@
                             const viaGoogle = currentUser && currentUser.providerData.some(p => p.providerId === 'google.com');
                             if (viaGoogle) {
                                 // Google-account staat niet op de toegangslijst in de database regels
-                                alert(`Het Google-account ${currentUser.email} heeft (nog) geen toegang tot het dagboek. Vraag om toegevoegd te worden.`);
+                                showToast(`Het Google-account ${currentUser.email} heeft (nog) geen toegang tot het dagboek. Vraag om toegevoegd te worden.`);
                                 signOut(auth);
                             } else {
                                 alert("Let op: Firebase toegang geweigerd. Controleer je database regels (Rules) in de Firebase Console.");
@@ -1861,15 +2027,15 @@
                 if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
                     // Gebruiker heeft het venster zelf gesloten
                 } else if (error.code === 'auth/popup-blocked') {
-                    alert('Het Google-venster werd geblokkeerd. Sta pop-ups toe of open het dagboek in Safari/Chrome en probeer opnieuw.');
+                    showToast('Het Google-venster werd geblokkeerd. Sta pop-ups toe of open het dagboek in Safari/Chrome en probeer opnieuw.');
                 } else if (error.code === 'auth/operation-not-allowed') {
-                    alert('Inloggen met Google staat nog niet aan in Firebase (Authentication → Sign-in method).');
+                    showToast('Inloggen met Google staat nog niet aan in Firebase (Authentication → Sign-in method).');
                 } else if (error.code === 'auth/unauthorized-domain') {
-                    alert('Dit domein is nog niet toegestaan voor inloggen met Google (Firebase → Authentication → Settings → Authorized domains).');
+                    showToast('Dit domein is nog niet toegestaan voor inloggen met Google (Firebase → Authentication → Settings → Authorized domains).');
                 } else if (error.code === 'auth/account-exists-with-different-credential') {
-                    alert('Er bestaat al een account met dit e-mailadres. Log in met je wachtwoord.');
+                    showToast('Er bestaat al een account met dit e-mailadres. Log in met je wachtwoord.');
                 } else {
-                    alert('Inloggen met Google is niet gelukt. Probeer het opnieuw.');
+                    showToast('Inloggen met Google is niet gelukt. Probeer het opnieuw.');
                 }
             } finally {
                 googleLoginBtn.disabled = false;
@@ -2356,6 +2522,7 @@
 
             const diaryLastEl = document.getElementById('diaryLastTime');
             if (diaryLastEl) diaryLastEl.textContent = formatTimeAgo(lastDiary);
+            if (typeof refreshBookViewer === 'function') refreshBookViewer();
             if (typeof renderDiaryBook === 'function' && document.getElementById('diaryBookModal').classList.contains('active')) {
                 renderDiaryBook();
             }
@@ -3758,7 +3925,7 @@
             const files = Array.from(diaryPhotoInput.files || []);
             diaryPhotoInput.value = '';
             const room = DIARY_MAX_PHOTOS - diaryPhotos.length;
-            if (files.length > room) alert(`Je kunt nog ${room} foto${room === 1 ? '' : "'s"} toevoegen. De rest is overgeslagen.`);
+            if (files.length > room) showToast(`Je kunt nog ${room} foto${room === 1 ? '' : "'s"} toevoegen. De rest is overgeslagen.`);
             const hint = document.getElementById('diaryPhotoHint');
             const oldHint = hint.textContent;
             saveDiaryBtn.disabled = true;
@@ -3775,7 +3942,7 @@
                     renderDiaryPhotoGrid();
                 } catch (err) {
                     console.error(err);
-                    alert('Een foto kon niet worden gelezen en is overgeslagen.');
+                    showToast('Een foto kon niet worden gelezen en is overgeslagen.');
                 }
             }
             saveDiaryBtn.disabled = false;
@@ -3816,7 +3983,7 @@
                 closeDiaryEditor(true);
             } catch (error) {
                 console.error("Fout bij verwijderen:", error);
-                alert("Verwijderen mislukt! Controleer je verbinding en rechten.");
+                showToast("Verwijderen mislukt! Controleer je verbinding en rechten.");
             } finally {
                 deleteDiaryBtn.innerHTML = DIARY_DELETE_LABEL;
                 deleteDiaryBtn.disabled = false;
@@ -3830,7 +3997,7 @@
             const textVal = document.getElementById('diaryText').value.trim();
 
             if (!titleVal && !textVal && diaryPhotos.length === 0) {
-                alert('Schrijf een titel, een verhaal of voeg een foto toe.');
+                showToast('Schrijf een titel, een verhaal of voeg een foto toe.');
                 return;
             }
 
@@ -3893,7 +4060,7 @@
                 if (currentEditDiaryItem) itemData.editedBy = getUserName();
 
                 if (JSON.stringify(itemData).length > 1000000) {
-                    alert("Dit verhaal is te groot om op te slaan. Verwijder een foto of maak de tekst korter.");
+                    showToast("Dit verhaal is te groot om op te slaan. Verwijder een foto of maak de tekst korter.");
                     return;
                 }
 
@@ -3913,9 +4080,10 @@
                 const originals = diaryPhotos.map(p => p.original || null);
                 const hqs = diaryPhotos.map(p => p.hq || null);
                 closeDiaryEditor(true);
+                showToast(currentEditDiaryItem ? 'Verhaal bijgewerkt' : 'Verhaal opgeslagen in het dagboek', 'success');
 
                 if (usedFallback) {
-                    alert("Let op: de foto's zijn in normale kwaliteit opgeslagen, omdat de database de collectie 'diary_photos' (nog) niet toestaat. Pas de Firebase regels aan voor hoge kwaliteit.");
+                    showToast("Let op: de foto's zijn in normale kwaliteit opgeslagen, omdat de database de collectie 'diary_photos' (nog) niet toestaat. Pas de Firebase regels aan voor hoge kwaliteit.", 'info');
                 }
 
                 if (driveIsEnabled() && needsDrive) {
@@ -3928,7 +4096,14 @@
                 }
             } catch (error) {
                 console.error("Fout bij opslaan:", error);
-                alert("Opslaan mislukt! Controleer je verbinding en de database regels in Firebase.");
+                const reasons = {
+                    'permission-denied': 'Opslaan mislukt: je account heeft geen toegang. Controleer de database regels in Firebase (staat je e-mailadres erin?).',
+                    'unauthenticated': 'Opslaan mislukt: je bent niet (meer) ingelogd. Log opnieuw in en probeer het nog eens.',
+                    'unavailable': 'Opslaan mislukt: geen verbinding met de database. Controleer je internet.',
+                    'invalid-argument': 'Opslaan mislukt: het verhaal is te groot. Verwijder een foto en probeer het opnieuw.',
+                    'resource-exhausted': 'Opslaan mislukt: het verhaal is te groot. Verwijder een foto en probeer het opnieuw.'
+                };
+                showToast(reasons[error.code] || `Opslaan mislukt (${error.code || error.message}). Probeer het opnieuw.`);
             } finally {
                 saveDiaryBtn.innerHTML = currentEditDiaryItem ? 'Bijwerken' : 'Opslaan';
                 saveDiaryBtn.disabled = false;
@@ -4097,7 +4272,7 @@
                 status.textContent = `Klaar! ${done} foto${done === 1 ? '' : "'s"} geüpload.`;
             } catch (err) {
                 console.error('Synchroniseren met Drive mislukt:', err);
-                alert('Uploaden naar Google Drive is (deels) mislukt: ' + err.message);
+                showToast('Uploaden naar Google Drive is (deels) mislukt: ' + err.message);
             } finally {
                 driveSyncBusy = false;
                 setTimeout(renderDriveStatus, 1500);
@@ -4109,7 +4284,7 @@
                 if (!driveTokenValid()) await requestDriveToken(); // in de klik, zodat de pop-up niet wordt geblokkeerd
             } catch (err) {
                 console.warn(err);
-                alert('Koppelen met Google Drive is niet gelukt: ' + err.message);
+                showToast('Koppelen met Google Drive is niet gelukt: ' + err.message);
                 renderDriveStatus();
                 return;
             }
@@ -4208,9 +4383,12 @@
                         <div class="diary-entry-head">
                             <div>
                                 <div class="diary-entry-date">${diaryDateLine(d)}</div>
-                                <div class="diary-entry-title">${escapeHtml(item.diaryTitle || 'Zonder titel')}${mood}</div>
+                                <div class="diary-entry-title">${escapeHtml(item.diaryTitle || 'Zonder titel')}${mood}${item.pageStyle ? '<span class="diary-entry-inbook"><i class="fa-solid fa-book"></i> in boek</span>' : ''}</div>
                             </div>
-                            <button class="diary-entry-edit" data-edit="${item.id}" title="Bewerken"><i class="fa-solid fa-pen"></i></button>
+                            <div class="diary-entry-actions">
+                                <button class="diary-entry-edit" data-page="${item.id}" title="Maak een pagina"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                                <button class="diary-entry-edit" data-edit="${item.id}" title="Bewerken"><i class="fa-solid fa-pen"></i></button>
+                            </div>
                         </div>
                         ${item.diaryText ? `<div class="diary-entry-text">${escapeHtml(item.diaryText)}</div>` : ''}
                         ${photosHtml}
@@ -4246,6 +4424,12 @@
         diaryBookSearch.addEventListener('input', renderDiaryBook);
 
         diaryBookList.addEventListener('click', (e) => {
+            const pageBtn = e.target.closest('[data-page]');
+            if (pageBtn) {
+                const item = timelineData.find(i => i.id === pageBtn.dataset.page);
+                if (item) openDiaryPage(item);
+                return;
+            }
             const editBtn = e.target.closest('[data-edit]');
             if (editBtn) {
                 const item = timelineData.find(i => i.id === editBtn.dataset.edit);
@@ -4342,22 +4526,30 @@
             return html;
         }
 
+        let pendingDeliver = null;
         async function runDiaryExport(btn, action) {
             const label = btn.innerHTML;
+            pendingDeliver = null;
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Voorbereiden...';
             try {
                 const body = await buildDiaryExport((n, total) => {
                     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Foto ${n}/${total}`;
                 });
-                if (!body) { alert('Het dagboek is nog leeg, er is niets om te exporteren.'); return; }
+                if (!body) { showToast('Het dagboek is nog leeg, er is niets om te exporteren.'); return; }
                 await action(body);
             } catch (err) {
                 console.error('Exporteren mislukt:', err);
-                alert('Exporteren is mislukt. Controleer je verbinding en probeer het opnieuw.');
+                showToast('Exporteren is mislukt. Controleer je verbinding en probeer het opnieuw.');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = label;
+            }
+            // Delen pas ná het terugzetten van de knop, zodat "Tik om te delen" zichtbaar blijft
+            if (pendingDeliver) {
+                const { file, title } = pendingDeliver;
+                pendingDeliver = null;
+                await deliverFile(file, btn, title);
             }
         }
 
@@ -4392,21 +4584,791 @@
                 const pad = n => String(n).padStart(2, '0');
                 const fileName = `Dagboek Annebeth ${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}.html`;
                 const file = new File([doc_], fileName, { type: 'text/html' });
-                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try { await navigator.share({ files: [file], title: 'Het dagboek van Annebeth' }); return; }
-                    catch (err) { if (err.name === 'AbortError') return; }
-                }
-                const url = URL.createObjectURL(file);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                setTimeout(() => URL.revokeObjectURL(url), 10000);
+                pendingDeliver = { file, title: 'Het dagboek van Annebeth' };
             });
         });
+
+        // ==========================================
+        // --- DAGBOEKPAGINA MAKEN (afbeelding van foto's + tekst) ---
+        // ==========================================
+        // Eén vast formaat voor alle pagina's, zodat het boek overal gelijk is (staand, zoals een echt boek)
+        const PAGE_SIZE = { w: 1080, h: 1350 };
+        const PAGE_SANS = '-apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+        const PAGE_SERIF = 'Georgia, "Times New Roman", serif';
+        const PAGE_HAND = '"Segoe Print", "Bradley Hand", "Noteworthy", "Chalkboard SE", "Comic Sans MS", cursive';
+        const PAGE_TEMPLATES = {
+            plakboek: { bg: '#fbf6ee', text: '#3a3330', muted: '#9a8f88', accent: '#d9668f', titleFont: s => `bold ${s}px ${PAGE_HAND}`, bodyFont: s => `${s}px ${PAGE_SERIF}`, photo: 'polaroid' },
+            klassiek: { bg: '#ffffff', text: '#2b2b2b', muted: '#9a9a9a', accent: '#d9668f', titleFont: s => `bold ${s}px ${PAGE_SERIF}`, bodyFont: s => `${s}px ${PAGE_SERIF}`, photo: 'rounded' },
+            modern: { bg: '#fde8ef', text: '#3b2a31', muted: '#a07f8c', accent: '#d9668f', titleFont: s => `800 ${s}px ${PAGE_SANS}`, bodyFont: s => `${s}px ${PAGE_SANS}`, photo: 'bleed' }
+        };
+
+        const diaryPageModal = document.getElementById('diaryPageModal');
+        const diaryPageCanvas = document.getElementById('diaryPageCanvas');
+        let pageItem = null;
+        let pageOpts = { template: 'plakboek', showText: true };
+        let pageImages = [];
+        let pageBlob = null;
+        let pageRenderToken = 0;
+
+        function pageRoundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return; }
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        // Foto bijsnijden zodat hij het vak precies vult (zoals object-fit: cover)
+        function pageDrawCover(ctx, img, x, y, w, h, r) {
+            const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+            const scale = Math.max(w / iw, h / ih);
+            const sw = w / scale, sh = h / scale;
+            const sx = (iw - sw) / 2, sy = (ih - sh) / 2;
+            ctx.save();
+            if (r) { pageRoundRect(ctx, x, y, w, h, r); ctx.clip(); }
+            ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+            ctx.restore();
+        }
+
+        // Verdeel n foto's over een vlak
+        function pagePhotoCells(n, x, y, w, h, gap) {
+            const cells = [];
+            const tall = h > w * 1.1; // hoog vlak (bijv. formaat "Verhaal"): foto's liever onder elkaar
+            if (n === 1) cells.push([x, y, w, h]);
+            else if (n === 2 && tall) {
+                const ch = (h - gap) / 2;
+                cells.push([x, y, w, ch], [x, y + ch + gap, w, ch]);
+            } else if (n === 3 && tall) {
+                const bh = (h - gap) * 0.55, sh = h - gap - bh, sw = (w - gap) / 2;
+                cells.push([x, y, w, bh], [x, y + bh + gap, sw, sh], [x + sw + gap, y + bh + gap, sw, sh]);
+            } else if (n === 2) {
+                const cw = (w - gap) / 2;
+                cells.push([x, y, cw, h], [x + cw + gap, y, cw, h]);
+            } else if (n === 3) {
+                const bw = (w - gap) * 0.6, sw = w - gap - bw, sh = (h - gap) / 2;
+                cells.push([x, y, bw, h], [x + bw + gap, y, sw, sh], [x + bw + gap, y + sh + gap, sw, sh]);
+            } else if (n === 4) {
+                const cw = (w - gap) / 2, ch = (h - gap) / 2;
+                cells.push([x, y, cw, ch], [x + cw + gap, y, cw, ch], [x, y + ch + gap, cw, ch], [x + cw + gap, y + ch + gap, cw, ch]);
+            } else {
+                const cols = 3, rows = 2;
+                const cw = (w - gap * (cols - 1)) / cols, ch = (h - gap) / rows;
+                for (let i = 0; i < n; i++) {
+                    const c = i % cols, r = Math.floor(i / cols);
+                    cells.push([x + c * (cw + gap), y + r * (ch + gap), cw, ch]);
+                }
+            }
+            return cells;
+        }
+
+        function pageWrap(ctx, text, maxW) {
+            const lines = [];
+            String(text).split('\n').forEach(par => {
+                if (!par.trim()) { lines.push(''); return; }
+                let line = '';
+                par.split(/\s+/).forEach(word => {
+                    // Heel lange woorden (bijv. links) opbreken
+                    while (ctx.measureText(word).width > maxW && word.length > 1) {
+                        let cut = word.length - 1;
+                        while (cut > 1 && ctx.measureText(word.slice(0, cut)).width > maxW) cut--;
+                        if (line) { lines.push(line); line = ''; }
+                        lines.push(word.slice(0, cut));
+                        word = word.slice(cut);
+                    }
+                    const test = line ? line + ' ' + word : word;
+                    if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = word; }
+                    else line = test;
+                });
+                if (line) lines.push(line);
+            });
+            return lines;
+        }
+
+        // Kies de grootste lettergrootte waarbij de tekst past; anders inkorten met "…"
+        function pageFitText(ctx, text, fontFn, maxW, maxH, maxSize, minSize, lh) {
+            for (let size = maxSize; size >= minSize; size -= 2) {
+                ctx.font = fontFn(size);
+                const lines = pageWrap(ctx, text, maxW);
+                if (lines.length * size * lh <= maxH) return { size, lines, lineH: size * lh };
+            }
+            ctx.font = fontFn(minSize);
+            const lineH = minSize * lh;
+            const maxLines = Math.max(1, Math.floor(maxH / lineH));
+            let lines = pageWrap(ctx, text, maxW);
+            if (lines.length > maxLines) {
+                lines = lines.slice(0, maxLines);
+                let last = lines[maxLines - 1];
+                while (last && ctx.measureText(last + '…').width > maxW) last = last.slice(0, -1);
+                lines[maxLines - 1] = last.replace(/\s+$/, '') + '…';
+            }
+            return { size: minSize, lines, lineH };
+        }
+
+        function pageDrawLines(ctx, fit, x, y, color, align = 'left', width = 0) {
+            ctx.fillStyle = color;
+            ctx.textBaseline = 'top';
+            ctx.textAlign = align;
+            const ax = align === 'center' ? x + width / 2 : x;
+            fit.lines.forEach((l, i) => ctx.fillText(l, ax, y + i * fit.lineH));
+            ctx.textAlign = 'left';
+            return fit.lines.length * fit.lineH;
+        }
+
+        // Vaste "willekeurige" waarden per verhaal, zodat de pagina niet bij elke klik verspringt
+        function pageSeeded(seedStr) {
+            let h = 2166136261;
+            for (const c of seedStr) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+            return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
+        }
+
+        function pageDrawPhotos(ctx, tpl, imgs, x, y, w, h, rand) {
+            if (!imgs.length || h < 40) return;
+            if (tpl.photo === 'polaroid') {
+                const cells = pagePhotoCells(imgs.length, x, y, w, h, 26);
+                cells.forEach(([cx, cy, cw, ch], i) => {
+                    const inset = 10;
+                    const fw = cw - inset * 2, fh = ch - inset * 2;
+                    const side = Math.max(12, Math.min(fw, fh) * 0.05);
+                    const bottom = side * 3;
+                    const angle = (rand() * 6 - 3) * Math.PI / 180;
+                    ctx.save();
+                    ctx.translate(cx + cw / 2, cy + ch / 2);
+                    ctx.rotate(angle);
+                    ctx.shadowColor = 'rgba(0,0,0,0.18)';
+                    ctx.shadowBlur = 18;
+                    ctx.shadowOffsetY = 6;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(-fw / 2, -fh / 2, fw, fh);
+                    ctx.shadowColor = 'transparent';
+                    pageDrawCover(ctx, imgs[i], -fw / 2 + side, -fh / 2 + side, fw - side * 2, fh - side - bottom, 0);
+                    // Plakbandje
+                    ctx.rotate((rand() * 10 - 5) * Math.PI / 180);
+                    ctx.fillStyle = 'rgba(244, 214, 226, 0.75)';
+                    const tw = Math.min(140, fw * 0.4), th = Math.max(22, tw * 0.28);
+                    ctx.fillRect(-tw / 2, -fh / 2 - th / 2, tw, th);
+                    ctx.restore();
+                });
+            } else if (tpl.photo === 'rounded') {
+                pagePhotoCells(imgs.length, x, y, w, h, 16).forEach(([cx, cy, cw, ch], i) => pageDrawCover(ctx, imgs[i], cx, cy, cw, ch, 18));
+            } else {
+                pagePhotoCells(imgs.length, x, y, w, h, 6).forEach(([cx, cy, cw, ch], i) => pageDrawCover(ctx, imgs[i], cx, cy, cw, ch, 0));
+            }
+        }
+
+        function pageTextNeed(ctx, text, fontFn, maxW, size, lh) {
+            ctx.font = fontFn(size);
+            return pageWrap(ctx, text, maxW).length * size * lh;
+        }
+
+        function renderPageCanvas(canvas, item, imgs, opts) {
+            const { w: W, h: H } = PAGE_SIZE;
+            const tpl = PAGE_TEMPLATES[opts.template];
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            const rand = pageSeeded(item.id || 'x');
+            const d = new Date(item.timestamp);
+            const pad = 72;
+            const innerW = W - pad * 2;
+            const text = opts.showText ? (item.diaryText || '') : '';
+            const moodEmoji = item.mood && DIARY_MOODS[item.mood] ? ' ' + DIARY_MOODS[item.mood] : '';
+            const title = (item.diaryTitle || 'Zonder titel') + moodEmoji;
+            const dateLine = diaryDateLine(d);
+
+            // Achtergrond
+            ctx.fillStyle = tpl.bg;
+            ctx.fillRect(0, 0, W, H);
+            if (opts.template === 'plakboek') {
+                for (let i = 0; i < 900; i++) {
+                    ctx.fillStyle = `rgba(160, 130, 110, ${rand() * 0.06})`;
+                    ctx.fillRect(rand() * W, rand() * H, 2, 2);
+                }
+            }
+            if (opts.template === 'klassiek') {
+                ctx.strokeStyle = tpl.accent;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(30, 30, W - 60, H - 60);
+                ctx.lineWidth = 1;
+                ctx.strokeRect(42, 42, W - 84, H - 84);
+            }
+
+            // Geen voettekst op de pagina's (de titel staat al op de voorkant van het boek)
+            const bottomLimit = H - pad;
+
+            if (tpl.photo === 'bleed' && imgs.length) {
+                // Modern: foto's tot aan de rand, titel over de foto heen
+                let photoH = Math.round(H * 0.78);
+                if (text) {
+                    // Foto zo groot mogelijk, maar met genoeg ruimte voor de tekst
+                    const need = pageTextNeed(ctx, text, tpl.bodyFont, innerW, 40, 1.5);
+                    photoH = Math.round(Math.min(H * 0.72, Math.max(H * 0.42, bottomLimit - 56 - need - 20)));
+                }
+                pageDrawPhotos(ctx, tpl, imgs, 0, 0, W, photoH, rand);
+                const grad = ctx.createLinearGradient(0, photoH * 0.45, 0, photoH);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(1, 'rgba(0,0,0,0.65)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, W, photoH);
+                const tFit = pageFitText(ctx, title, tpl.titleFont, innerW, 190, 76, 44, 1.15);
+                const tH = tFit.lines.length * tFit.lineH;
+                pageDrawLines(ctx, tFit, pad, photoH - 50 - tH, '#ffffff');
+                ctx.font = `600 28px ${PAGE_SANS}`;
+                ctx.fillStyle = 'rgba(255,255,255,0.88)';
+                ctx.textBaseline = 'top';
+                ctx.fillText(dateLine, pad, photoH - 50 - tH - 44);
+                if (text) {
+                    const top = photoH + 56;
+                    const fit = pageFitText(ctx, text, tpl.bodyFont, innerW, bottomLimit - top, 44, 28, 1.5);
+                    pageDrawLines(ctx, fit, pad, top, tpl.text);
+                }
+                return;
+            }
+
+            // Kop: datum + titel
+            let y = pad + (opts.template === 'klassiek' ? 20 : 0);
+            ctx.font = `600 28px ${PAGE_SANS}`;
+            ctx.fillStyle = tpl.muted;
+            ctx.textBaseline = 'top';
+            const centered = opts.template === 'klassiek';
+            ctx.textAlign = centered ? 'center' : 'left';
+            ctx.fillText(dateLine, centered ? W / 2 : pad, y);
+            ctx.textAlign = 'left';
+            y += 50;
+            const tFit = pageFitText(ctx, title, tpl.titleFont, innerW, 180, opts.template === 'plakboek' ? 72 : 68, 40, 1.2);
+            y += pageDrawLines(ctx, tFit, pad, y, tpl.text, centered ? 'center' : 'left', innerW);
+            if (centered) {
+                ctx.fillStyle = tpl.accent;
+                ctx.fillRect(W / 2 - 40, y + 14, 80, 3);
+                y += 20;
+            }
+            y += 34;
+
+            // Foto's en tekst verdelen over de rest van de pagina
+            const avail = bottomLimit - y;
+            let photoH = 0;
+            if (imgs.length && text) {
+                const need = pageTextNeed(ctx, text, tpl.bodyFont, innerW, 38, 1.5);
+                photoH = Math.round(Math.min(avail * 0.75, Math.max(avail * 0.48, avail - need - 40)));
+            }
+            else if (imgs.length) photoH = avail;
+            if (photoH) {
+                pageDrawPhotos(ctx, tpl, imgs, pad, y, innerW, photoH, rand);
+                y += photoH + 40;
+            }
+            if (text) {
+                const fit = pageFitText(ctx, text, tpl.bodyFont, innerW, bottomLimit - y, imgs.length ? 40 : 52, 28, 1.5);
+                pageDrawLines(ctx, fit, pad, y, tpl.text, centered ? 'center' : 'left', innerW);
+            }
+        }
+
+        async function renderDiaryPage() {
+            if (!pageItem) return;
+            const myToken = ++pageRenderToken;
+            renderPageCanvas(diaryPageCanvas, pageItem, pageImages, pageOpts);
+            pageBlob = null;
+            const blob = await new Promise(res => diaryPageCanvas.toBlob(res, 'image/jpeg', 0.92));
+            if (myToken === pageRenderToken) pageBlob = blob;
+        }
+
+        function pageFileName() {
+            const d = new Date(pageItem.timestamp);
+            const pad2 = n => String(n).padStart(2, '0');
+            const title = (pageItem.diaryTitle || 'Dagboek').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'Dagboek';
+            return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${title} - pagina.jpg`;
+        }
+
+        async function openDiaryPage(item) {
+            pageItem = item;
+            if (item.pageStyle) pageOpts = { template: item.pageStyle.template || pageOpts.template, showText: item.pageStyle.showText !== false };
+            updatePageBookButton();
+            pageImages = [];
+            pageBlob = null;
+            document.getElementById('diaryPageDriveBtn').style.display = driveIsEnabled() ? '' : 'none';
+            document.getElementById('diaryPageShowText').checked = pageOpts.showText;
+            document.getElementById('diaryPageShowText').disabled = !item.diaryText;
+            diaryPageModal.querySelectorAll('[data-page-template]').forEach(b => b.classList.toggle('active', b.dataset.pageTemplate === pageOpts.template));
+            diaryPageModal.classList.add('active');
+            updateBodyScroll();
+
+            const status = document.getElementById('diaryPageStatus');
+            status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Foto\'s laden...';
+            renderPageCanvas(diaryPageCanvas, item, [], pageOpts); // direct iets laten zien
+            try {
+                const imgs = await loadPageImages(item);
+                if (pageItem !== item) return;
+                pageImages = imgs;
+                status.textContent = '';
+            } catch (err) {
+                console.error(err);
+                status.textContent = "Niet alle foto's konden worden geladen.";
+            }
+            await renderDiaryPage();
+        }
+
+        function closeDiaryPage() {
+            diaryPageModal.classList.remove('active');
+            pageItem = null;
+            updateBodyScroll();
+        }
+
+        document.getElementById('closeDiaryPageBtn').addEventListener('click', closeDiaryPage);
+        diaryPageModal.addEventListener('click', (e) => { if (e.target === diaryPageModal) closeDiaryPage(); });
+
+        diaryPageModal.addEventListener('click', (e) => {
+            const t = e.target.closest('[data-page-template]');
+            if (t) {
+                pageOpts.template = t.dataset.pageTemplate;
+                updatePageBookButton();
+                diaryPageModal.querySelectorAll('[data-page-template]').forEach(b => b.classList.toggle('active', b === t));
+                renderDiaryPage();
+            }
+        });
+        document.getElementById('diaryPageShowText').addEventListener('change', (e) => {
+            pageOpts.showText = e.target.checked;
+            updatePageBookButton();
+            renderDiaryPage();
+        });
+
+        // Delen (telefoon) of downloaden (computer)
+        document.getElementById('diaryPageSaveBtn').addEventListener('click', async () => {
+            if (!pageBlob) { showToast('De pagina wordt nog gemaakt, probeer het zo opnieuw.'); return; }
+            const file = new File([pageBlob], pageFileName(), { type: 'image/jpeg' });
+            await deliverFile(file, document.getElementById('diaryPageSaveBtn'), pageItem.diaryTitle || 'Dagboek');
+        });
+
+        document.getElementById('diaryPageDriveBtn').addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            if (!pageBlob) { showToast('De pagina wordt nog gemaakt, probeer het zo opnieuw.'); return; }
+            const label = btn.innerHTML;
+            try {
+                if (!driveTokenValid()) await requestDriveToken(); // in de klik, anders blokkeert de browser de pop-up
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                await uploadToDrive(pageBlob, pageFileName(), pageItem.diaryTitle || '');
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> In Drive';
+                setTimeout(() => { btn.innerHTML = label; btn.disabled = false; }, 2500);
+            } catch (err) {
+                console.error(err);
+                showToast('Opslaan in Google Drive is niet gelukt: ' + err.message);
+                btn.innerHTML = label;
+                btn.disabled = false;
+            }
+        });
+
+        // ==========================================
+        // --- HET BOEK: bladeren door alle pagina's + exporteren als PDF ---
+        // ==========================================
+        // Per verhaal wordt de gekozen opmaak bewaard in item.pageStyle = { template, format, showText }.
+        // Het boek tekent de pagina's daarmee opnieuw, zodat aanpassingen aan tekst/foto's meteen zichtbaar zijn.
+        const DEFAULT_PAGE_STYLE = { template: 'plakboek', showText: true };
+        const bookViewer = document.getElementById('bookViewer');
+        const bookCanvas = document.getElementById('bookCanvas');
+        const bookStage = document.getElementById('bookStage');
+        let bookPages = [];   // [{ type: 'cover' } | { type: 'entry', id }]
+        let bookIndex = 0;
+        let bookBusy = false;
+
+        // Foto's voor pagina's laden, verkleind tot max 1400px.
+        // Een pagina is 1080px breed, dus groter heeft geen zin — en op een telefoon scheelt dit enorm in geheugen
+        // (een gedecodeerde foto van 2048px kost ±12 MB, verkleind ±6 MB). De cache houdt maar een paar verhalen vast.
+        const PAGE_IMG_MAX = 1400;
+        const PAGE_CACHE_LIMIT = 6;
+        const pageImageCache = new Map(); // volgorde = laatst gebruikt achteraan
+        function freePageImages(imgs) {
+            (imgs || []).forEach(c => { if (c instanceof HTMLCanvasElement) { c.width = 0; c.height = 0; } });
+        }
+        async function downscaleForPage(src) {
+            const img = await loadImageElement(src);
+            const scale = Math.min(1, PAGE_IMG_MAX / Math.max(img.naturalWidth, img.naturalHeight));
+            const c = document.createElement('canvas');
+            c.width = Math.round(img.naturalWidth * scale);
+            c.height = Math.round(img.naturalHeight * scale);
+            const ctx = c.getContext('2d');
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, c.width, c.height);
+            img.src = ''; // origineel direct loslaten
+            return c;
+        }
+        async function loadPageImages(item, useCache = true) {
+            const photos = Array.isArray(item.photos) ? item.photos : [];
+            const key = JSON.stringify([photos.map(p => p.length), getPhotoMeta(item).map(m => m.hqId)]);
+            const cached = pageImageCache.get(item.id);
+            if (useCache && cached && cached.key === key) {
+                pageImageCache.delete(item.id);
+                pageImageCache.set(item.id, cached); // markeer als recent gebruikt
+                return cached.imgs;
+            }
+            const imgs = [];
+            for (let i = 0; i < photos.length; i++) { // één voor één, zodat er nooit veel grote foto's tegelijk in het geheugen staan
+                try { imgs.push(await downscaleForPage(await getPhotoHq(item, i))); } catch (e) { /* foto overslaan */ }
+            }
+            if (useCache) {
+                if (cached) { pageImageCache.delete(item.id); freePageImages(cached.imgs); }
+                pageImageCache.set(item.id, { key, imgs });
+                while (pageImageCache.size > PAGE_CACHE_LIMIT) {
+                    const [oldId, old] = pageImageCache.entries().next().value;
+                    pageImageCache.delete(oldId);
+                    freePageImages(old.imgs);
+                }
+            }
+            return imgs;
+        }
+
+        // Bestand delen op een telefoon. iOS staat het deelmenu alleen toe direct na een tik; na een lange
+        // berekening (zoals het boek maken) is die "tik" verlopen. Dan wordt de knop "Tik om te delen".
+        const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        function downloadFile(file) {
+            const url = URL.createObjectURL(file);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
+        }
+        async function deliverFile(file, btn, title) {
+            const canShare = IS_MOBILE && navigator.canShare && navigator.canShare({ files: [file] });
+            if (!canShare) { downloadFile(file); return; }
+            try {
+                await navigator.share({ files: [file], title });
+                return;
+            } catch (err) {
+                if (err.name === 'AbortError') return;
+                if (err.name !== 'NotAllowedError' || !btn) { downloadFile(file); return; }
+            }
+            // Tik verlopen: knop omzetten naar "Tik om te delen"
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-share-from-square"></i> Klaar! Tik om te delen';
+            btn.classList.add('ready-to-share');
+            const handler = async (e) => {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                btn.removeEventListener('click', handler, true);
+                btn.innerHTML = original;
+                btn.classList.remove('ready-to-share');
+                try { await navigator.share({ files: [file], title }); }
+                catch (err) { if (err.name !== 'AbortError') downloadFile(file); }
+            };
+            btn.addEventListener('click', handler, true);
+        }
+
+        function getBookEntries() {
+            return timelineData
+                .filter(i => i.title === 'Dagboek' && i.pageStyle)
+                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        }
+
+        // Voorkant van het boek
+        function renderBookCover(canvas, entries, coverImg) {
+            const W = 1080, H = 1350;
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createLinearGradient(0, 0, W, H);
+            grad.addColorStop(0, '#f7c6d6');
+            grad.addColorStop(1, '#e6d6f7');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(40, 40, W - 80, H - 80);
+
+            if (coverImg) {
+                const size = 560;
+                const x = (W - size) / 2, y = 250;
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.2)';
+                ctx.shadowBlur = 30;
+                ctx.beginPath();
+                ctx.arc(W / 2, y + size / 2, size / 2 + 14, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+                ctx.restore();
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(W / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+                ctx.clip();
+                pageDrawCover(ctx, coverImg, x, y, size, size, 0);
+                ctx.restore();
+            } else {
+                ctx.font = `260px ${PAGE_SANS}`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('👶', W / 2, 520);
+            }
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillStyle = '#4a2e3a';
+            ctx.font = `bold 92px ${PAGE_HAND}`;
+            ctx.fillText('Annebeth', W / 2, 990);
+            ctx.font = `44px ${PAGE_SERIF}`;
+            ctx.fillStyle = '#6b4a58';
+            ctx.fillText('Mijn dagboek', W / 2, 1060);
+            if (entries.length) {
+                const fmt = d => `${d.getDate()} ${DUTCH_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+                const first = new Date(entries[0].timestamp);
+                const last = new Date(entries[entries.length - 1].timestamp);
+                ctx.font = `600 30px ${PAGE_SANS}`;
+                ctx.fillStyle = '#8a6a78';
+                ctx.fillText(fmt(first) + (entries.length > 1 ? '  –  ' + fmt(last) : ''), W / 2, 1150);
+                ctx.fillText(`${entries.length} ${entries.length === 1 ? 'pagina' : "pagina's"}`, W / 2, 1200);
+            }
+        }
+
+        async function renderBookPageTo(canvas, page, entries, useCache = true) {
+            if (page.type === 'cover') {
+                let coverImg = null;
+                const firstWithPhoto = entries.find(e => Array.isArray(e.photos) && e.photos.length);
+                let imgs = [];
+                if (firstWithPhoto) { imgs = await loadPageImages(firstWithPhoto, useCache); coverImg = imgs[0] || null; }
+                renderBookCover(canvas, entries, coverImg);
+                if (!useCache) freePageImages(imgs);
+                return;
+            }
+            const item = timelineData.find(i => i.id === page.id);
+            if (!item) return;
+            const imgs = await loadPageImages(item, useCache);
+            renderPageCanvas(canvas, item, imgs, { ...DEFAULT_PAGE_STYLE, ...item.pageStyle });
+            if (!useCache) freePageImages(imgs);
+        }
+
+        function rebuildBookPages() {
+            const entries = getBookEntries();
+            bookPages = entries.length ? [{ type: 'cover' }, ...entries.map(e => ({ type: 'entry', id: e.id }))] : [];
+            return entries;
+        }
+
+        function updateBookControls() {
+            const total = bookPages.length;
+            document.getElementById('bookCounter').textContent = total
+                ? (bookIndex === 0 ? (IS_MOBILE ? 'Veeg om te bladeren ›' : 'Voorkant') : `Pagina ${bookIndex} van ${total - 1}`)
+                : '';
+            document.getElementById('bookPrevBtn').disabled = bookIndex <= 0;
+            document.getElementById('bookNextBtn').disabled = bookIndex >= total - 1;
+            const page = bookPages[bookIndex];
+            document.getElementById('bookEditPageBtn').style.display = page && page.type === 'entry' ? '' : 'none';
+        }
+
+        async function showBookPage(index, direction) {
+            if (bookBusy || !bookPages.length) return;
+            index = Math.max(0, Math.min(bookPages.length - 1, index));
+            bookBusy = true;
+            const entries = getBookEntries();
+            // Pagina omslaan: half wegdraaien, nieuwe pagina tekenen, terugdraaien
+            if (direction) {
+                bookStage.style.transition = 'transform 0.18s ease-in';
+                bookStage.style.transform = `perspective(1400px) rotateY(${direction > 0 ? -90 : 90}deg)`;
+                await new Promise(r => setTimeout(r, 180));
+            }
+            bookIndex = index;
+            try {
+                await renderBookPageTo(bookCanvas, bookPages[bookIndex], entries);
+            } catch (err) {
+                console.error('Pagina tekenen mislukt:', err);
+            }
+            if (direction) {
+                bookStage.style.transition = 'none';
+                bookStage.style.transform = `perspective(1400px) rotateY(${direction > 0 ? 90 : -90}deg)`;
+                bookStage.offsetWidth; // reflow
+                bookStage.style.transition = 'transform 0.2s ease-out';
+                bookStage.style.transform = 'perspective(1400px) rotateY(0deg)';
+                await new Promise(r => setTimeout(r, 200));
+            }
+            updateBookControls();
+            bookBusy = false;
+            // Volgende pagina alvast voorbereiden (foto's laden)
+            const next = bookPages[bookIndex + 1];
+            if (next && next.type === 'entry') {
+                const it = timelineData.find(i => i.id === next.id);
+                if (it) loadPageImages(it).catch(() => {});
+            }
+        }
+
+        async function openBookViewer() {
+            rebuildBookPages();
+            const empty = document.getElementById('bookEmpty');
+            const hasPages = bookPages.length > 0;
+            empty.style.display = hasPages ? 'none' : 'block';
+            bookStage.style.display = hasPages ? '' : 'none';
+            document.getElementById('bookExportBtn').style.display = hasPages ? '' : 'none';
+            const missing = timelineData.filter(i => i.title === 'Dagboek' && !i.pageStyle).length;
+            const addAll = document.getElementById('bookAddAllBtn');
+            addAll.style.display = missing ? '' : 'none';
+            addAll.innerHTML = `<i class="fa-solid fa-plus"></i> ${missing} ${missing === 1 ? 'verhaal' : 'verhalen'} toevoegen`;
+            bookViewer.classList.add('active');
+            updateBodyScroll();
+            bookIndex = 0;
+            updateBookControls();
+            if (hasPages) await showBookPage(0, 0);
+        }
+
+        function closeBookViewer() {
+            bookViewer.classList.remove('active');
+            updateBodyScroll();
+        }
+
+        // Wordt aangeroepen als de tijdlijn verandert (bijv. na opslaan van een pagina)
+        function refreshBookViewer() {
+            if (!bookViewer.classList.contains('active')) return;
+            const currentId = bookPages[bookIndex] && bookPages[bookIndex].id;
+            const hadPages = bookPages.length > 0;
+            rebuildBookPages();
+            if (!hadPages || !bookPages.length) { openBookViewer(); return; }
+            const idx = currentId ? bookPages.findIndex(p => p.id === currentId) : 0;
+            bookIndex = idx >= 0 ? idx : Math.min(bookIndex, bookPages.length - 1);
+            showBookPage(bookIndex, 0);
+        }
+
+        document.getElementById('openBookViewerBtn').addEventListener('click', openBookViewer);
+        document.getElementById('closeBookViewerBtn').addEventListener('click', closeBookViewer);
+        document.getElementById('bookPrevBtn').addEventListener('click', () => showBookPage(bookIndex - 1, -1));
+        document.getElementById('bookNextBtn').addEventListener('click', () => showBookPage(bookIndex + 1, 1));
+        bookCanvas.addEventListener('click', (e) => {
+            // Tik rechts = verder, links = terug
+            const rect = bookCanvas.getBoundingClientRect();
+            if (e.clientX - rect.left > rect.width / 2) showBookPage(bookIndex + 1, 1);
+            else showBookPage(bookIndex - 1, -1);
+        });
+        let bookTouchX = null;
+        bookStage.addEventListener('touchstart', (e) => { bookTouchX = e.touches[0].clientX; }, { passive: true });
+        bookStage.addEventListener('touchend', (e) => {
+            if (bookTouchX === null) return;
+            const dx = e.changedTouches[0].clientX - bookTouchX;
+            bookTouchX = null;
+            if (Math.abs(dx) > 50) showBookPage(bookIndex + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+        });
+        document.addEventListener('keydown', (e) => {
+            if (!bookViewer.classList.contains('active') || diaryPageModal.classList.contains('active')) return;
+            if (e.key === 'ArrowRight') showBookPage(bookIndex + 1, 1);
+            else if (e.key === 'ArrowLeft') showBookPage(bookIndex - 1, -1);
+            else if (e.key === 'Escape') closeBookViewer();
+        });
+
+        document.getElementById('bookEditPageBtn').addEventListener('click', () => {
+            const page = bookPages[bookIndex];
+            const item = page && timelineData.find(i => i.id === page.id);
+            if (item) openDiaryPage(item);
+        });
+
+        document.getElementById('bookAddAllBtn').addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const missing = timelineData.filter(i => i.title === 'Dagboek' && !i.pageStyle);
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Toevoegen...';
+            try {
+                for (const item of missing) {
+                    await updateDoc(doc(db, 'timeline', item.id), { pageStyle: { ...DEFAULT_PAGE_STYLE } });
+                    item.pageStyle = { ...DEFAULT_PAGE_STYLE }; // direct zichtbaar, ook voordat de database terugmeldt
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Niet alle verhalen konden worden toegevoegd. Controleer je verbinding.');
+            } finally {
+                btn.disabled = false;
+                openBookViewer();
+            }
+        });
+
+        // --- Boek exporteren als PDF (elke pagina precies op zijn eigen formaat) ---
+        document.getElementById('bookExportBtn').addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const label = btn.innerHTML;
+            btn.disabled = true;
+            try {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Voorbereiden...';
+                const { jsPDF } = await import('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm');
+                const entries = rebuildBookPages();
+                const pages = bookPages;
+                const canvas = document.createElement('canvas');
+                let pdf = null;
+                for (let i = 0; i < pages.length; i++) {
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Pagina ${i + 1}/${pages.length}`;
+                    await renderBookPageTo(canvas, pages[i], entries, false);
+                    const wPt = canvas.width * 0.5, hPt = canvas.height * 0.5; // 1080px → 540pt (± 19 cm breed)
+                    const orientation = wPt > hPt ? 'landscape' : 'portrait';
+                    if (!pdf) pdf = new jsPDF({ unit: 'pt', format: [wPt, hPt], orientation, compress: true });
+                    else pdf.addPage([wPt, hPt], orientation);
+                    pdf.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, wPt, hPt, undefined, 'FAST');
+                    await new Promise(r => setTimeout(r, 0)); // scherm laten bijwerken
+                }
+                pdf.setProperties({ title: 'Het dagboek van Annebeth', author: getUserName() });
+                const blob = pdf.output('blob');
+                const today = new Date();
+                const pad2 = n => String(n).padStart(2, '0');
+                const fileName = `Boek Annebeth ${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}.pdf`;
+                canvas.width = 0; canvas.height = 0; // geheugen vrijgeven
+                const file = new File([blob], fileName, { type: 'application/pdf' });
+                btn.disabled = false;
+                btn.innerHTML = label;
+                await deliverFile(file, btn, 'Het dagboek van Annebeth');
+            } catch (err) {
+                console.error('Boek exporteren mislukt:', err);
+                showToast('Het boek kon niet worden gemaakt. Controleer je verbinding en probeer het opnieuw.');
+                btn.innerHTML = label;
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // --- Pagina-opmaak bewaren in het boek ---
+        function updatePageBookButton() {
+            const btn = document.getElementById('diaryPageBookBtn');
+            const remove = document.getElementById('diaryPageRemoveBtn');
+            if (!pageItem) return;
+            const st = pageItem.pageStyle;
+            const same = st && st.template === pageOpts.template && !!st.showText === !!pageOpts.showText;
+            btn.disabled = !!same;
+            btn.innerHTML = !st
+                ? '<i class="fa-solid fa-book-medical"></i> Toevoegen aan boek'
+                : (same ? '<i class="fa-solid fa-check"></i> Staat in het boek' : '<i class="fa-solid fa-floppy-disk"></i> Wijziging opslaan in boek');
+            remove.style.display = st ? '' : 'none';
+        }
+
+        document.getElementById('diaryPageBookBtn').addEventListener('click', async (e) => {
+            if (!pageItem) return;
+            const btn = e.currentTarget;
+            const style = { template: pageOpts.template, showText: !!pageOpts.showText };
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opslaan...';
+            try {
+                await updateDoc(doc(db, 'timeline', pageItem.id), { pageStyle: style });
+                pageItem.pageStyle = style;
+                const live = timelineData.find(i => i.id === pageItem.id);
+                if (live) live.pageStyle = style;
+                refreshBookViewer();
+                renderDiaryBookIfOpen();
+            } catch (err) {
+                console.error(err);
+                showToast('Opslaan in het boek is niet gelukt. Controleer je verbinding.');
+            } finally {
+                updatePageBookButton();
+            }
+        });
+
+        document.getElementById('diaryPageRemoveBtn').addEventListener('click', async () => {
+            if (!pageItem || !pageItem.pageStyle) return;
+            try {
+                await updateDoc(doc(db, 'timeline', pageItem.id), { pageStyle: null });
+                pageItem.pageStyle = null;
+                const live = timelineData.find(i => i.id === pageItem.id);
+                if (live) live.pageStyle = null;
+                closeDiaryPage();
+                refreshBookViewer();
+                renderDiaryBookIfOpen();
+            } catch (err) {
+                console.error(err);
+                showToast('Verwijderen uit het boek is niet gelukt. Controleer je verbinding.');
+            }
+        });
+
+        function renderDiaryBookIfOpen() {
+            if (diaryBookModal.classList.contains('active')) renderDiaryBook();
+        }
 
         // ==========================================
         // --- LOGICA VOOR GROEI (LENGTE/GEWICHT) ---
