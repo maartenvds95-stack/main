@@ -824,6 +824,19 @@
             body.diary-printing #diaryPrintArea { display: block !important; }
         }
 
+        /* Inloggen met Google */
+        .login-divider { display: flex; align-items: center; gap: 12px; margin: 22px 0; color: var(--text-light); font-size: 13px; }
+        .login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: #e5e5ea; }
+        .google-login-btn {
+            width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: #fff; color: #3c4043; border: 1px solid #dadce0;
+            border-radius: 30px; padding: 13px; font-size: 16px; font-weight: 600; cursor: pointer;
+        }
+        .google-login-btn:disabled { opacity: 0.6; cursor: default; }
+        @media (prefers-color-scheme: dark) {
+            .login-divider::before, .login-divider::after { background: #3a3a3c; }
+        }
+
         /* Voeden-keuze */
         .action-card.hidden-card { display: none; }
         .feed-choice { display: flex; gap: 12px; }
@@ -892,6 +905,13 @@
         <div style="margin-top: 40px;">
             <button class="save-btn" id="loginBtn">Inloggen</button>
         </div>
+
+        <div class="login-divider"><span>of</span></div>
+
+        <button type="button" class="google-login-btn" id="googleLoginBtn">
+            <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+            Inloggen met Google
+        </button>
     </div>
 </div>
 
@@ -1426,7 +1446,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyChofc8PhMI4zIwk43Ld_R1OZMDEt_hGlU",
@@ -1763,7 +1783,16 @@
                         updateActionTimes();
                     }, (error) => {
                         console.error("Fout bij ophalen tijdlijn:", error);
-                        if(error.code === 'permission-denied') alert("Let op: Firebase toegang geweigerd. Controleer je database regels (Rules) in de Firebase Console.");
+                        if (error.code === 'permission-denied') {
+                            const viaGoogle = currentUser && currentUser.providerData.some(p => p.providerId === 'google.com');
+                            if (viaGoogle) {
+                                // Google-account staat niet op de toegangslijst in de database regels
+                                alert(`Het Google-account ${currentUser.email} heeft (nog) geen toegang tot het dagboek. Vraag om toegevoegd te worden.`);
+                                signOut(auth);
+                            } else {
+                                alert("Let op: Firebase toegang geweigerd. Controleer je database regels (Rules) in de Firebase Console.");
+                            }
+                        }
                     });
                 }
                 if (!growthUnsubscribe) {
@@ -1816,6 +1845,34 @@
                     activePumpTimerUnsubscribe();
                     activePumpTimerUnsubscribe = null;
                 }
+            }
+        });
+
+        // Inloggen met Google (toegang wordt bewaakt door de Firestore regels)
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        googleLoginBtn.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+            googleLoginBtn.disabled = true;
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Fout bij inloggen met Google:", error);
+                if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                    // Gebruiker heeft het venster zelf gesloten
+                } else if (error.code === 'auth/popup-blocked') {
+                    alert('Het Google-venster werd geblokkeerd. Sta pop-ups toe of open het dagboek in Safari/Chrome en probeer opnieuw.');
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    alert('Inloggen met Google staat nog niet aan in Firebase (Authentication → Sign-in method).');
+                } else if (error.code === 'auth/unauthorized-domain') {
+                    alert('Dit domein is nog niet toegestaan voor inloggen met Google (Firebase → Authentication → Settings → Authorized domains).');
+                } else if (error.code === 'auth/account-exists-with-different-credential') {
+                    alert('Er bestaat al een account met dit e-mailadres. Log in met je wachtwoord.');
+                } else {
+                    alert('Inloggen met Google is niet gelukt. Probeer het opnieuw.');
+                }
+            } finally {
+                googleLoginBtn.disabled = false;
             }
         });
 
