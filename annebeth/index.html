@@ -1016,6 +1016,48 @@
             #diaryMilestone { background-color: #3a3a3c !important; border-color: #444 !important; color: var(--text-dark) !important; }
         }
 
+        /* Dagboekkaartjes zoals in 24baby */
+        #diaryBookModal .diary-entry.baby-card { padding: 0; border-radius: 18px; margin-bottom: 16px; }
+        .bc-head { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid rgba(128,128,128,0.18); }
+        .bc-avatar {
+            width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+            background: #f2e3d5; color: #ff8a66; display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+        .bc-who { flex: 1; min-width: 0; }
+        .bc-name { font-weight: 700; font-size: 15px; color: var(--text-dark); }
+        .bc-age { font-size: 13px; color: var(--text-light); }
+        .baby-card .diary-entry-actions .diary-entry-edit { background: transparent; color: var(--text-light); width: 34px; height: 34px; }
+        .bc-body { padding: 14px 16px 12px; }
+        .bc-body:empty { display: none; }
+        .bc-milestone { color: var(--icon-purple); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .bc-title { font-size: 22px; font-weight: 600; line-height: 1.25; color: var(--text-dark); }
+        .bc-mood { font-size: 18px; }
+        .bc-text { font-size: 15px; line-height: 1.55; color: var(--text-dark); margin-top: 8px; white-space: pre-wrap; word-wrap: break-word; }
+        .baby-card .media-carousel { margin: 0; }
+        .baby-card .media-dots { padding-top: 10px; }
+        .bc-foot { padding: 10px 16px 14px; }
+        .bc-date { font-size: 13px; color: var(--text-light); margin-bottom: 12px; }
+        .bc-like {
+            border: none; cursor: pointer; border-radius: 18px; padding: 8px 16px; font-size: 14px; font-weight: 600;
+            background: rgba(128,128,128,0.15); color: var(--text-dark); display: inline-flex; align-items: center; gap: 8px;
+            touch-action: manipulation;
+        }
+        .bc-like.liked { color: #ff5a7a; background: rgba(255, 90, 122, 0.12); }
+        .bc-like.liked i { animation: likePop .3s ease; }
+        @keyframes likePop { 50% { transform: scale(1.35); } }
+        .diary-fab {
+            position: fixed; z-index: 5;
+            right: max(18px, calc(50vw - 210px + 18px));
+            bottom: calc(22px + env(safe-area-inset-bottom));
+            width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer;
+            background: linear-gradient(135deg, #f29bbb, var(--icon-diary)); color: #fff; font-size: 26px;
+            box-shadow: 0 8px 22px rgba(217, 102, 143, 0.45); touch-action: manipulation;
+        }
+        #diaryBookList { padding-bottom: 90px; }
+        @media (prefers-color-scheme: dark) {
+            .bc-milestone { color: #b3a6ff; }
+        }
+
         /* Eten & drinken */
         :root { --icon-food: #1fa59a; --food-soft: #dff5f2; }
         .c-food { color: var(--icon-food); }
@@ -1688,7 +1730,6 @@
             <button class="logout-btn" id="diaryLogoutBtn" title="Uitloggen"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
         </div>
         <div class="modal-content">
-            <button class="save-btn" id="diaryBookNewBtn" style="background-color: var(--icon-diary); color: #fff; box-shadow: none; font-size: 16px; margin-bottom: 12px;"><i class="fa-solid fa-pen-nib"></i> Nieuw verhaal</button>
             <div class="diary-tools">
                 <button type="button" class="diary-tool-btn book" id="openBookViewerBtn"><i class="fa-solid fa-book"></i> Boek</button>
                 <button type="button" class="diary-tool-btn" id="diaryExportPdfBtn"><i class="fa-solid fa-print"></i> Afdrukken</button>
@@ -1706,6 +1747,7 @@
             <div id="diaryBookList"></div>
         </div>
     </div>
+    <button type="button" class="diary-fab" id="diaryBookNewBtn" title="Nieuw verhaal"><i class="fa-solid fa-plus"></i></button>
 </div>
 
 <!-- Pop-up: dagboekpagina maken -->
@@ -1757,7 +1799,7 @@
             <div class="book-empty" id="bookEmpty" style="display: none;">
                 <i class="fa-solid fa-book-open"></i>
                 <p>Er staan nog geen pagina's in het boek.</p>
-                <p class="book-empty-hint">Tik bij een verhaal op <i class="fa-solid fa-wand-magic-sparkles"></i> en kies <strong>Toevoegen aan boek</strong>, of voeg alles in één keer toe.</p>
+                <p class="book-empty-hint">Elk verhaal dat je schrijft komt vanzelf in het boek. Met <i class="fa-solid fa-wand-magic-sparkles"></i> kies je per verhaal de stijl.</p>
             </div>
         </div>
         <div class="book-bottom">
@@ -1825,7 +1867,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, deleteDoc, doc, updateDoc, setDoc, getDoc, Bytes } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, deleteDoc, doc, updateDoc, setDoc, getDoc, Bytes, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -5090,6 +5132,19 @@
             return `${months} maanden oud`;
         }
 
+        function getAgeShort(dateObj) {
+            const dayStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+            const days = Math.round((dayStart - DIARY_BIRTH_DATE) / 86400000);
+            if (days < 0) return '';
+            if (days === 0) return 'Geboortedag';
+            if (days < 7) return `${days} ${days === 1 ? 'dag' : 'dagen'}`;
+            let months = (dateObj.getFullYear() - DIARY_BIRTH_DATE.getFullYear()) * 12 + dateObj.getMonth() - DIARY_BIRTH_DATE.getMonth();
+            if (dateObj.getDate() < DIARY_BIRTH_DATE.getDate()) months--;
+            if (months < 1) { const w = Math.floor(days / 7); return `${w} ${w === 1 ? 'week' : 'weken'}`; }
+            if (months < 24) return `${months} ${months === 1 ? 'maand' : 'maanden'}`;
+            return `${Math.floor(months / 12)} jaar`;
+        }
+
         function diaryDateLine(d) {
             const age = getAgeLabel(d);
             return `${DUTCH_DAYS[d.getDay()]} ${d.getDate()} ${DUTCH_MONTHS[d.getMonth()]} ${d.getFullYear()} · ${format24Hour(d)}${age ? ' · ' + age : ''}`;
@@ -5131,12 +5186,21 @@
             if (entries.length === 0) {
                 diaryBookList.innerHTML = (term || diaryOnlyMilestones)
                     ? `<div class="diary-book-empty"><i class="fa-solid fa-magnifying-glass"></i>${diaryOnlyMilestones && !term ? 'Nog geen mijlpalen vastgelegd.' : `Niets gevonden voor "${escapeHtml(term)}".`}</div>`
-                    : `<div class="diary-book-empty"><i class="fa-solid fa-book-open"></i>Het dagboek is nog leeg.<br>Tik op <strong>Nieuw verhaal</strong> om het eerste verhaal toe te voegen.</div>`;
+                    : `<div class="diary-book-empty"><i class="fa-solid fa-book-open"></i>Het dagboek is nog leeg.<br>Tik op de <strong>+</strong> rechtsonder om het eerste verhaal toe te voegen.</div>`;
                 return;
             }
 
             let html = '';
             let currentMonth = '';
+
+            // Profielfotootje: de nieuwste foto uit het dagboek (anders een baby-icoontje)
+            const withPhoto = timelineData
+                .filter(i => i.title === 'Dagboek' && Array.isArray(i.photos) && i.photos.length)
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+            const avatarHtml = withPhoto
+                ? `<img class="bc-avatar" src="${withPhoto.photos[0]}" alt="Annebeth">`
+                : '<div class="bc-avatar"><i class="fa-solid fa-baby"></i></div>';
+            const me = getUserName();
 
             entries.forEach(item => {
                 const d = new Date(item.timestamp);
@@ -5145,24 +5209,38 @@
                     currentMonth = monthKey;
                     html += `<div class="diary-book-month">${monthKey}</div>`;
                 }
-                const mood = item.mood && DIARY_MOODS[item.mood] ? `<span class="diary-entry-mood">${DIARY_MOODS[item.mood]} ${escapeHtml(item.mood)}</span>` : '';
-                const photosHtml = renderMediaCarousel(item);
-                const by = item.addedBy ? `<div class="diary-entry-by"><i class="fa-regular fa-user"></i> ${escapeHtml(item.addedBy)}${item.editedBy && item.editedBy !== item.addedBy ? ` · bewerkt door ${escapeHtml(item.editedBy)}` : ''}</div>` : '';
+                const moodEmoji = item.mood && DIARY_MOODS[item.mood] ? ` <span class="bc-mood" title="${escapeHtml(item.mood)}">${DIARY_MOODS[item.mood]}</span>` : '';
+                const likes = Array.isArray(item.likes) ? item.likes : [];
+                const liked = likes.includes(me);
+                const footBits = [`${d.getDate()} ${DUTCH_MONTHS[d.getMonth()]} ${d.getFullYear()}`];
+                if (item.addedBy) footBits.push(escapeHtml(item.addedBy));
+                if (!isInBook(item)) footBits.push('niet in boek');
 
                 html += `
-                    <div class="diary-entry" id="diary-entry-${item.id}">
-                        <div class="diary-entry-head">
-                            <div class="diary-entry-date">${diaryDateLine(d)}</div>
+                    <div class="diary-entry baby-card" id="diary-entry-${item.id}">
+                        <div class="bc-head">
+                            ${avatarHtml}
+                            <div class="bc-who">
+                                <div class="bc-name">Annebeth</div>
+                                <div class="bc-age">${getAgeShort(d)}</div>
+                            </div>
                             <div class="diary-entry-actions">
                                 <button class="diary-entry-edit" data-page="${item.id}" title="Maak een pagina"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
                                 <button class="diary-entry-edit" data-edit="${item.id}" title="Bewerken"><i class="fa-solid fa-pen"></i></button>
                             </div>
                         </div>
-                        ${item.milestone ? `<div class="diary-milestone-badge">⭐ ${escapeHtml(item.milestone)}</div>` : ''}
-                        ${item.diaryTitle || !item.milestone ? `<div class="diary-entry-title">${escapeHtml(item.diaryTitle || 'Zonder titel')}${mood}${item.pageStyle ? '<span class="diary-entry-inbook"><i class="fa-solid fa-book"></i> in boek</span>' : ''}</div>` : (mood || item.pageStyle ? `<div class="diary-entry-title" style="font-size: 14px;">${mood}${item.pageStyle ? '<span class="diary-entry-inbook"><i class="fa-solid fa-book"></i> in boek</span>' : ''}</div>` : '')}
-                        ${item.diaryText ? `<div class="diary-entry-text">${escapeHtml(item.diaryText)}</div>` : ''}
-                        ${photosHtml}
-                        ${by}
+                        <div class="bc-body">
+                            ${item.milestone ? `<div class="bc-milestone"><i class="fa-regular fa-flag"></i> ${escapeHtml(item.milestone)}</div>` : ''}
+                            ${item.diaryTitle ? `<div class="bc-title">${escapeHtml(item.diaryTitle)}${moodEmoji}</div>` : (moodEmoji ? `<div class="bc-title" style="font-size: 18px;">${moodEmoji}</div>` : '')}
+                            ${item.diaryText ? `<div class="bc-text">${escapeHtml(item.diaryText)}</div>` : ''}
+                        </div>
+                        ${renderMediaCarousel(item)}
+                        <div class="bc-foot">
+                            <div class="bc-date">${footBits.join(' · ')}</div>
+                            <button type="button" class="bc-like ${liked ? 'liked' : ''}" data-like="${item.id}" title="${likes.length ? escapeHtml(likes.join(', ')) : 'Hartje geven'}">
+                                <i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i> ${likes.length}
+                            </button>
+                        </div>
                     </div>`;
             });
             diaryBookList.innerHTML = html;
@@ -5199,6 +5277,11 @@
         });
 
         diaryBookList.addEventListener('click', (e) => {
+            const likeBtn = e.target.closest('[data-like]');
+            if (likeBtn) {
+                toggleLike(likeBtn);
+                return;
+            }
             const pageBtn = e.target.closest('[data-page]');
             if (pageBtn) {
                 const item = timelineData.find(i => i.id === pageBtn.dataset.page);
@@ -5223,6 +5306,26 @@
                 openLightbox(img.src, item ? () => getPhotoHq(item, parseInt(idx, 10)) : null);
             }
         });
+
+        async function toggleLike(btn) {
+            const item = timelineData.find(i => i.id === btn.dataset.like);
+            if (!item) return;
+            const me = getUserName();
+            const likes = Array.isArray(item.likes) ? item.likes : [];
+            const liked = likes.includes(me);
+            // Meteen laten zien, daarna opslaan
+            const count = likes.length + (liked ? -1 : 1);
+            btn.classList.toggle('liked', !liked);
+            btn.innerHTML = `<i class="fa-${liked ? 'regular' : 'solid'} fa-heart"></i> ${count}`;
+            try {
+                await updateDoc(doc(db, 'timeline', item.id), { likes: liked ? arrayRemove(me) : arrayUnion(me) });
+            } catch (err) {
+                console.error('Hartje opslaan mislukt:', err);
+                btn.classList.toggle('liked', liked);
+                btn.innerHTML = `<i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i> ${likes.length}`;
+                showToast('Hartje opslaan mislukt. Controleer je verbinding.');
+            }
+        }
 
         // --- Foto vergroten (eerst de snelle versie, daarna hoge kwaliteit) ---
         let lightboxToken = 0;
@@ -5678,7 +5781,9 @@
 
         async function openDiaryPage(item) {
             pageItem = item;
-            if (item.pageStyle) pageOpts = { template: item.pageStyle.template || pageOpts.template, showText: item.pageStyle.showText !== false };
+            pageOpts = item.pageStyle
+                ? { template: item.pageStyle.template || DEFAULT_PAGE_STYLE.template, showText: item.pageStyle.showText !== false }
+                : { ...DEFAULT_PAGE_STYLE }; // zelfde stijl als in het boek
             updatePageBookButton();
             pageImages = [];
             pageBlob = null;
@@ -5852,9 +5957,13 @@
             btn.addEventListener('click', handler, true);
         }
 
+        // Alle verhalen staan in het boek, behalve als ze er bewust uit zijn gehaald (pageStyle.excluded)
+        function isInBook(item) {
+            return !(item.pageStyle && item.pageStyle.excluded);
+        }
         function getBookEntries() {
             return timelineData
-                .filter(i => i.title === 'Dagboek' && i.pageStyle)
+                .filter(i => i.title === 'Dagboek' && isInBook(i))
                 .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
         }
 
@@ -5992,7 +6101,7 @@
             empty.style.display = hasPages ? 'none' : 'block';
             bookStage.style.display = hasPages ? '' : 'none';
             document.getElementById('bookExportBtn').style.display = hasPages ? '' : 'none';
-            const missing = timelineData.filter(i => i.title === 'Dagboek' && !i.pageStyle).length;
+            const missing = 0; // alle verhalen staan al in het boek
             const addAll = document.getElementById('bookAddAllBtn');
             addAll.style.display = missing ? '' : 'none';
             addAll.innerHTML = `<i class="fa-solid fa-plus"></i> ${missing} ${missing === 1 ? 'verhaal' : 'verhalen'} toevoegen`;
@@ -6053,7 +6162,7 @@
 
         document.getElementById('bookAddAllBtn').addEventListener('click', async (e) => {
             const btn = e.currentTarget;
-            const missing = timelineData.filter(i => i.title === 'Dagboek' && !i.pageStyle);
+            const missing = timelineData.filter(i => i.title === 'Dagboek' && !isInBook(i));
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Toevoegen...';
             try {
@@ -6116,13 +6225,14 @@
             const btn = document.getElementById('diaryPageBookBtn');
             const remove = document.getElementById('diaryPageRemoveBtn');
             if (!pageItem) return;
-            const st = pageItem.pageStyle;
-            const same = st && st.template === pageOpts.template && !!st.showText === !!pageOpts.showText;
-            btn.disabled = !!same;
-            btn.innerHTML = !st
-                ? '<i class="fa-solid fa-book-medical"></i> Toevoegen aan boek'
-                : (same ? '<i class="fa-solid fa-check"></i> Staat in het boek' : '<i class="fa-solid fa-floppy-disk"></i> Wijziging opslaan in boek');
-            remove.style.display = st ? '' : 'none';
+            const st = { ...DEFAULT_PAGE_STYLE, ...(pageItem.pageStyle || {}) };
+            const excluded = !!st.excluded;
+            const same = !excluded && st.template === pageOpts.template && !!st.showText === !!pageOpts.showText;
+            btn.disabled = same;
+            btn.innerHTML = excluded
+                ? '<i class="fa-solid fa-book-medical"></i> Weer in het boek zetten'
+                : (same ? '<i class="fa-solid fa-check"></i> Staat zo in het boek' : '<i class="fa-solid fa-floppy-disk"></i> Deze stijl gebruiken in het boek');
+            remove.style.display = excluded ? 'none' : '';
         }
 
         document.getElementById('diaryPageBookBtn').addEventListener('click', async (e) => {
@@ -6147,12 +6257,14 @@
         });
 
         document.getElementById('diaryPageRemoveBtn').addEventListener('click', async () => {
-            if (!pageItem || !pageItem.pageStyle) return;
+            if (!pageItem || !isInBook(pageItem)) return;
+            const style = { ...DEFAULT_PAGE_STYLE, ...(pageItem.pageStyle || {}), excluded: true };
             try {
-                await updateDoc(doc(db, 'timeline', pageItem.id), { pageStyle: null });
-                pageItem.pageStyle = null;
+                await updateDoc(doc(db, 'timeline', pageItem.id), { pageStyle: style });
+                pageItem.pageStyle = style;
                 const live = timelineData.find(i => i.id === pageItem.id);
-                if (live) live.pageStyle = null;
+                if (live) live.pageStyle = style;
+                showToast('Uit het boek gehaald. Via de toverstaf kun je het er weer in zetten.', 'info');
                 closeDiaryPage();
                 refreshBookViewer();
                 renderDiaryBookIfOpen();
