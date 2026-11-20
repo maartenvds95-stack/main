@@ -921,6 +921,126 @@
         .toast-info { background: #4a6fa5; }
         .toast-success { background: #2e9e5b; }
 
+        /* Keuzescherm */
+        .chooser-head { text-align: center; padding: 20px 20px 10px; }
+        .chooser-head h1 { color: var(--icon-purple); margin: 0 0 6px; font-size: 24px; }
+        .chooser-head p { color: var(--text-light); margin: 0; font-size: 14px; }
+        .chooser-list { display: flex; flex-direction: column; gap: 14px; padding: 20px; }
+        .chooser-card {
+            display: flex; align-items: center; gap: 14px; text-align: left; width: 100%;
+            border: none; border-radius: 20px; padding: 20px 16px; cursor: pointer;
+            background: var(--card-bg); box-shadow: 0 6px 18px rgba(0,0,0,0.06); color: var(--text-dark);
+            touch-action: manipulation;
+        }
+        .chooser-card.diary { background: linear-gradient(135deg, #fde8ef 0%, #f4ecff 100%); }
+        .chooser-card.abd { background: linear-gradient(135deg, #e8f1ff 0%, #e6f7f2 100%); }
+        .chooser-icon {
+            width: 54px; height: 54px; flex-shrink: 0; border-radius: 50%; background: #fff;
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+        }
+        .chooser-card.diary .chooser-icon { color: var(--icon-diary); }
+        .chooser-card.abd .chooser-icon { color: var(--icon-purple); }
+        .chooser-text { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .chooser-title { font-size: 18px; font-weight: 700; color: #333; }
+        .chooser-sub { font-size: 13px; color: #777; line-height: 1.35; }
+        .chooser-arrow { color: #aaa; }
+        .app-switch-btn {
+            margin-right: auto; border: none; cursor: pointer; border-radius: 16px; padding: 6px 12px;
+            background: rgba(123, 82, 222, 0.1); color: var(--icon-purple); font-size: 14px; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        #diaryBookModal .app-switch-btn { margin-right: 0; background: var(--diary-soft); color: var(--icon-diary); width: 40px; height: 40px; justify-content: center; padding: 0; border-radius: 50%; font-size: 16px; }
+        #diaryBookModal .modal-header .logout-btn { width: 40px; }
+        @media (prefers-color-scheme: dark) {
+            .chooser-card.diary { background: linear-gradient(135deg, #3a2a31 0%, #2f2a3d 100%); }
+            .chooser-card.abd { background: linear-gradient(135deg, #26303f 0%, #24342f 100%); }
+            .chooser-icon { background: #2c2c2e; }
+            .chooser-title { color: var(--text-dark); }
+            .chooser-sub { color: var(--text-light); }
+        }
+
+        /* Haar dagboek als volledige pagina */
+        #diaryBookModal { padding: 0; background-color: #e0e0e0; }
+        #diaryBookModal .modal-container {
+            max-width: 420px; height: 100%; max-height: 100%; border-radius: 0; transform: none;
+            background-color: var(--bg-color);
+        }
+        #diaryBookModal .modal-header { border-radius: 0; background: var(--bg-color); }
+        @media (min-width: 450px) {
+            #diaryBookModal .modal-container { height: calc(100% - 24px); max-height: calc(100% - 24px); border-radius: 18px; }
+            #diaryBookModal .modal-header { border-radius: 18px 18px 0 0; }
+        }
+        @media (prefers-color-scheme: dark) { #diaryBookModal { background-color: #000; } }
+        .diary-search-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 14px; }
+        .diary-search-row .diary-book-search { margin-bottom: 0; flex: 1; }
+        .milestone-filter {
+            flex: 0 0 48px; border: 2px solid transparent; border-radius: 15px; cursor: pointer;
+            background: var(--diary-soft); font-size: 18px; filter: grayscale(1); opacity: 0.6;
+        }
+        .milestone-filter.active { border-color: var(--icon-diary); filter: none; opacity: 1; }
+
+        /* Kaartjes in de stijl van 24baby: tekst boven, grote foto's eronder */
+        #diaryBookModal .diary-entry { background: var(--card-bg); padding: 14px 16px 12px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.05); }
+        .diary-entry-head { align-items: center; }
+        .diary-milestone-badge {
+            display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;
+            background: #fff4d6; color: #a86b00; border-radius: 12px; padding: 4px 10px; font-size: 13px; font-weight: 700;
+        }
+        .media-carousel { position: relative; margin: 12px -16px 0; }
+        .media-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .media-track::-webkit-scrollbar { display: none; }
+        .media-slide { flex: 0 0 100%; scroll-snap-align: center; aspect-ratio: 4 / 5; position: relative; background: #111; }
+        .media-track.landscape .media-slide { aspect-ratio: 4 / 3; } /* liggende eerste foto: hele rijtje liggend */
+        .media-slide img, .media-slide video { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
+        .media-slide video { object-fit: contain; background: #000; }
+        .media-play {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; cursor: pointer;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35));
+        }
+        .media-play span {
+            width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.9); color: var(--icon-diary);
+            display: flex; align-items: center; justify-content: center; font-size: 24px; padding-left: 4px; box-sizing: border-box;
+        }
+        .media-play small { position: absolute; bottom: 10px; right: 12px; color: #fff; font-size: 12px; font-weight: 600; }
+        .media-count { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.55); color: #fff; font-size: 12px; font-weight: 600; border-radius: 10px; padding: 3px 8px; pointer-events: none; }
+        .media-dots { display: flex; justify-content: center; gap: 6px; padding: 8px 0 0; }
+        .media-dots span { width: 6px; height: 6px; border-radius: 50%; background: #d6c8ce; transition: background .2s, transform .2s; }
+        .media-dots span.active { background: var(--icon-diary); transform: scale(1.3); }
+        .video-thumb-badge { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; background: rgba(0,0,0,0.25); pointer-events: none; }
+        .video-thumb-dur { position: absolute; bottom: 4px; right: 6px; color: #fff; font-size: 10px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,.6); pointer-events: none; }
+        .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .chip { border: none; cursor: pointer; border-radius: 14px; padding: 5px 10px; font-size: 12px; background: var(--diary-soft); color: var(--text-dark); }
+        #foodModal .chip { background: var(--food-soft); }
+        @media (prefers-color-scheme: dark) {
+            .diary-milestone-badge { background: #4a3a14; color: #ffd27a; }
+            #diaryMilestone { background-color: #3a3a3c !important; border-color: #444 !important; color: var(--text-dark) !important; }
+        }
+
+        /* Eten & drinken */
+        :root { --icon-food: #1fa59a; --food-soft: #dff5f2; }
+        .c-food { color: var(--icon-food); }
+        .filter-btn[data-filter="eten"].active { background-color: var(--icon-food); color: #fff; border-color: var(--icon-food); }
+        #foodModal .input-field { background-color: var(--food-soft); border-color: var(--food-soft); color: var(--text-dark); }
+        .food-rating { display: flex; gap: 8px; }
+        .food-rate-btn {
+            flex: 1; border: 2px solid transparent; border-radius: 16px; padding: 10px 4px; cursor: pointer;
+            background: var(--food-soft); font-size: 26px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        .food-rate-btn span { font-size: 12px; color: var(--text-dark); }
+        .food-rate-btn.active { border-color: var(--icon-food); background: #fff; }
+        .food-new-check { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--text-dark); padding: 2px 5px 14px; }
+        .food-new-check input { width: 20px; height: 20px; accent-color: var(--icon-food); }
+        .food-history { background: var(--food-soft); border-radius: 15px; padding: 10px 14px; font-size: 13px; color: var(--text-dark); }
+        .food-history summary { cursor: pointer; font-weight: 600; color: var(--icon-food); }
+        .food-history-row { display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+        .food-history-row:last-child { border-bottom: none; }
+        .food-history-row small { color: var(--text-light); white-space: nowrap; }
+        @media (prefers-color-scheme: dark) {
+            :root { --food-soft: #1f3533; }
+            #foodModal .input-field { background-color: #3a3a3c !important; border-color: #444 !important; }
+            .food-rate-btn.active { background: #2c2c2e; }
+        }
+
         /* Voeden-keuze */
         .action-card.hidden-card { display: none; }
         .feed-choice { display: flex; gap: 12px; }
@@ -999,10 +1119,43 @@
     </div>
 </div>
 
+<!-- Keuzescherm na inloggen: Haar dagboek of ABD -->
+<div class="app-container" id="appChooser" style="display: none;">
+    <div style="display: flex; justify-content: flex-end; padding: 15px 20px 0;">
+        <button class="logout-btn" id="chooserLogoutBtn" title="Uitloggen"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+    </div>
+    <div class="chooser-head">
+        <div class="stat-circle" style="margin: 0 auto 16px auto; width: 70px; height: 70px; font-size: 35px; background-color: #f2e3d5; border: none; color: #ff8a66;">
+            <i class="fa-solid fa-baby"></i>
+        </div>
+        <h1>Hoi <span id="chooserName"></span>!</h1>
+        <p>Wat wil je openen?</p>
+    </div>
+    <div class="chooser-list">
+        <button type="button" class="chooser-card diary" id="chooseDiaryBtn">
+            <span class="chooser-icon"><i class="fa-solid fa-book-open"></i></span>
+            <span class="chooser-text">
+                <span class="chooser-title">Haar dagboek</span>
+                <span class="chooser-sub">Verhalen, mijlpalen, foto's en video's. Ook als oppasboek.</span>
+            </span>
+            <i class="fa-solid fa-chevron-right chooser-arrow"></i>
+        </button>
+        <button type="button" class="chooser-card abd" id="chooseAbdBtn">
+            <span class="chooser-icon"><i class="fa-solid fa-folder-open"></i></span>
+            <span class="chooser-text">
+                <span class="chooser-title">ABD</span>
+                <span class="chooser-sub">Annebeth Baby Dossier: slapen, voeden, luiers, eten &amp; drinken en groei.</span>
+            </span>
+            <i class="fa-solid fa-chevron-right chooser-arrow"></i>
+        </button>
+    </div>
+</div>
+
 <!-- Hoofd App (Verstopt totdat je bent ingelogd) -->
 <div class="app-container" id="mainApp" style="display: none;">
     
     <div style="display: flex; justify-content: flex-end; padding: 15px 20px 0; gap: 15px;">
+        <button class="app-switch-btn" id="switchAppBtn" title="Wissel tussen ABD en Haar dagboek"><i class="fa-solid fa-table-cells-large"></i> ABD</button>
         <button class="logout-btn" id="changeNameBtn" title="Naam aanpassen">
             <i class="fa-solid fa-user-pen"></i>
         </button>
@@ -1083,11 +1236,11 @@
             <div class="plus-btn" style="color: orange;"><i class="fa-solid fa-plus"></i></div>
         </div>
 
-        <div class="action-card" id="openDiaryBookBtn">
-            <div class="action-icon c-diary"><i class="fa-solid fa-book-open"></i></div>
-            <div class="action-title">Dagboek</div>
-            <div class="action-time" id="diaryLastTime">Lang geleden</div>
-            <div class="plus-btn c-diary" id="openDiaryModalBtn" title="Nieuw verhaal"><i class="fa-solid fa-plus"></i></div>
+        <div class="action-card" id="openFoodModalBtn">
+            <div class="action-icon c-food"><i class="fa-solid fa-utensils"></i></div>
+            <div class="action-title">Eten &amp; drinken</div>
+            <div class="action-time" id="foodLastTime">Lang geleden</div>
+            <div class="plus-btn c-food"><i class="fa-solid fa-plus"></i></div>
         </div>
     </div>
 
@@ -1095,7 +1248,7 @@
         <button class="filter-btn active" data-filter="all">Alles</button>
         <button class="filter-btn" data-filter="luier">Verschoningen</button>
         <button class="filter-btn" data-filter="voeding">Voedingen</button>
-        <button class="filter-btn" data-filter="dagboek">Dagboek</button>
+        <button class="filter-btn" data-filter="eten">Eten &amp; drinken</button>
     </div>
 
     <div class="timeline">
@@ -1381,6 +1534,62 @@
     </div>
 </div>
 
+<!-- Pop-up overlay voor Eten & drinken -->
+<div class="modal-overlay" id="foodModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <button class="back-btn" id="closeFoodModalBtn">&times;</button>
+            <div class="page-title" style="color: var(--icon-food);">
+                <i class="fa-solid fa-utensils"></i> Eten &amp; drinken
+            </div>
+        </div>
+        <div class="modal-content">
+            <div class="segmented-control" id="foodTypeControl" style="background-color: var(--food-soft);">
+                <button type="button" class="segment-btn active" data-type="eten" style="color: var(--icon-food);">🥄 Eten</button>
+                <button type="button" class="segment-btn" data-type="drinken" style="color: var(--icon-food);">🥤 Drinken</button>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Tijd</label>
+                <input type="time" class="input-field" id="foodTime">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" id="foodWhatLabel">Wat heeft ze gegeten?</label>
+                <input type="text" class="input-field" id="foodWhat" maxlength="80" placeholder="Bijv. wortelhapje">
+                <div class="chip-row" id="foodSuggestions"></div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Hoeveel</label>
+                <input type="text" class="input-field" id="foodAmount" maxlength="40" placeholder="Bijv. 4 lepels of 30 ml">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Hoe vond ze het?</label>
+                <div class="food-rating" id="foodRating">
+                    <button type="button" class="food-rate-btn" data-rating="lekker">😋<span>Lekker</span></button>
+                    <button type="button" class="food-rate-btn" data-rating="ging wel">😐<span>Ging wel</span></button>
+                    <button type="button" class="food-rate-btn" data-rating="niet lekker">😖<span>Niet lekker</span></button>
+                </div>
+            </div>
+
+            <label class="food-new-check"><input type="checkbox" id="foodNew"> ⭐ Eerste keer (nieuw product)</label>
+
+            <details class="food-history">
+                <summary><i class="fa-solid fa-clipboard-list"></i> Dossier: wat heeft ze al geprobeerd? <span id="foodHistoryCount"></span></summary>
+                <div id="foodHistoryList"></div>
+            </details>
+        </div>
+        <div class="modal-footer">
+            <button id="deleteFoodBtn" style="display:none; width:100%; background:transparent; border:none; color:var(--icon-pink); padding:10px; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:8px;">
+                <i class="fa-solid fa-trash-can"></i> Verwijderen
+            </button>
+            <button class="save-btn" id="saveFoodBtn" style="background-color: var(--icon-food); color: #fff; box-shadow: none;">Opslaan</button>
+        </div>
+    </div>
+</div>
+
 <!-- Pop-up overlay voor Dagboek schrijven -->
 <div class="modal-overlay" id="diaryModal">
     <div class="modal-container">
@@ -1413,6 +1622,21 @@
             </div>
 
             <div class="input-group">
+                <label class="input-label">⭐ Mijlpaal <span style="font-weight: normal;">(optioneel)</span></label>
+                <input type="text" class="input-field" id="diaryMilestone" maxlength="60" placeholder="Bijv. Eerste tandje">
+                <div class="chip-row" id="diaryMilestoneChips">
+                    <button type="button" class="chip">Eerste lachje</button>
+                    <button type="button" class="chip">Omrollen</button>
+                    <button type="button" class="chip">Eerste tandje</button>
+                    <button type="button" class="chip">Zelf zitten</button>
+                    <button type="button" class="chip">Kruipen</button>
+                    <button type="button" class="chip">Eerste hapje</button>
+                    <button type="button" class="chip">Eerste woordje</button>
+                    <button type="button" class="chip">Eerste stapjes</button>
+                </div>
+            </div>
+
+            <div class="input-group">
                 <label class="input-label">Stemming</label>
                 <div class="mood-picker" id="diaryMoodPicker">
                     <button type="button" class="mood-btn" data-mood="Blij">😊 Blij</button>
@@ -1425,7 +1649,7 @@
             </div>
 
             <div class="input-group">
-                <label class="input-label">Verhaal</label>
+                <label class="input-label">Hoe was de dag?</label>
                 <textarea class="input-field" id="diaryText" placeholder="Wat is er vandaag gebeurd? Wat wil je later nog weten?"></textarea>
             </div>
 
@@ -1434,6 +1658,13 @@
                 <div class="diary-photo-grid" id="diaryPhotoGrid"></div>
                 <input type="file" id="diaryPhotoInput" accept="image/*" multiple style="display: none;">
                 <div class="diary-hint" id="diaryPhotoHint">Maximaal 6 foto's per verhaal, opgeslagen in hoge kwaliteit.</div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Video's</label>
+                <div class="diary-photo-grid" id="diaryVideoGrid"></div>
+                <input type="file" id="diaryVideoInput" accept="video/*" style="display: none;">
+                <div class="diary-hint" id="diaryVideoHint">Maximaal 2 korte video's per verhaal (tot 25 MB, ±20 seconden).</div>
             </div>
         </div>
 
@@ -1446,14 +1677,15 @@
     </div>
 </div>
 
-<!-- Pop-up overlay voor Dagboek lezen -->
+<!-- Haar dagboek (eigen app-pagina, gekozen na het inloggen) -->
 <div class="modal-overlay" id="diaryBookModal">
     <div class="modal-container">
         <div class="modal-header">
-            <button class="back-btn" id="closeDiaryBookBtn">&times;</button>
-            <div class="page-title" style="color: var(--icon-diary);">
-                <i class="fa-solid fa-book-open"></i> Dagboek
+            <button class="app-switch-btn" id="closeDiaryBookBtn" title="Wissel tussen ABD en Haar dagboek"><i class="fa-solid fa-table-cells-large"></i></button>
+            <div class="page-title" style="color: var(--icon-diary); margin-right: 0;">
+                <i class="fa-solid fa-book-open"></i> Haar dagboek
             </div>
+            <button class="logout-btn" id="diaryLogoutBtn" title="Uitloggen"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
         </div>
         <div class="modal-content">
             <button class="save-btn" id="diaryBookNewBtn" style="background-color: var(--icon-diary); color: #fff; box-shadow: none; font-size: 16px; margin-bottom: 12px;"><i class="fa-solid fa-pen-nib"></i> Nieuw verhaal</button>
@@ -1467,7 +1699,10 @@
                 <span id="diaryDriveStatus">Google Drive</span>
                 <button type="button" class="diary-tool-btn" id="diaryDriveBtn">Koppelen</button>
             </div>
-            <input type="search" class="input-field diary-book-search" id="diaryBookSearch" placeholder="Zoek in het dagboek..." style="background-color: var(--diary-soft); border-color: var(--diary-soft); color: var(--text-dark);">
+            <div class="diary-search-row">
+                <input type="search" class="input-field diary-book-search" id="diaryBookSearch" placeholder="Zoek in het dagboek..." style="background-color: var(--diary-soft); border-color: var(--diary-soft); color: var(--text-dark);">
+                <button type="button" class="milestone-filter" id="diaryMilestoneFilter" title="Alleen mijlpalen">⭐</button>
+            </div>
             <div id="diaryBookList"></div>
         </div>
     </div>
@@ -1590,7 +1825,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, deleteDoc, doc, updateDoc, setDoc, getDoc, Bytes } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -1933,12 +2168,52 @@
         const loginUsername = document.getElementById('loginUsername');
         const loginPassword = document.getElementById('loginPassword');
 
+        // --- Kiezen tussen "Haar dagboek" en "ABD" (Annebeth Baby Dossier) ---
+        // 'chooser' = keuzescherm, 'abd' = de tracker-app, 'diary' = haar dagboek
+        function showApp(which) {
+            const chooser = document.getElementById('appChooser');
+            const diaryPage = document.getElementById('diaryBookModal');
+            loginScreen.style.display = 'none';
+            chooser.style.display = which === 'chooser' ? 'block' : 'none';
+            mainApp.style.display = which === 'abd' ? 'block' : 'none';
+            if (which === 'diary') {
+                openDiaryBook();
+            } else if (diaryPage.classList.contains('active')) {
+                diaryPage.classList.remove('active');
+                updateBodyScroll();
+            }
+            if (which === 'chooser') {
+                document.getElementById('chooserName').textContent = getUserName();
+                sessionStorage.removeItem('annebethApp');
+            } else {
+                sessionStorage.setItem('annebethApp', which);
+            }
+            window.scrollTo(0, 0);
+        }
+
+        // Uitloggen zonder confirm() (die wordt in sommige app-browsers geblokkeerd)
+        async function doLogout() {
+            try {
+                sessionStorage.removeItem('annebethApp');
+                await signOut(auth);
+            } catch (error) {
+                console.error("Fout bij uitloggen:", error);
+                showToast('Uitloggen mislukt.');
+            }
+        }
+
+        document.getElementById('chooseDiaryBtn').addEventListener('click', () => showApp('diary'));
+        document.getElementById('chooseAbdBtn').addEventListener('click', () => showApp('abd'));
+        document.getElementById('switchAppBtn').addEventListener('click', () => showApp('chooser'));
+        document.getElementById('chooserLogoutBtn').addEventListener('click', doLogout);
+        document.getElementById('diaryLogoutBtn').addEventListener('click', doLogout);
+
         // Controleer realtime of de gebruiker is ingelogd via Firebase
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                loginScreen.style.display = 'none';
-                mainApp.style.display = 'block';
+                // Binnen dezelfde sessie terug naar de laatst gekozen app, anders eerst het keuzescherm
+                showApp(sessionStorage.getItem('annebethApp') || 'chooser');
 
                 // Start realtime listeners pas nadat we zeker weten dat de gebruiker is ingelogd
                 if (!timelineUnsubscribe) {
@@ -1989,6 +2264,9 @@
                 currentUser = null;
                 loginScreen.style.display = 'block';
                 mainApp.style.display = 'none';
+                document.getElementById('appChooser').style.display = 'none';
+                document.getElementById('diaryBookModal').classList.remove('active');
+                document.body.style.overflow = '';
 
                 // Stop de listeners netjes wanneer er wordt uitgelogd
                 if (timelineUnsubscribe) {
@@ -2096,16 +2374,7 @@
         // Actie bij klikken op "Uitloggen"
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
-            logoutBtn.addEventListener('click', async () => {
-                if (confirm('Weet je zeker dat je wilt uitloggen?')) {
-                    try {
-                        await signOut(auth);
-                    } catch (error) {
-                        alert('Uitloggen mislukt.');
-                        console.error("Fout bij uitloggen:", error);
-                    }
-                }
-            });
+            logoutBtn.addEventListener('click', doLogout);
         }
 
         // Actie bij klikken op "Naam aanpassen"
@@ -2168,7 +2437,8 @@
 
         // --- Tijdlijn netjes opbouwen en groeperen ---
         function loadTimelineItems() {
-            let savedItems = [...timelineData];
+            // Dagboekverhalen horen bij "Haar dagboek", niet bij het ABD
+            let savedItems = timelineData.filter(item => item.title !== 'Dagboek');
 
             if (currentFilter !== 'all') {
                 savedItems = savedItems.filter(item => {
@@ -2180,8 +2450,8 @@
                     if (currentFilter === 'voeding') {
                         return titleLower === 'borstvoeding' || titleLower === 'fles';
                     }
-                    if (currentFilter === 'dagboek') {
-                        return titleLower === 'dagboek';
+                    if (currentFilter === 'eten') {
+                        return titleLower === 'eten' || titleLower === 'drinken';
                     }
                     return item.title === currentFilter;
                 });
@@ -2232,6 +2502,7 @@
                 const addedByHtml = item.addedBy ? `<span class="item-added-by"><i class="fa-regular fa-user"></i> ${item.addedBy}</span>` : '';
 
                 let subtitleHtml = item.subtitle;
+                if (item.title === 'Eten' || item.title === 'Drinken') subtitleHtml = escapeHtml(item.subtitle || '');
                 let diaryThumbHtml = '';
                 if (item.title === 'Dagboek') {
                     const moodEmoji = DIARY_MOODS[item.mood] ? DIARY_MOODS[item.mood] + ' ' : '';
@@ -2349,6 +2620,8 @@
                     document.body.style.overflow = 'hidden';
                 } else if (item.title === 'Dagboek') {
                     openDiaryEditor(item);
+                } else if (item.title === 'Eten' || item.title === 'Drinken') {
+                    openFoodEditor(item);
                 } else if (item.title.includes('luier') || item.title === 'Verschonen') {
                     document.getElementById('saveDiaperBtn').innerHTML = 'Bijwerken';
                     document.getElementById('deleteDiaperBtn').style.display = 'block';
@@ -2458,6 +2731,7 @@
             let lastPump = null;
             let lastNote = null;
             let lastDiary = null;
+            let lastFood = null;
 
             // Zoek achterstevoren (zodat we de meest recente pakken)
             for (let i = savedItems.length - 1; i >= 0; i--) {
@@ -2474,8 +2748,9 @@
                 if (!lastPump && titleLower.includes('kolv')) lastPump = item.timestamp;
                 if (!lastNote && titleLower.includes('notitie')) lastNote = item.timestamp;
                 if (!lastDiary && titleLower === 'dagboek') lastDiary = item.timestamp;
+                if (!lastFood && (titleLower === 'eten' || titleLower === 'drinken')) lastFood = item.timestamp;
                 
-                if (lastSleep && lastBreast && lastDiaper && lastBottle && lastPump && lastNote && lastDiary) break;
+                if (lastSleep && lastBreast && lastDiaper && lastBottle && lastPump && lastNote && lastDiary && lastFood) break;
             }
 
             function formatTimeAgo(ts) {
@@ -2522,6 +2797,8 @@
 
             const diaryLastEl = document.getElementById('diaryLastTime');
             if (diaryLastEl) diaryLastEl.textContent = formatTimeAgo(lastDiary);
+            const foodLastEl = document.getElementById('foodLastTime');
+            if (foodLastEl) foodLastEl.textContent = formatTimeAgo(lastFood);
             if (typeof refreshBookViewer === 'function') refreshBookViewer();
             if (typeof renderDiaryBook === 'function' && document.getElementById('diaryBookModal').classList.contains('active')) {
                 renderDiaryBook();
@@ -3632,6 +3909,210 @@
         });
 
         // ==========================================
+        // --- ETEN & DRINKEN (ABD) ---
+        // ==========================================
+        // Simpel logboek voor vast eten en drinken, met een klein "dossier": wat is al geprobeerd en hoe ging het.
+        const foodModal = document.getElementById('foodModal');
+        const saveFoodBtn = document.getElementById('saveFoodBtn');
+        const deleteFoodBtn = document.getElementById('deleteFoodBtn');
+        const foodWhatInput = document.getElementById('foodWhat');
+        const foodNewInput = document.getElementById('foodNew');
+        const FOOD_RATINGS = { 'lekker': '😋', 'ging wel': '😐', 'niet lekker': '😖' };
+        let currentEditFood = null;
+        let foodType = 'eten';
+        let foodRating = '';
+
+        function foodEntries() {
+            return timelineData.filter(i => i.title === 'Eten' || i.title === 'Drinken');
+        }
+        function foodTypeOf(item) {
+            return item.foodType || (item.title === 'Drinken' ? 'drinken' : 'eten');
+        }
+
+        function setFoodType(type) {
+            foodType = type;
+            document.querySelectorAll('#foodTypeControl .segment-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+            const drink = type === 'drinken';
+            document.getElementById('foodWhatLabel').textContent = drink ? 'Wat heeft ze gedronken?' : 'Wat heeft ze gegeten?';
+            foodWhatInput.placeholder = drink ? 'Bijv. water' : 'Bijv. wortelhapje';
+            document.getElementById('foodAmount').placeholder = drink ? 'Bijv. 30 ml' : 'Bijv. 4 lepels';
+            renderFoodSuggestions();
+        }
+
+        function setFoodRating(rating) {
+            foodRating = rating || '';
+            document.querySelectorAll('#foodRating .food-rate-btn').forEach(b => b.classList.toggle('active', b.dataset.rating === foodRating));
+        }
+
+        // Snelkeuze: eerder ingevulde producten van hetzelfde soort (nieuwste eerst)
+        function renderFoodSuggestions() {
+            const seen = new Set();
+            const names = [];
+            foodEntries()
+                .filter(i => foodTypeOf(i) === foodType)
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .forEach(i => {
+                    const name = (i.foodWhat || '').trim();
+                    if (name && !seen.has(name.toLowerCase())) { seen.add(name.toLowerCase()); names.push(name); }
+                });
+            document.getElementById('foodSuggestions').innerHTML = names.slice(0, 8)
+                .map(n => `<button type="button" class="chip">${escapeHtml(n)}</button>`).join('');
+        }
+
+        function isKnownFood(name) {
+            const key = name.trim().toLowerCase();
+            return !!key && foodEntries().some(i => i !== currentEditFood && (i.foodWhat || '').trim().toLowerCase() === key);
+        }
+
+        // Dossier: per product sinds wanneer, hoe vaak en hoe het de laatste keer ging
+        function renderFoodHistory() {
+            const groups = new Map();
+            foodEntries()
+                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                .forEach(i => {
+                    const name = (i.foodWhat || '').trim();
+                    if (!name) return;
+                    const key = name.toLowerCase();
+                    if (!groups.has(key)) groups.set(key, { name, first: i.timestamp, count: 0, last: '', type: foodTypeOf(i) });
+                    const g = groups.get(key);
+                    g.count++;
+                    if (i.foodRating) g.last = i.foodRating;
+                });
+            const rows = [...groups.values()].sort((a, b) => new Date(b.first) - new Date(a.first));
+            document.getElementById('foodHistoryCount').textContent = rows.length ? `(${rows.length})` : '';
+            document.getElementById('foodHistoryList').innerHTML = rows.length
+                ? rows.map(g => `<div class="food-history-row"><span>${g.type === 'drinken' ? '🥤' : '🥄'} ${escapeHtml(g.name)} ${FOOD_RATINGS[g.last] || ''}</span><small>${g.count}× · sinds ${getDutchDateShort(new Date(g.first))}</small></div>`).join('')
+                : '<div style="padding: 8px 0; color: var(--text-light);">Nog niets vastgelegd.</div>';
+        }
+
+        function openFoodEditor(item) {
+            currentEditFood = item || null;
+            const local = item ? new Date(item.timestamp) : new Date();
+            local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+            const iso = local.toISOString();
+            foodModal.dataset.date = iso.slice(0, 10);
+            document.getElementById('foodTime').value = iso.slice(11, 16);
+            setFoodType(item ? foodTypeOf(item) : 'eten');
+            foodWhatInput.value = item ? (item.foodWhat || '') : '';
+            document.getElementById('foodAmount').value = item ? (item.foodAmount || '') : '';
+            setFoodRating(item ? item.foodRating : '');
+            foodNewInput.checked = !!(item && item.foodNew);
+            renderFoodHistory();
+            saveFoodBtn.innerHTML = item ? 'Bijwerken' : 'Opslaan';
+            deleteFoodBtn.style.display = item ? 'block' : 'none';
+            disarmFoodDelete();
+            foodModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFoodEditor() {
+            foodModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('openFoodModalBtn').addEventListener('click', () => openFoodEditor(null));
+        document.getElementById('closeFoodModalBtn').addEventListener('click', closeFoodEditor);
+        foodModal.addEventListener('click', (e) => { if (e.target === foodModal) closeFoodEditor(); });
+        document.getElementById('foodTypeControl').addEventListener('click', (e) => {
+            const b = e.target.closest('.segment-btn');
+            if (b) setFoodType(b.dataset.type);
+        });
+        document.getElementById('foodRating').addEventListener('click', (e) => {
+            const b = e.target.closest('.food-rate-btn');
+            if (b) setFoodRating(b.dataset.rating === foodRating ? '' : b.dataset.rating);
+        });
+        document.getElementById('foodSuggestions').addEventListener('click', (e) => {
+            const chip = e.target.closest('.chip');
+            if (!chip) return;
+            foodWhatInput.value = chip.textContent.trim();
+            if (!currentEditFood) foodNewInput.checked = false; // eerder gegeven, dus niet nieuw
+        });
+        // Bij een nieuw product dat nog nooit is gegeven, staat "eerste keer" vanzelf aan (kan worden uitgezet)
+        foodWhatInput.addEventListener('change', () => {
+            if (!currentEditFood && foodWhatInput.value.trim()) foodNewInput.checked = !isKnownFood(foodWhatInput.value);
+        });
+
+        // Verwijderen in twee tikken
+        let foodDeleteArmedTimer = null;
+        const FOOD_DELETE_LABEL = '<i class="fa-solid fa-trash-can"></i> Verwijderen';
+        function disarmFoodDelete() {
+            clearTimeout(foodDeleteArmedTimer);
+            foodDeleteArmedTimer = null;
+            deleteFoodBtn.innerHTML = FOOD_DELETE_LABEL;
+        }
+        deleteFoodBtn.addEventListener('click', async () => {
+            if (!currentEditFood) return;
+            if (!foodDeleteArmedTimer) {
+                deleteFoodBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Tik nogmaals om te verwijderen';
+                foodDeleteArmedTimer = setTimeout(disarmFoodDelete, 4000);
+                return;
+            }
+            disarmFoodDelete();
+            try {
+                deleteFoodBtn.disabled = true;
+                await deleteDoc(doc(db, 'timeline', currentEditFood.id));
+                closeFoodEditor();
+                showToast('Verwijderd', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Verwijderen mislukt. Controleer je verbinding.');
+            } finally {
+                deleteFoodBtn.disabled = false;
+            }
+        });
+
+        saveFoodBtn.addEventListener('click', async () => {
+            const what = foodWhatInput.value.trim();
+            const amount = document.getElementById('foodAmount').value.trim();
+            if (!what) {
+                showToast(foodType === 'drinken' ? 'Vul in wat ze heeft gedronken.' : 'Vul in wat ze heeft gegeten.');
+                return;
+            }
+            const timeVal = document.getElementById('foodTime').value;
+            const storedDate = foodModal.dataset.date;
+            let timeObj = new Date();
+            if (timeVal && storedDate) {
+                const parsed = new Date(`${storedDate}T${timeVal}`);
+                if (!isNaN(parsed.getTime())) {
+                    if (!currentEditFood && parsed.getTime() > Date.now()) parsed.setDate(parsed.getDate() - 1);
+                    timeObj = parsed;
+                }
+            }
+            const isNew = foodNewInput.checked;
+            const drink = foodType === 'drinken';
+            const itemData = {
+                title: drink ? 'Drinken' : 'Eten',
+                subtitle: `${format24Hour(timeObj)} - ${what}${amount ? ` (${amount})` : ''}${foodRating ? ' ' + FOOD_RATINGS[foodRating] : ''}${isNew ? ' · ⭐ eerste keer' : ''}`,
+                icon: drink ? 'fa-glass-water' : 'fa-utensils',
+                colorClass: 'c-food',
+                bgStyle: 'background-color: var(--food-soft);',
+                timestamp: timeObj.toISOString(),
+                addedBy: currentEditFood?.addedBy || getUserName(),
+                foodType,
+                foodWhat: what,
+                foodAmount: amount,
+                foodRating,
+                foodNew: isNew
+            };
+            try {
+                saveFoodBtn.disabled = true;
+                saveFoodBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opslaan...';
+                if (currentEditFood) await updateDoc(doc(db, 'timeline', currentEditFood.id), itemData);
+                else await addDoc(collection(db, 'timeline'), itemData);
+                closeFoodEditor();
+                showToast(drink ? 'Drinken opgeslagen' : 'Eten opgeslagen', 'success');
+            } catch (err) {
+                console.error('Fout bij opslaan eten/drinken:', err);
+                showToast(err.code === 'permission-denied'
+                    ? 'Opslaan mislukt: je account heeft geen toegang (database regels).'
+                    : 'Opslaan mislukt. Controleer je verbinding en probeer het opnieuw.');
+            } finally {
+                saveFoodBtn.disabled = false;
+                saveFoodBtn.innerHTML = currentEditFood ? 'Bijwerken' : 'Opslaan';
+            }
+        });
+
+        // ==========================================
         // --- VOEDEN: KEUZE TUSSEN BORST OF FLES ---
         // ==========================================
         const feedChoiceModal = document.getElementById('feedChoiceModal');
@@ -3691,6 +4172,8 @@
         let diaryPhotos = [];
         let diarySelectedMood = '';
         let diaryDirty = false;
+        // Elke video in de editor: { id, poster, mime, size, duration, chunks, driveId, file }
+        let diaryVideos = [];
 
         function updateBodyScroll() {
             const anyOpen = document.querySelector('.modal-overlay.active');
@@ -3796,8 +4279,10 @@
                 date: document.getElementById('diaryDate').value,
                 time: document.getElementById('diaryTime').value,
                 title: document.getElementById('diaryTitle').value,
+                milestone: document.getElementById('diaryMilestone').value,
                 text: document.getElementById('diaryText').value,
-                mood: diarySelectedMood
+                mood: diarySelectedMood,
+                videos: diaryVideos.filter(v => v.id).map(videoMetaOut) // nieuwe (nog niet opgeslagen) video's passen niet in een concept
             };
             const strip = (withHq) => diaryPhotos.map(p => ({ thumb: p.thumb, hq: withHq ? p.hq : null, hqId: p.hqId, driveId: p.driveId }));
             const attempts = [{ ...base, photos: strip(true) }, { ...base, photos: strip(false) }, { ...base, photos: null }];
@@ -3828,8 +4313,10 @@
             document.getElementById('diaryDate').value = iso.slice(0, 10);
             document.getElementById('diaryTime').value = iso.slice(11, 16);
             document.getElementById('diaryTitle').value = item ? (item.diaryTitle || '') : '';
+            document.getElementById('diaryMilestone').value = item ? (item.milestone || '') : '';
             document.getElementById('diaryText').value = item ? (item.diaryText || '') : '';
             diaryPhotos = photosFromItem(item);
+            diaryVideos = item && Array.isArray(item.videos) ? item.videos.map(v => ({ ...v, file: null })) : [];
             setDiaryMood(item ? item.mood : '');
         }
 
@@ -3844,7 +4331,9 @@
                 if (draft.date) document.getElementById('diaryDate').value = draft.date;
                 if (draft.time) document.getElementById('diaryTime').value = draft.time;
                 document.getElementById('diaryTitle').value = draft.title || '';
+                document.getElementById('diaryMilestone').value = draft.milestone || '';
                 document.getElementById('diaryText').value = draft.text || '';
+                if (Array.isArray(draft.videos)) diaryVideos = draft.videos.map(v => ({ ...v, file: null }));
                 if (Array.isArray(draft.photos)) {
                     diaryPhotos = draft.photos
                         .map(p => (typeof p === 'string' ? { thumb: p, hq: null, hqId: null, driveId: null } : p))
@@ -3857,6 +4346,7 @@
                 notice.style.display = 'none';
             }
             renderDiaryPhotoGrid();
+            renderDiaryVideoGrid();
 
             document.getElementById('diaryModalTitle').textContent = item ? 'Verhaal bewerken' : 'Nieuw verhaal';
             saveDiaryBtn.innerHTML = item ? 'Bijwerken' : 'Opslaan';
@@ -3878,20 +4368,23 @@
             clearDiaryDraft();
             fillDiaryForm(currentEditDiaryItem);
             renderDiaryPhotoGrid();
+            renderDiaryVideoGrid();
             diaryDirty = false;
             document.getElementById('diaryDraftNotice').style.display = 'none';
         });
 
-        // Plusje op de Dagboek-kaart = nieuw verhaal, de rest van de kaart = dagboek lezen
-        document.getElementById('openDiaryModalBtn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            openDiaryEditor(null);
-        });
         document.getElementById('diaryBookNewBtn').addEventListener('click', () => openDiaryEditor(null));
         document.getElementById('closeDiaryModalBtn').addEventListener('click', () => closeDiaryEditor(false));
         diaryModal.addEventListener('click', (e) => { if (e.target === diaryModal) closeDiaryEditor(false); });
-        ['diaryTitle', 'diaryText', 'diaryDate', 'diaryTime'].forEach(id => {
+        ['diaryTitle', 'diaryMilestone', 'diaryText', 'diaryDate', 'diaryTime'].forEach(id => {
             document.getElementById(id).addEventListener('input', () => { diaryDirty = true; });
+        });
+
+        document.getElementById('diaryMilestoneChips').addEventListener('click', (e) => {
+            const chip = e.target.closest('.chip');
+            if (!chip) return;
+            document.getElementById('diaryMilestone').value = chip.textContent.trim();
+            diaryDirty = true;
         });
 
         diaryMoodPicker.addEventListener('click', (e) => {
@@ -3978,8 +4471,10 @@
                 deleteDiaryBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                 deleteDiaryBtn.disabled = true;
                 const hqIds = getPhotoMeta(currentEditDiaryItem).map(m => m.hqId);
+                const videos = currentEditDiaryItem.videos || [];
                 await deleteDoc(doc(db, "timeline", currentEditDiaryItem.id));
                 deleteHqPhotos(hqIds); // Foto's in Google Drive blijven bewust bewaard (archief)
+                videos.forEach(deleteVideoChunks);
                 closeDiaryEditor(true);
             } catch (error) {
                 console.error("Fout bij verwijderen:", error);
@@ -3994,16 +4489,17 @@
             const dateVal = document.getElementById('diaryDate').value;
             const timeVal = document.getElementById('diaryTime').value || '12:00';
             const titleVal = document.getElementById('diaryTitle').value.trim();
+            const milestoneVal = document.getElementById('diaryMilestone').value.trim();
             const textVal = document.getElementById('diaryText').value.trim();
 
-            if (!titleVal && !textVal && diaryPhotos.length === 0) {
-                showToast('Schrijf een titel, een verhaal of voeg een foto toe.');
+            if (!titleVal && !milestoneVal && !textVal && diaryPhotos.length === 0 && diaryVideos.length === 0) {
+                showToast('Schrijf een titel, een mijlpaal of hoe de dag was, of voeg een foto of video toe.');
                 return;
             }
 
             // Drive-toegang vernieuwen moet direct in de klik gebeuren (anders blokkeert de browser de pop-up)
             let driveTokenPromise = null;
-            const needsDrive = diaryPhotos.some(p => !p.driveId);
+            const needsDrive = diaryPhotos.some(p => !p.driveId) || diaryVideos.some(v => !v.driveId);
             if (needsDrive && driveIsEnabled() && !driveTokenValid()) {
                 driveTokenPromise = requestDriveToken().catch(err => { console.warn('Drive niet beschikbaar:', err); return null; });
             }
@@ -4043,19 +4539,34 @@
                     metaOut.push({ hqId: p.hqId || null, driveId: p.driveId || null });
                 }
 
+                // 1b. Nieuwe video's in stukjes opslaan
+                const videosOut = [];
+                for (let vi = 0; vi < diaryVideos.length; vi++) {
+                    const v = diaryVideos[vi];
+                    if (!v.id && v.file) {
+                        await uploadVideoChunks(v, (pct) => {
+                            saveDiaryBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Video${diaryVideos.length > 1 ? ' ' + (vi + 1) : ''} uploaden ${pct}%`;
+                        });
+                    }
+                    if (v.id) videosOut.push(videoMetaOut(v));
+                }
+                saveDiaryBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opslaan...';
+
                 const itemData = {
                     title: 'Dagboek',
-                    subtitle: `${format24Hour(timeObj)} - ${titleVal || 'Zonder titel'}`,
+                    subtitle: `${format24Hour(timeObj)} - ${titleVal || milestoneVal || 'Zonder titel'}`,
                     icon: 'fa-book-open',
                     colorClass: 'c-diary',
                     bgStyle: 'background-color: var(--diary-soft);',
                     timestamp: timeObj.toISOString(),
                     addedBy: currentEditDiaryItem?.addedBy || getUserName(),
                     diaryTitle: titleVal,
+                    milestone: milestoneVal,
                     diaryText: textVal,
                     mood: diarySelectedMood,
                     photos: photosOut,
-                    photoMeta: metaOut
+                    photoMeta: metaOut,
+                    videos: videosOut
                 };
                 if (currentEditDiaryItem) itemData.editedBy = getUserName();
 
@@ -4072,6 +4583,8 @@
                     // Verwijderde foto's opruimen
                     const kept = new Set(metaOut.map(m => m.hqId).filter(Boolean));
                     deleteHqPhotos(getPhotoMeta(currentEditDiaryItem).map(m => m.hqId).filter(id => id && !kept.has(id)));
+                    const keptVideos = new Set(videosOut.map(v => v.id));
+                    (currentEditDiaryItem.videos || []).filter(v => !keptVideos.has(v.id)).forEach(deleteVideoChunks);
                 } else {
                     entryId = (await addDoc(collection(db, "timeline"), itemData)).id;
                 }
@@ -4079,6 +4592,7 @@
                 // 3. Originelen naar Google Drive (op de achtergrond)
                 const originals = diaryPhotos.map(p => p.original || null);
                 const hqs = diaryPhotos.map(p => p.hq || null);
+                const videoFiles = diaryVideos.filter(v => v.id).map(v => v.file || null);
                 closeDiaryEditor(true);
                 showToast(currentEditDiaryItem ? 'Verhaal bijgewerkt' : 'Verhaal opgeslagen in het dagboek', 'success');
 
@@ -4089,7 +4603,7 @@
                 if (driveIsEnabled() && needsDrive) {
                     const token = driveTokenValid() ? driveToken.token : (driveTokenPromise ? await driveTokenPromise : null);
                     if (token) {
-                        syncEntryToDrive(entryId, itemData, originals, hqs)
+                        syncEntryToDrive(entryId, itemData, originals, hqs, videoFiles)
                             .catch(err => console.warn('Uploaden naar Drive mislukt:', err))
                             .finally(renderDriveStatus);
                     }
@@ -4101,7 +4615,7 @@
                     'unauthenticated': 'Opslaan mislukt: je bent niet (meer) ingelogd. Log opnieuw in en probeer het nog eens.',
                     'unavailable': 'Opslaan mislukt: geen verbinding met de database. Controleer je internet.',
                     'invalid-argument': 'Opslaan mislukt: het verhaal is te groot. Verwijder een foto en probeer het opnieuw.',
-                    'resource-exhausted': 'Opslaan mislukt: het verhaal is te groot. Verwijder een foto en probeer het opnieuw.'
+                    'resource-exhausted': 'Opslaan mislukt: de database is vol of het verhaal is te groot. Verwijder een foto of video.'
                 };
                 showToast(reasons[error.code] || `Opslaan mislukt (${error.code || error.message}). Probeer het opnieuw.`);
             } finally {
@@ -4201,9 +4715,20 @@
         }
 
         // Upload alle foto's van één verhaal die nog niet in Drive staan
-        async function syncEntryToDrive(entryId, item, originals = [], hqs = []) {
+        async function syncEntryToDrive(entryId, item, originals = [], hqs = [], videoFiles = []) {
             const meta = getPhotoMeta(item);
+            const videos = Array.isArray(item.videos) ? item.videos.map(v => ({ ...v })) : [];
             let changed = false;
+            for (let i = 0; i < videos.length; i++) {
+                if (videos[i].driveId) continue;
+                const blob = videoFiles[i] || await loadVideoBlob(videos[i]);
+                const ext = videoExtension(videos[i].mime);
+                const d = new Date(item.timestamp);
+                const pad = n => String(n).padStart(2, '0');
+                const title = (item.diaryTitle || item.milestone || 'Dagboek').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'Dagboek';
+                videos[i].driveId = await uploadToDrive(blob, `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${title} (video ${i + 1}).${ext}`, item.diaryTitle || '');
+                changed = true;
+            }
             for (let i = 0; i < meta.length; i++) {
                 if (meta[i].driveId) continue;
                 let blob = originals[i];
@@ -4215,14 +4740,14 @@
                 meta[i].driveId = await uploadToDrive(blob, driveFileName(item, i, blob), desc);
                 changed = true;
             }
-            if (changed) await updateDoc(doc(db, 'timeline', entryId), { photoMeta: meta });
+            if (changed) await updateDoc(doc(db, 'timeline', entryId), { photoMeta: meta, videos });
             return changed;
         }
 
         function countPhotosNotInDrive() {
             return timelineData
                 .filter(i => i.title === 'Dagboek')
-                .reduce((sum, item) => sum + getPhotoMeta(item).filter(m => !m.driveId).length, 0);
+                .reduce((sum, item) => sum + getPhotoMeta(item).filter(m => !m.driveId).length + (item.videos || []).filter(v => !v.driveId).length, 0);
         }
 
         function renderDriveStatus() {
@@ -4245,7 +4770,7 @@
             }
             const pending = countPhotosNotInDrive();
             if (pending > 0) {
-                status.textContent = `${pending} foto${pending === 1 ? '' : "'s"} nog niet in Google Drive.`;
+                status.textContent = `${pending} ${pending === 1 ? "foto/video" : "foto's/video's"} nog niet in Google Drive.`;
                 btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Uploaden';
             } else {
                 status.textContent = "Alle foto's staan in je Google Drive.";
@@ -4256,7 +4781,7 @@
         async function syncAllToDrive() {
             const btn = document.getElementById('diaryDriveBtn');
             const status = document.getElementById('diaryDriveStatus');
-            const entries = timelineData.filter(i => i.title === 'Dagboek' && getPhotoMeta(i).some(m => !m.driveId));
+            const entries = timelineData.filter(i => i.title === 'Dagboek' && (getPhotoMeta(i).some(m => !m.driveId) || (i.videos || []).some(v => !v.driveId)));
             const total = countPhotosNotInDrive();
             let done = 0;
             driveSyncBusy = true;
@@ -4265,7 +4790,7 @@
             try {
                 for (const item of entries) {
                     status.textContent = `Uploaden naar Google Drive... (${done} van ${total})`;
-                    const before = getPhotoMeta(item).filter(m => !m.driveId).length;
+                    const before = getPhotoMeta(item).filter(m => !m.driveId).length + (item.videos || []).filter(v => !v.driveId).length;
                     await syncEntryToDrive(item.id, item);
                     done += before;
                 }
@@ -4296,6 +4821,255 @@
                 renderDriveStatus();
             }
         });
+
+        // ==========================================
+        // --- VIDEO'S IN HET DAGBOEK ---
+        // ==========================================
+        // Video's worden in stukjes van ±900 KB als losse documenten in "diary_photos" bewaard
+        // (Firestore staat max 1 MB per document toe). Alleen korte filmpjes, zodat de database niet volloopt.
+        const DIARY_MAX_VIDEOS = 2;
+        const DIARY_VIDEO_MAX_BYTES = 25 * 1024 * 1024;
+        const VIDEO_CHUNK_BYTES = 900 * 1024;
+        const diaryVideoGrid = document.getElementById('diaryVideoGrid');
+        const diaryVideoInput = document.getElementById('diaryVideoInput');
+        const videoBlobCache = new Map(); // videoId -> Promise<Blob>
+        const videoUrlCache = new Map();  // videoId -> object-URL
+
+        function videoMetaOut(v) {
+            return { id: v.id, poster: v.poster || null, mime: v.mime || 'video/mp4', size: v.size || 0, duration: v.duration || 0, chunks: v.chunks || 0, driveId: v.driveId || null };
+        }
+        function videoExtension(mime) {
+            if (/quicktime/.test(mime || '')) return 'mov';
+            if (/webm/.test(mime || '')) return 'webm';
+            if (/3gpp/.test(mime || '')) return '3gp';
+            return 'mp4';
+        }
+        function formatDuration(sec) {
+            if (!sec) return '';
+            const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+            return `${m}:${String(s).padStart(2, '0')}`;
+        }
+
+        // Eerste beeld en duur van een video bepalen (voor de voorvertoning)
+        function makeVideoPoster(file) {
+            return new Promise((resolve) => {
+                const url = URL.createObjectURL(file);
+                const video = document.createElement('video');
+                video.muted = true;
+                video.playsInline = true;
+                video.setAttribute('playsinline', '');
+                video.preload = 'auto';
+                let done = false;
+                const finish = (poster) => {
+                    if (done) return;
+                    done = true;
+                    const duration = isFinite(video.duration) ? video.duration : 0;
+                    URL.revokeObjectURL(url);
+                    video.removeAttribute('src');
+                    video.load();
+                    resolve({ poster, duration });
+                };
+                const timer = setTimeout(() => finish(null), 8000);
+                video.addEventListener('loadedmetadata', () => {
+                    try { video.currentTime = Math.min(0.5, (video.duration || 1) / 2); } catch (e) { /* negeren */ }
+                });
+                video.addEventListener('seeked', () => {
+                    try {
+                        const scale = Math.min(1, 640 / Math.max(video.videoWidth, video.videoHeight));
+                        const c = document.createElement('canvas');
+                        c.width = Math.round(video.videoWidth * scale);
+                        c.height = Math.round(video.videoHeight * scale);
+                        c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
+                        clearTimeout(timer);
+                        finish(c.width ? c.toDataURL('image/jpeg', 0.75) : null);
+                    } catch (e) {
+                        clearTimeout(timer);
+                        finish(null);
+                    }
+                });
+                video.addEventListener('error', () => { clearTimeout(timer); finish(null); });
+                video.src = url;
+            });
+        }
+
+        function renderDiaryVideoGrid() {
+            let html = diaryVideos.map((v, idx) => `
+                <div class="diary-photo-thumb">
+                    ${v.poster ? `<img src="${v.poster}" alt="Video ${idx + 1}">` : '<div style="width: 100%; height: 100%; background: #333;"></div>'}
+                    <span class="video-thumb-badge"><i class="fa-solid fa-play"></i></span>
+                    ${v.duration ? `<span class="video-thumb-dur">${formatDuration(v.duration)}</span>` : ''}
+                    <button type="button" class="diary-photo-remove" data-remove-video="${idx}" title="Video verwijderen"><i class="fa-solid fa-xmark"></i></button>
+                </div>`).join('');
+            if (diaryVideos.length < DIARY_MAX_VIDEOS) {
+                html += `<button type="button" class="diary-photo-add" id="diaryVideoAddBtn"><i class="fa-solid fa-video"></i><span>Video</span></button>`;
+            }
+            diaryVideoGrid.innerHTML = html;
+        }
+
+        diaryVideoGrid.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('[data-remove-video]');
+            if (removeBtn) {
+                diaryVideos.splice(parseInt(removeBtn.dataset.removeVideo, 10), 1);
+                diaryDirty = true;
+                renderDiaryVideoGrid();
+                return;
+            }
+            if (e.target.closest('#diaryVideoAddBtn')) diaryVideoInput.click();
+        });
+
+        diaryVideoInput.addEventListener('change', async () => {
+            const file = diaryVideoInput.files && diaryVideoInput.files[0];
+            diaryVideoInput.value = '';
+            if (!file) return;
+            if (file.size > DIARY_VIDEO_MAX_BYTES) {
+                showToast(`Deze video is te groot (${(file.size / 1024 / 1024).toFixed(0)} MB). Maximaal 25 MB, dat is ongeveer 20 seconden. Kort hem in via je Foto's-app en probeer het opnieuw.`);
+                return;
+            }
+            const hint = document.getElementById('diaryVideoHint');
+            const oldHint = hint.textContent;
+            hint.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video voorbereiden...';
+            saveDiaryBtn.disabled = true;
+            try {
+                const { poster, duration } = await makeVideoPoster(file);
+                diaryVideos.push({ id: null, poster, mime: file.type || 'video/mp4', size: file.size, duration, chunks: 0, driveId: null, file });
+                diaryDirty = true;
+            } finally {
+                saveDiaryBtn.disabled = false;
+                hint.textContent = oldHint;
+                renderDiaryVideoGrid();
+            }
+        });
+
+        // Video in stukjes opslaan; zet v.id en v.chunks als het gelukt is
+        async function uploadVideoChunks(v, onProgress) {
+            const id = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+            const bytes = new Uint8Array(await v.file.arrayBuffer());
+            const total = Math.ceil(bytes.length / VIDEO_CHUNK_BYTES);
+            let written = 0;
+            try {
+                for (let i = 0; i < total; i++) {
+                    await setDoc(doc(db, 'diary_photos', `vid_${id}_${i}`), {
+                        kind: 'video',
+                        videoId: id,
+                        index: i,
+                        total,
+                        data: Bytes.fromUint8Array(bytes.subarray(i * VIDEO_CHUNK_BYTES, (i + 1) * VIDEO_CHUNK_BYTES)),
+                        createdAt: new Date().toISOString(),
+                        addedBy: getUserName()
+                    });
+                    written++;
+                    if (onProgress) onProgress(Math.round(written / total * 100));
+                }
+            } catch (err) {
+                // Half geüploade stukjes opruimen
+                for (let i = 0; i < written; i++) deleteDoc(doc(db, 'diary_photos', `vid_${id}_${i}`)).catch(() => {});
+                throw err;
+            }
+            v.id = id;
+            v.chunks = total;
+            videoBlobCache.set(id, Promise.resolve(v.file));
+        }
+
+        function deleteVideoChunks(v) {
+            if (!v || !v.id) return;
+            videoBlobCache.delete(v.id);
+            for (let i = 0; i < (v.chunks || 0); i++) {
+                deleteDoc(doc(db, 'diary_photos', `vid_${v.id}_${i}`)).catch(err => console.warn('Video-deel opruimen mislukt:', err));
+            }
+        }
+
+        // Video weer in elkaar zetten uit de stukjes (4 tegelijk downloaden)
+        function loadVideoBlob(v, onProgress) {
+            if (!videoBlobCache.has(v.id)) {
+                const p = (async () => {
+                    const parts = new Array(v.chunks);
+                    let next = 0, done = 0;
+                    const worker = async () => {
+                        while (next < v.chunks) {
+                            const i = next++;
+                            const snap = await getDoc(doc(db, 'diary_photos', `vid_${v.id}_${i}`));
+                            if (!snap.exists()) throw new Error('Een deel van de video ontbreekt');
+                            parts[i] = snap.data().data.toUint8Array();
+                            done++;
+                            if (onProgress) onProgress(Math.round(done / v.chunks * 100));
+                        }
+                    };
+                    await Promise.all(Array.from({ length: Math.min(4, v.chunks) }, worker));
+                    return new Blob(parts, { type: v.mime || 'video/mp4' });
+                })();
+                p.catch(() => videoBlobCache.delete(v.id));
+                videoBlobCache.set(v.id, p);
+            }
+            return videoBlobCache.get(v.id);
+        }
+
+        // Grote foto's en video's per verhaal, om doorheen te vegen (zoals in 24baby)
+        function renderMediaCarousel(item) {
+            const photos = Array.isArray(item.photos) ? item.photos : [];
+            const videos = Array.isArray(item.videos) ? item.videos : [];
+            const meta = getPhotoMeta(item);
+            const slides = [];
+            const RATIO = `onload="if(this.naturalWidth>this.naturalHeight*1.1)this.closest('.media-track').classList.add('landscape')"`;
+            photos.forEach((src, idx) => slides.push(
+                `<div class="media-slide"><img src="${src}" data-photo="${item.id}|${idx}" ${meta[idx].hqId ? `data-hq="${item.id}|${idx}"` : ''} alt="Foto" ${idx === 0 ? RATIO : 'loading="lazy"'}></div>`));
+            videos.forEach((v, idx) => slides.push(
+                `<div class="media-slide">${v.poster ? `<img src="${v.poster}" alt="Video" ${!photos.length && idx === 0 ? RATIO : ''}>` : '<div style="width: 100%; height: 100%; background: #222;"></div>'}
+                    <div class="media-play" data-play-video="${item.id}|${idx}"><span><i class="fa-solid fa-play"></i></span>${v.duration ? `<small>${formatDuration(v.duration)}</small>` : ''}</div></div>`));
+            if (!slides.length) return '';
+            const multi = slides.length > 1;
+            return `<div class="media-carousel">
+                <div class="media-track">${slides.join('')}</div>
+                ${multi ? `<div class="media-count">1/${slides.length}</div>` : ''}
+                ${multi ? `<div class="media-dots">${slides.map((_, i) => `<span class="${i === 0 ? 'active' : ''}"></span>`).join('')}</div>` : ''}
+            </div>`;
+        }
+
+        function setupMediaDots() {
+            diaryBookList.querySelectorAll('.media-carousel').forEach(car => {
+                const track = car.querySelector('.media-track');
+                const slides = track.querySelectorAll('.media-slide');
+                if (slides.length < 2) return;
+                const dots = [...car.querySelectorAll('.media-dots span')];
+                const count = car.querySelector('.media-count');
+                track.addEventListener('scroll', () => {
+                    const i = Math.round(track.scrollLeft / track.clientWidth);
+                    dots.forEach((d, k) => d.classList.toggle('active', k === i));
+                    if (count) count.textContent = `${i + 1}/${slides.length}`;
+                }, { passive: true });
+            });
+        }
+
+        async function playVideoInSlide(el) {
+            const [entryId, idx] = el.dataset.playVideo.split('|');
+            const item = timelineData.find(i => i.id === entryId);
+            const v = item && item.videos && item.videos[parseInt(idx, 10)];
+            if (!v) return;
+            const slide = el.closest('.media-slide');
+            const span = el.querySelector('span');
+            const attr = el.dataset.playVideo;
+            el.removeAttribute('data-play-video'); // niet twee keer laden
+            span.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            try {
+                let url = videoUrlCache.get(v.id);
+                if (!url) {
+                    const blob = await loadVideoBlob(v, pct => {
+                        span.innerHTML = `<b style="font-size: 14px;">${pct}%</b>`;
+                    });
+                    url = URL.createObjectURL(blob);
+                    videoUrlCache.set(v.id, url);
+                }
+                slide.innerHTML = `<video src="${url}" controls playsinline autoplay ${v.poster ? `poster="${v.poster}"` : ''}></video>`;
+                const videoEl = slide.querySelector('video');
+                videoEl.addEventListener('error', () => {
+                    showToast('Deze video kan op dit apparaat niet worden afgespeeld (videoformaat). Op de telefoon waarmee hij is gemaakt werkt hij wel.');
+                });
+            } catch (err) {
+                console.error('Video laden mislukt:', err);
+                el.dataset.playVideo = attr;
+                span.innerHTML = '<i class="fa-solid fa-play"></i>';
+                showToast('De video kon niet worden geladen. Controleer je verbinding en probeer het opnieuw.');
+            }
+        }
 
         // ==========================================
         // --- DAGBOEK LEZEN ---
@@ -4344,17 +5118,19 @@
             imgs.forEach(img => diaryHqObserver.observe(img));
         }
 
+        let diaryOnlyMilestones = false;
         function renderDiaryBook() {
             renderDriveStatus();
             const term = diaryBookSearch.value.trim().toLowerCase();
             const entries = timelineData
                 .filter(i => i.title === 'Dagboek')
-                .filter(i => !term || `${i.diaryTitle || ''} ${i.diaryText || ''} ${i.mood || ''}`.toLowerCase().includes(term))
+                .filter(i => !diaryOnlyMilestones || i.milestone)
+                .filter(i => !term || `${i.diaryTitle || ''} ${i.milestone || ''} ${i.diaryText || ''} ${i.mood || ''}`.toLowerCase().includes(term))
                 .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
             if (entries.length === 0) {
-                diaryBookList.innerHTML = term
-                    ? `<div class="diary-book-empty"><i class="fa-solid fa-magnifying-glass"></i>Niets gevonden voor "${escapeHtml(term)}".</div>`
+                diaryBookList.innerHTML = (term || diaryOnlyMilestones)
+                    ? `<div class="diary-book-empty"><i class="fa-solid fa-magnifying-glass"></i>${diaryOnlyMilestones && !term ? 'Nog geen mijlpalen vastgelegd.' : `Niets gevonden voor "${escapeHtml(term)}".`}</div>`
                     : `<div class="diary-book-empty"><i class="fa-solid fa-book-open"></i>Het dagboek is nog leeg.<br>Tik op <strong>Nieuw verhaal</strong> om het eerste verhaal toe te voegen.</div>`;
                 return;
             }
@@ -4370,26 +5146,20 @@
                     html += `<div class="diary-book-month">${monthKey}</div>`;
                 }
                 const mood = item.mood && DIARY_MOODS[item.mood] ? `<span class="diary-entry-mood">${DIARY_MOODS[item.mood]} ${escapeHtml(item.mood)}</span>` : '';
-                const photos = Array.isArray(item.photos) ? item.photos : [];
-                const meta = getPhotoMeta(item);
-                const photosHtml = photos.length
-                    ? `<div class="diary-entry-photos ${photos.length === 1 ? 'single' : ''}">${photos.map((src, idx) =>
-                        `<img src="${src}" data-photo="${item.id}|${idx}" ${meta[idx].hqId ? `data-hq="${item.id}|${idx}"` : ''} alt="Foto" loading="lazy">`).join('')}</div>`
-                    : '';
+                const photosHtml = renderMediaCarousel(item);
                 const by = item.addedBy ? `<div class="diary-entry-by"><i class="fa-regular fa-user"></i> ${escapeHtml(item.addedBy)}${item.editedBy && item.editedBy !== item.addedBy ? ` · bewerkt door ${escapeHtml(item.editedBy)}` : ''}</div>` : '';
 
                 html += `
                     <div class="diary-entry" id="diary-entry-${item.id}">
                         <div class="diary-entry-head">
-                            <div>
-                                <div class="diary-entry-date">${diaryDateLine(d)}</div>
-                                <div class="diary-entry-title">${escapeHtml(item.diaryTitle || 'Zonder titel')}${mood}${item.pageStyle ? '<span class="diary-entry-inbook"><i class="fa-solid fa-book"></i> in boek</span>' : ''}</div>
-                            </div>
+                            <div class="diary-entry-date">${diaryDateLine(d)}</div>
                             <div class="diary-entry-actions">
                                 <button class="diary-entry-edit" data-page="${item.id}" title="Maak een pagina"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
                                 <button class="diary-entry-edit" data-edit="${item.id}" title="Bewerken"><i class="fa-solid fa-pen"></i></button>
                             </div>
                         </div>
+                        ${item.milestone ? `<div class="diary-milestone-badge">⭐ ${escapeHtml(item.milestone)}</div>` : ''}
+                        ${item.diaryTitle || !item.milestone ? `<div class="diary-entry-title">${escapeHtml(item.diaryTitle || 'Zonder titel')}${mood}${item.pageStyle ? '<span class="diary-entry-inbook"><i class="fa-solid fa-book"></i> in boek</span>' : ''}</div>` : (mood || item.pageStyle ? `<div class="diary-entry-title" style="font-size: 14px;">${mood}${item.pageStyle ? '<span class="diary-entry-inbook"><i class="fa-solid fa-book"></i> in boek</span>' : ''}</div>` : '')}
                         ${item.diaryText ? `<div class="diary-entry-text">${escapeHtml(item.diaryText)}</div>` : ''}
                         ${photosHtml}
                         ${by}
@@ -4397,6 +5167,7 @@
             });
             diaryBookList.innerHTML = html;
             observeHqImages();
+            setupMediaDots();
         }
 
         function openDiaryBook(scrollToId) {
@@ -4418,10 +5189,14 @@
             updateBodyScroll();
         }
 
-        document.getElementById('openDiaryBookBtn').addEventListener('click', () => openDiaryBook());
-        document.getElementById('closeDiaryBookBtn').addEventListener('click', closeDiaryBook);
-        diaryBookModal.addEventListener('click', (e) => { if (e.target === diaryBookModal) closeDiaryBook(); });
+        // Het dagboek is nu een eigen app-pagina: de knop linksboven gaat terug naar het keuzescherm
+        document.getElementById('closeDiaryBookBtn').addEventListener('click', () => showApp('chooser'));
         diaryBookSearch.addEventListener('input', renderDiaryBook);
+        document.getElementById('diaryMilestoneFilter').addEventListener('click', (e) => {
+            diaryOnlyMilestones = !diaryOnlyMilestones;
+            e.currentTarget.classList.toggle('active', diaryOnlyMilestones);
+            renderDiaryBook();
+        });
 
         diaryBookList.addEventListener('click', (e) => {
             const pageBtn = e.target.closest('[data-page]');
@@ -4434,6 +5209,11 @@
             if (editBtn) {
                 const item = timelineData.find(i => i.id === editBtn.dataset.edit);
                 if (item) openDiaryEditor(item);
+                return;
+            }
+            const vid = e.target.closest('[data-play-video]');
+            if (vid) {
+                playVideoInSlide(vid);
                 return;
             }
             const img = e.target.closest('[data-photo]');
@@ -4472,6 +5252,8 @@
             .ex-date { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 12px; color: #999; }
             .ex-title { font-size: 24px; margin: 4px 0 10px; }
             .ex-mood { font-size: 14px; color: #777; margin-left: 6px; }
+            .ex-milestone { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; display: inline-block; margin-top: 6px; background: #fff4d6; color: #a86b00; border-radius: 10px; padding: 3px 10px; font-size: 13px; font-weight: 700; }
+            .ex-video { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 12px; color: #999; margin-top: 8px; }
             .ex-text { font-size: 16px; line-height: 1.65; white-space: pre-wrap; }
             .ex-photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 14px; }
             .ex-photos.single { grid-template-columns: 1fr; }
@@ -4516,9 +5298,11 @@
                 const mood = item.mood && DIARY_MOODS[item.mood] ? `<span class="ex-mood">${DIARY_MOODS[item.mood]} ${escapeHtml(item.mood)}</span>` : '';
                 html += `<div class="ex-entry">
                     <div class="ex-date">${diaryDateLine(d)}</div>
-                    <div class="ex-title">${escapeHtml(item.diaryTitle || 'Zonder titel')}${mood}</div>
+                    ${item.milestone ? `<div class="ex-milestone">⭐ ${escapeHtml(item.milestone)}</div>` : ''}
+                    <div class="ex-title">${escapeHtml(item.diaryTitle || item.milestone || 'Zonder titel')}${mood}</div>
                     ${item.diaryText ? `<div class="ex-text">${escapeHtml(item.diaryText)}</div>` : ''}
                     ${hqList.length ? `<div class="ex-photos ${hqList.length === 1 ? 'single' : ''}">${hqList.map(src => `<img src="${src}" alt="Foto">`).join('')}</div>` : ''}
+                    ${(item.videos || []).length ? `<div class="ex-video">🎬 ${item.videos.length} video${item.videos.length === 1 ? '' : "'s"} (te bekijken in de app)</div>` : ''}
                     ${item.addedBy ? `<div class="ex-by">Geschreven door ${escapeHtml(item.addedBy)}</div>` : ''}
                 </div>`;
             }
@@ -4775,7 +5559,8 @@
             const innerW = W - pad * 2;
             const text = opts.showText ? (item.diaryText || '') : '';
             const moodEmoji = item.mood && DIARY_MOODS[item.mood] ? ' ' + DIARY_MOODS[item.mood] : '';
-            const title = (item.diaryTitle || 'Zonder titel') + moodEmoji;
+            const title = (item.diaryTitle || item.milestone || 'Zonder titel') + moodEmoji;
+            const milestoneLine = item.milestone && item.diaryTitle ? '⭐ ' + item.milestone : '';
             const dateLine = diaryDateLine(d);
 
             // Achtergrond
@@ -4819,6 +5604,11 @@
                 ctx.fillStyle = 'rgba(255,255,255,0.88)';
                 ctx.textBaseline = 'top';
                 ctx.fillText(dateLine, pad, photoH - 50 - tH - 44);
+                if (milestoneLine) {
+                    ctx.font = `800 32px ${PAGE_SANS}`;
+                    ctx.fillStyle = '#ffd27a';
+                    ctx.fillText(milestoneLine, pad, photoH - 50 - tH - 92);
+                }
                 if (text) {
                     const top = photoH + 56;
                     const fit = pageFitText(ctx, text, tpl.bodyFont, innerW, bottomLimit - top, 44, 28, 1.5);
@@ -4835,8 +5625,14 @@
             const centered = opts.template === 'klassiek';
             ctx.textAlign = centered ? 'center' : 'left';
             ctx.fillText(dateLine, centered ? W / 2 : pad, y);
-            ctx.textAlign = 'left';
             y += 50;
+            if (milestoneLine) {
+                ctx.font = `800 34px ${PAGE_SANS}`;
+                ctx.fillStyle = '#c98a00';
+                ctx.fillText(milestoneLine, centered ? W / 2 : pad, y);
+                y += 52;
+            }
+            ctx.textAlign = 'left';
             const tFit = pageFitText(ctx, title, tpl.titleFont, innerW, 180, opts.template === 'plakboek' ? 72 : 68, 40, 1.2);
             y += pageDrawLines(ctx, tFit, pad, y, tpl.text, centered ? 'center' : 'left', innerW);
             if (centered) {
